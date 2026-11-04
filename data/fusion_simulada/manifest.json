@@ -1,0 +1,79 @@
+{
+  "version": 2,
+  "source": "synthetic",
+  "telemetry_hz": 1,
+  "window_s": 120,
+  "stride_s": 5,
+  "features": [
+    "hr_last",
+    "hr_mean_30s",
+    "hr_sd_30s",
+    "hr_slope_30s",
+    "hr_mean_120s",
+    "hr_sd_120s",
+    "hr_slope_120s",
+    "rr_last",
+    "rr_mean_30s",
+    "rr_sd_30s",
+    "rr_slope_30s",
+    "rr_mean_120s",
+    "rr_sd_120s",
+    "rr_slope_120s",
+    "co2_last",
+    "co2_mean_30s",
+    "co2_sd_30s",
+    "co2_slope_30s",
+    "co2_mean_120s",
+    "co2_sd_120s",
+    "co2_slope_120s",
+    "activity",
+    "phase_duration_s",
+    "hr_delta",
+    "rr_delta"
+  ],
+  "target": "pattern",
+  "splits": {
+    "train": {
+      "profiles": 20,
+      "sessions": 80,
+      "windows": 6306,
+      "classes": {
+        "baseline_expected": 3409,
+        "activity_expected": 1822,
+        "persistent_recovery_deviation": 476,
+        "combined_cabin_physiology_pattern": 599
+      }
+    },
+    "validation": {
+      "profiles": 5,
+      "sessions": 20,
+      "windows": 1570,
+      "classes": {
+        "baseline_expected": 895,
+        "activity_expected": 421,
+        "persistent_recovery_deviation": 130,
+        "combined_cabin_physiology_pattern": 124
+      }
+    },
+    "test": {
+      "profiles": 5,
+      "sessions": 20,
+      "windows": 1594,
+      "classes": {
+        "baseline_expected": 905,
+        "activity_expected": 421,
+        "persistent_recovery_deviation": 128,
+        "combined_cabin_physiology_pattern": 140
+      }
+    }
+  },
+  "telemetry_rows": 108000,
+  "status_counts": {
+    "calibracion": 2880,
+    "candidata": 9470,
+    "transicion": 6650,
+    "senal_insuficiente": 1152,
+    "patrones_coincidentes": 1444,
+    "contraste_debil": 4
+  }
+}

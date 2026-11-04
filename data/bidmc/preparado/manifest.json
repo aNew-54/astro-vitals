@@ -1,0 +1,51 @@
+{
+  "source_version": "BIDMC 1.0.0",
+  "preparation_version": 1,
+  "features": [
+    "hr_last",
+    "hr_mean_30s",
+    "hr_sd_30s",
+    "hr_slope_30s",
+    "hr_mean_120s",
+    "hr_sd_120s",
+    "hr_slope_120s",
+    "rr_last",
+    "rr_mean_30s",
+    "rr_sd_30s",
+    "rr_slope_30s",
+    "rr_mean_120s",
+    "rr_sd_120s",
+    "rr_slope_120s"
+  ],
+  "target": "target_hr_bpm",
+  "horizon_s": 60,
+  "split_by": "MIMIC II matched wdb ID",
+  "splits": {
+    "train": {
+      "participants": 32,
+      "records": 39,
+      "records_with_windows": 38,
+      "participants_with_windows": 31,
+      "windows": 2316
+    },
+    "validation": {
+      "participants": 7,
+      "records": 7,
+      "records_with_windows": 7,
+      "participants_with_windows": 7,
+      "windows": 427
+    },
+    "test": {
+      "participants": 7,
+      "records": 7,
+      "records_with_windows": 7,
+      "participants_with_windows": 7,
+      "windows": 427
+    }
+  },
+  "validation_baselines": {
+    "windows": 427,
+    "mae_persistence_bpm": 2.3068,
+    "mae_trend_30s_bpm": 6.512
+  }
+}

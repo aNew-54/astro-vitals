@@ -1,0 +1,17 @@
+session,start_s,end_s,activity,intervention,dropout
+habitual,0,240,rest,none,none
+habitual,240,480,exercise,none,none
+habitual,480,720,recovery,none,none
+habitual,720,900,rest,none,none
+recuperacion,0,200,rest,none,none
+recuperacion,200,420,exercise,none,none
+recuperacion,420,690,recovery,slow,none
+recuperacion,690,900,rest,none,none
+cabina,0,240,rest,none,none
+cabina,240,570,rest,cabin,none
+cabina,570,630,rest,cabin,rr
+cabina,630,900,rest,none,none
+coincidencia,0,180,rest,none,none
+coincidencia,180,420,exercise,none,none
+coincidencia,420,660,recovery,slow_and_cabin,none
+coincidencia,660,900,rest,none,none

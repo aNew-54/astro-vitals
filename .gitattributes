@@ -1,0 +1,12 @@
+* text=auto
+*.zip binary
+*.gz binary
+*.png binary
+*.pdf binary
+# Preserve the original bytes of data with published checksums or acquisition receipts.
+data/bidmc/raw/** -text
+prototype/data/** -text
+data/mmash/LICENSE.txt -text
+data/mmash/SHA256SUMS.txt -text
+data/donki/sep_*.json -text
+data/iss_rr1/rr1_original.json -text

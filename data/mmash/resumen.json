@@ -1,0 +1,16 @@
+{
+  "dataset": "MMASH 1.0.0",
+  "source_sha256": "ef91ee1b36b5849a6366b1918de82686ab278915d33c7f62133f07f741f70726",
+  "episode_count": 22,
+  "participants_reviewed": 22,
+  "participants_with_episodes": 21,
+  "participants_without_episodes": [
+    "user_11"
+  ],
+  "episode_count_distribution": {
+    "0": 1,
+    "1": 20,
+    "2": 1
+  },
+  "same_day_midnight_wraps": 4
+}

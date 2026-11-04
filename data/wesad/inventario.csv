@@ -1,0 +1,16 @@
+participante,particion,ventanas_completas,excluidas_etiqueta,excluidas_senal,ventanas_utiles,basal,estres_inducido,diversion
+S9,train,174,105,0,69,38,20,11
+S15,train,175,103,0,72,38,22,12
+S4,train,214,145,0,69,38,20,11
+S3,train,216,146,0,70,37,21,12
+S17,train,197,125,0,72,38,23,11
+S5,train,208,138,0,70,39,20,11
+S7,train,174,104,0,70,38,20,12
+S11,train,174,101,0,73,39,22,12
+S2,train,202,134,0,68,37,20,11
+S13,validation,184,112,0,72,39,21,12
+S10,validation,183,111,0,72,38,23,11
+S14,validation,184,112,0,72,39,21,12
+S8,test,182,111,0,71,38,22,11
+S6,test,235,165,0,70,38,21,11
+S16,test,187,117,0,70,38,21,11

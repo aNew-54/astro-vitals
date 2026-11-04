@@ -1,0 +1,7 @@
+{
+  "mission": "RR-1",
+  "url": "https://visualization.osdr.nasa.gov/eda/dashboard_RR-1",
+  "archive": "rr1_original.json",
+  "sha256": "450bc8ab1c0e1410048c5d4b4ba6df95c306dee5a2e3097fe52ee5ffa9e52af9",
+  "acquired_utc": "2026-11-04T06:24:19.622521+00:00"
+}

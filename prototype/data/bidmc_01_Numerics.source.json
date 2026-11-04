@@ -1,0 +1,14 @@
+{
+  "dataset": "BIDMC PPG and Respiration Dataset",
+  "version": "1.0.0",
+  "record": "01",
+  "source_url": "https://physionet.org/files/bidmc/1.0.0/bidmc_csv/bidmc_01_Numerics.csv",
+  "dataset_url": "https://physionet.org/content/bidmc/1.0.0/",
+  "license": "Open Data Commons Attribution License v1.0",
+  "license_url": "https://physionet.org/content/bidmc/view-license/1.0.0/",
+  "attribution": "Pimentel, M. A. F., Johnson, A. E. W., & Charlton, P. H. (2018). BIDMC PPG and Respiration Dataset (version 1.0.0). PhysioNet. https://doi.org/10.13026/C2208R",
+  "downloaded_at": "2026-10-28T23:39:40.924220+00:00",
+  "sha256": "27d43794cf2e7150db10e8bfe61d2bfdb26873a8f1629ffc5fbee5c9a4eb6ef5",
+  "rows": 481,
+  "modifications": "Original CSV unchanged; runtime maps HR/RESP, NaN to null, and retains relative time."
+}

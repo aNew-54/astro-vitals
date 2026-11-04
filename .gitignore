@@ -1,0 +1,9 @@
+.venv/
+.venv-datos/
+data/ppg_dalia/data.zip
+data/wesad/WESAD.zip
+__pycache__/
+.pytest_cache/
+*.pyc
+prototype/logs/
+prototype/.test-*/

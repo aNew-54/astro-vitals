@@ -1,0 +1,47 @@
+{
+  "source": "wesad",
+  "version": 1,
+  "original_sha256": "5e15d2606adf16d819ba535c1786d92e94bae5ff5392f7ae01fb63f9938fd71c",
+  "context": "terrestrial",
+  "features": [
+    "acc_mag_mean",
+    "acc_mag_sd",
+    "bvp_sd",
+    "eda_mean",
+    "eda_sd",
+    "temp_mean"
+  ],
+  "target": "condicion",
+  "window_s": 30,
+  "stride_s": 30,
+  "splits": {
+    "train": {
+      "participants": 9,
+      "windows": 633,
+      "classes": {
+        "basal": 342,
+        "diversion": 103,
+        "estres_inducido": 188
+      }
+    },
+    "validation": {
+      "participants": 3,
+      "windows": 216,
+      "classes": {
+        "basal": 116,
+        "diversion": 35,
+        "estres_inducido": 65
+      }
+    },
+    "test": {
+      "participants": 3,
+      "windows": 211,
+      "classes": {
+        "basal": 114,
+        "diversion": 33,
+        "estres_inducido": 64
+      }
+    }
+  },
+  "windows": 1060
+}

@@ -1,0 +1,26 @@
+{
+  "mission": "RR-1",
+  "telemetry": {
+    "rows": 12087,
+    "first": "2014-09-20 03:59:00",
+    "last": "2014-11-01 03:54:00",
+    "valid": {
+      "co2_iss_ppm": 12087,
+      "co2_ground_ppm": 12087,
+      "temp_iss_degC": 12087,
+      "temp_ground_degC": 12087,
+      "rh_iss_percent": 12087,
+      "rh_ground_percent": 12087
+    }
+  },
+  "radiation": {
+    "rows": 39,
+    "first": "2014-09-21",
+    "last": "2014-10-29",
+    "valid": {
+      "gcr_mGy_day": 39,
+      "saa_mGy_day": 39,
+      "total_mGy_day": 39
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "url": "https://ccmc.gsfc.nasa.gov/DONKI/WS/get/SEP?startDate=2024-05-10&endDate=2024-05-15",
+  "file": "sep_2024-05-10_15.json",
+  "sha256": "1c92899e7dc0724d143f21a75aee14e9de555afbfa6bdf857ee80868081c5228",
+  "bytes": 8594,
+  "acquired_utc": "2026-11-04T02:08:31.018055+00:00"
+}

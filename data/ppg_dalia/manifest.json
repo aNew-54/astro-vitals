@@ -1,0 +1,62 @@
+{
+  "source": "ppg_dalia",
+  "version": 1,
+  "original_sha256": "fcda4d13f6475e88a24f1ef9658627dc98e04dd5c5dd790cd2b0a1a22e31913b",
+  "context": "terrestrial",
+  "features": [
+    "acc_mag_mean",
+    "acc_mag_sd",
+    "bvp_sd",
+    "eda_mean",
+    "eda_sd",
+    "temp_mean"
+  ],
+  "target": "actividad",
+  "window_s": 8,
+  "stride_s": 8,
+  "splits": {
+    "train": {
+      "participants": 9,
+      "windows": 7367,
+      "classes": {
+        "almuerzo": 2222,
+        "bicicleta": 526,
+        "caminar": 737,
+        "conduccion": 1028,
+        "escaleras": 490,
+        "futbol_de_mesa": 337,
+        "reposo_sentado": 678,
+        "trabajo": 1349
+      }
+    },
+    "validation": {
+      "participants": 3,
+      "windows": 2426,
+      "classes": {
+        "almuerzo": 748,
+        "bicicleta": 155,
+        "caminar": 254,
+        "conduccion": 317,
+        "escaleras": 160,
+        "futbol_de_mesa": 118,
+        "reposo_sentado": 223,
+        "trabajo": 451
+      }
+    },
+    "test": {
+      "participants": 3,
+      "windows": 1900,
+      "classes": {
+        "almuerzo": 404,
+        "bicicleta": 174,
+        "caminar": 173,
+        "conduccion": 355,
+        "escaleras": 146,
+        "futbol_de_mesa": 109,
+        "reposo_sentado": 227,
+        "trabajo": 312
+      }
+    }
+  },
+  "windows": 11693
+}
