@@ -1,94 +1,122 @@
-# ASTRO-VITALS · prototipo 0.1
+# ASTRO-VITALS · Guía del prototipo (`prototype/`)
 
-Una consola funcional pequeña para discutir la experiencia con el equipo. Usa tres procesos reales: **pasarela/simulador → API a bordo → TUI del astronauta**. Se comunican mediante HTTP local; la TUI no recibe sensores directamente. Funciona sin internet después de instalar dependencias y obtener el CSV de ejemplo.
+Arquitectura local en procesos independientes conectados por red local:
 
-## Probar ahora
+**Pasarela / fuente externa (`8002` o emisor propio) → API a bordo + Motor IA + SQLite (`8000`) → Consola Web (`/` + `WS /telemetry`) o TUI Textual**.
 
-En la carpeta del proyecto, abre **Iniciar prototipo.cmd**, o ejecuta en PowerShell:
+## Instalación y ejecución rápida
 
-```powershell
-.\.venv\Scripts\python.exe prototype\run.py
+Desde `astro-vitals/prototype/`:
+
+```zsh
+# Crear entorno virtual con Python 3.12 / 3.13 e instalar dependencias
+python3.13 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+
+# Iniciar con Consola Web en http://127.0.0.1:8000/
+.venv/bin/python run.py --web
 ```
 
-Maximiza el terminal para ver las tarjetas. En ventanas pequeñas puedes desplazarte verticalmente. `Q` cierra la demo y sus dos servicios. Para comprobar que cerrar solo la TUI no detiene el nodo, usa los comandos separados de abajo.
-
-| Control | Qué demuestra |
-| --- | --- |
-| `1` Reposo | Señales sintéticas y estado base |
-| `2` Actividad | El contexto cambia la interpretación del pulso |
-| `3` Cabina | Cambio conjunto de CO₂ y respiración, con hipótesis y evidencia |
-| `4` Radiación | Dosímetro simulado; no altera el pulso por una supuesta causa solar |
-| `S` | Dentro de radiación, simula refugio y reduce la tasa; la dosis acumulada no disminuye |
-| `5` Sin señal | Datos fisiológicos ausentes; evaluación incompleta |
-| `6` BIDMC | Reproduce pulso y respiración reales del registro 01 a una muestra por segundo |
-| `P` | Pausa/reanuda la fuente; al pasar 5 s la API indica datos desactualizados |
-| `A` | Reconoce la alerta; no la resuelve ni cambia las mediciones |
-| `Q` | Sale de la consola |
-
-Los botones equivalen a los atajos. Los controles del laboratorio pertenecen a la demostración, no son controles del wearable. Los cambios de escenario modifican datos del simulador; no envían una orden de generar un diagnóstico.
-
-## Alcance de esta entrega
-
-- Textual, FastAPI, HTTPX; refresco de pantalla mediante consulta HTTP cada segundo.
-- Evaluación orientativa con **reglas explícitas**, evidencia y límites ilustrativos.
-- Referencia de pulso a 60 s por **persistencia**: mantiene el último valor. Aún no se entrena Random Forest ni se reporta precisión predictiva.
-- Tasa de dosis en μSv/h integrada a μSv con intervalos válidos. Se indica cobertura parcial tras huecos o registros sin dosímetro.
-- Historial reciente y bitácora en memoria. Reiniciar el servicio reinicia la sesión. No hay todavía base de datos, sincronización con Tierra, página web, WebSocket ni integración DONKI.
-- No convierte los datos terrestres en un diagnóstico de astronauta. En BIDMC, CO₂ y radiación quedan ausentes: no se agregan columnas sintéticas para aparentar mediciones conjuntas.
-
-El [contrato de datos del MVP](../CONTRATO_DE_DATOS.md) especifica las dos tareas de aprendizaje previstas. En 0.1, el registro BIDMC alimenta solo las tarjetas de FC y FR. SpO₂, la calibración personal, el autorreporte y los modelos entrenados pertenecen a la siguiente etapa. [Arquitectura prevista](../ARQUITECTURA_TECNICA.md)
-
-## Datos disponibles sin esperar al desafío
-
-Se incluye `data/bidmc_01_Numerics.csv`, original sin cambios: 481 muestras de parámetros numéricos a 1 Hz, aproximadamente ocho minutos. `HR` → pulso ECG y `RESP` → respiración. Se conserva `Time [s]` como `original_time_s`; la hora de reproducción es nueva y no se presenta como fecha clínica. `NaN` se convierte a ausencia. Al terminar, el reproductor se pausa; pulsa `6` para reiniciarlo.
-
-Fuente: [BIDMC PPG and Respiration Dataset v1.0.0](https://physionet.org/content/bidmc/1.0.0/), Pimentel, Johnson y Charlton (2018), PhysioNet, [DOI 10.13026/C2208R](https://doi.org/10.13026/C2208R). Licencia [Open Data Commons Attribution v1.0](https://physionet.org/content/bidmc/view-license/1.0.0/). El archivo vecino `.source.json` registra URL, atribución, fecha de descarga y SHA-256. Ver [decisión de fuentes alternativas](../DATOS_ALTERNATIVOS.md).
-
-El aviso del desafío aportado por el equipo indica recursos disponibles el **13 de noviembre de 2026**. No se depende de esa publicación para demostrar esta versión. Este registro real permite probar reproducción e ingestión; las etiquetas y variables necesarias para entrenar la futura fusión son otra tarea.
-
-## Instalar en otro equipo
-
-Se ha usado Python **3.14** disponible en este equipo; el plan original proponía 3.12. El archivo fija las versiones efectivamente instaladas. No hace falta instalar Node para esta entrega.
+En Windows (PowerShell):
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r prototype\requirements.txt
-.\.venv\Scripts\python.exe prototype\run.py
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe run.py --web
 ```
 
-El CSV está incluido. Para volver a descargar únicamente ese registro público:
+### Opciones de `run.py`
 
-```powershell
-.\.venv\Scripts\python.exe prototype\download_data.py
+| Flag | Descripción |
+| --- | --- |
+| `--web` | Inicia API (`8000`) + pasarela (`8002`), imprime URL y abre la consola web |
+| `--tui` | Inicia la consola interactiva de terminal (`Textual`, modo por defecto) |
+| `--services-only` | Mantiene activos ambos servicios HTTP/WS sin abrir interfaz |
+| `--environment {station,transit,rover,base}` | Selecciona el perfil inicial de entorno simulado |
+| `--replay <ruta>` | Convierte un `.csv`, `.tsv`, `.json` o `.jsonl`, pausa la pasarela e ingesta las muestras |
+| `--onboard-port <puerto>` | Puerto de la API y consola web (por defecto `8000`) |
+| `--gateway-port <puerto>` | Puerto de la pasarela simulada (por defecto `8002`) |
+
+La base SQLite local se guarda por defecto en `prototype/logs/astro_vitals.db` (configurable mediante `ASTRO_DB_PATH`).
+
+---
+
+## Qué probar en la Consola Web (`http://127.0.0.1:8000/`)
+
+### Panel `ENTRADA DE TELEMETRÍA` (`/api/control`)
+
+| Control | Qué demuestra en vivo |
+| --- | --- |
+| `REPOSO` | Estado basal y calibración fija de línea base (`mediana`/`MAD`) |
+| `EJERCICIO` | Respuesta fisiológica esperada vs. pronóstico FC +60 s (`RandomForestRegressor`) |
+| `CABINA CO₂` | Elevación directa de ppCO₂ y respiración; dispara hipótesis combinada no clínica |
+| `RAMPA CO₂` | Subida progresiva según el perfil; tras $\ge 24$ muestras ($\Delta\text{CO}_2 \ge 0.40\text{ mmHg}$) activa regresión **OLS de sensibilidad** y **ETA al límite** |
+| `TORMENTA DONKI` | Evento solar histórico `2024-05-11T04:07:00-SEP-001` por fases (`watch` → `arrival` → `peak` → `decay`) |
+| `REFUGIO (SHELTER)` | Reduce la tasa de dosis simulada (`shelter_factor = 0.35`) y compara proyección de dosis a 1 h con/sin refugio |
+| `PÉRDIDA SEÑAL` | Pone canales biométricos en `null`; muestra `SIN SEÑAL` / `--` y abstención explícita |
+| `BIDMC REAL` | Reproduce `data/bidmc_01_Numerics.csv` (1 Hz) conservando `co2` y `dose_rate` en `null` sin fabricar datos espaciales |
+| `ENTORNO` | Cambia umbrales de hábitat y multiplicador de radiación (`station`, `transit`, `rover`, `base`) |
+| `RECONOCER (ACK)` | Registra el reconocimiento de una alerta vigente (`+5 pts`) sin resolver la condición subyacente |
+
+### Barra lateral de módulos (`MÓDULOS`)
+
+- **`MONITOR` / `ALERTAS`:** métricas completas, explicación del clasificador ML, intervalo de predicción de pulso, proyecciones CO₂/dosis y vista/descarga del **informe SBAR (`.md`)**.
+- **`BIENESTAR`:**
+  - **Minijuego psicomotor de 6 intentos:** envía `/api/v1/checkin` con mediana en ms, falsas salidas, lapsos $> 500\text{ ms}$, sueño y ánimo.
+  - **Coach de participación:** rutinas preventivas (`+10 pts` rutina, `+15 pts` check-in, `+5 pts` ACK); puntos e insignias premian únicamente participación.
+  - **Switch de privacidad:** por defecto `share_behavioral=False` oculta sueño, ánimo y reacción del informe SBAR externo.
+- **`HISTORIAL` / `PERFIL` / `AJUSTES`:** series temporales desde SQLite, ficha de `ASTRA-001` y ajustes visuales/sonoros.
+
+---
+
+## Procesos independientes y endpoints
+
+Si quieres correr cada servicio en su propia terminal desde `prototype/`:
+
+```zsh
+# Terminal 1: API a bordo + Consola Web + WebSocket
+.venv/bin/python -m uvicorn astro.api:app --host 127.0.0.1 --port 8000
+
+# Terminal 2: Pasarela simulada / reproductor BIDMC
+.venv/bin/python -m uvicorn astro.gateway:app --host 127.0.0.1 --port 8002
+
+# Terminal 3 (opcional): TUI de terminal
+.venv/bin/python -m astro.tui
 ```
 
-## Procesos separados y red local
+### API publicada en `:8000`
 
-Desde `prototype/`, abre tres terminales:
+- **Motor y dominio (`/api/v1/*`):**
+  - `GET /health` · `GET /docs`
+  - `POST /api/v1/telemetry` · `GET /api/v1/state` · `GET /api/v1/trends` · `GET /api/v1/glossary`
+  - `POST /api/v1/ack` · `POST /api/v1/checkin`
+  - `GET /api/v1/routines` · `POST /api/v1/routines/{routine_id}/done`
+  - `POST /api/v1/context/activity` · `POST /api/v1/context/event` · `POST /api/v1/context/environment`
+  - `POST /api/v1/privacy` · `GET /api/v1/report`
+- **Puente SQLite y Web (`/api/*` + WebSocket):**
+  - `GET/POST /api/astronauts/` · `GET /api/astronauts/{id}`
+  - `GET/POST /api/measurements/` · `GET /api/measurements/latest`
+  - `GET/POST /api/alerts/` · `PATCH /api/alerts/{id}/ack`
+  - `GET/POST /api/logs/` · `GET/POST /api/insights/`
+  - `GET/POST /api/control` · `WS /telemetry`
 
-```powershell
-# Terminal 1: API a bordo
-..\.venv\Scripts\python.exe -m uvicorn astro.api:app --host 127.0.0.1 --port 8000
+---
 
-# Terminal 2: pasarela independiente
-..\.venv\Scripts\python.exe -m uvicorn astro.gateway:app --host 127.0.0.1 --port 8002
+## Verificación automatizada
 
-# Terminal 3: vista del astronauta
-..\.venv\Scripts\python.exe -m astro.tui
+Desde `astro-vitals/prototype/`:
+
+```zsh
+# Ejecutar las 50 pruebas (backend, pasarela, dominio, ML, coach/SBAR, adaptadores, WebBridge y E2E)
+PYTHONPATH=. .venv/bin/pytest tests/ -v
+
+# Revisar sintaxis JS de la consola web
+for f in web/js/*.js; do node --check "$f" || exit 1; done
 ```
 
-`ONBOARD_URL` configura a qué API envían datos la pasarela y la TUI; `GATEWAY_URL` configura los controles de demo. Para otra computadora se debe exponer el servicio correspondiente en la LAN y ajustar estas direcciones. Esta versión se inicia solo en localhost; no implementa autenticación para exponerla públicamente.
+Adaptador de archivos en línea de comandos (`csv`, `tsv`, `json`, `jsonl`):
 
-La API publica `/health`, `/api/v1/state`, `/api/v1/telemetry`, `/api/v1/ack` y documentación `/docs`. La pasarela publica `/health` y `GET/POST /control`. La simulación solar es una fuente ficticia, todavía no un evento histórico NASA descargado.
-
-## Verificar
-
-Desde `prototype/`:
-
-```powershell
-..\.venv\Scripts\python.exe -m pytest tests -q
+```zsh
+PYTHONPATH=. .venv/bin/python -m astro.adapters.loader inspect ruta/al/archivo.csv
+PYTHONPATH=. .venv/bin/python -m astro.adapters.loader convert ruta/al/archivo.csv --output-dir logs/replay
 ```
-
-Las pruebas cubren ingestión, duplicados, falta de datos, unidades de dosis y controles de la fuente. `python run.py --services-only` permite ejecutar solo los servicios; con ellos activos, `python check_demo.py` comprueba la interacción de la TUI y guarda capturas SVG en `previews/`. Los registros del lanzador quedan en `prototype/logs/`.
-
-Verificado el 28 de octubre de 2026 en este equipo: **12 pruebas aprobadas**, más el recorrido de la TUI contra los servicios HTTP reales (cambio de escenario, BIDMC, pausa/antigüedad, reconocimiento, pérdida de señal y dosis/refugio). Las capturas corresponden a la aplicación ejecutada en modo de prueba de Textual.

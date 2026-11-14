@@ -1,84 +1,156 @@
 # ASTRO-VITALS
 
-Proyecto para NASA Space Apps Cajamarca. ASTRO-VITALS busca ayudar a un astronauta a interpretar cambios en su pulso y respiración teniendo en cuenta qué estaba haciendo y cómo estaba la cabina. Por ejemplo, tras el ejercicio podrá ver si su recuperación sigue el patrón esperado, qué mediciones respaldan esa interpretación y qué conviene revisar. La base de operaciones podrá seguir el episodio aunque la comunicación con la nave llegue con retraso.
+Proyecto para **NASA Space Apps Cajamarca**. ASTRO-VITALS ayuda a un tripulante a interpretar cambios en sus signos vitales teniendo en cuenta su actividad, su línea base personal, la calidad de los sensores y el entorno de cabina o radiación, funcionando **de forma autónoma a bordo** sin depender de latencia con la Tierra.
 
-## Estado del proyecto
+> **Aviso de alcance:** Toda evaluación es **orientativa y no clínica** (*"Hipótesis orientativa (escenario simulado): ..."*). Cuando faltan canales o hay cortes de telemetría, el sistema conserva `null`/`None` y se abstiene de evaluar; nunca rellena ausencias con cero.
 
-**Disponible hoy.** El prototipo 0.1 tiene una consola de astronauta, una pasarela de datos y una API a bordo. Permite reproducir un registro fisiológico real, simular ejercicio, cambios de CO₂, radiación y pérdida de señal, y reconocer avisos. La evaluación usa reglas explícitas y el historial se guarda en memoria. También están preparados los datos de entrenamiento, validación y prueba para los dos modelos del MVP.
+## Estado del proyecto (v0.2 · consola web + motor IA + SQLite)
 
-**Próxima entrega.** Entrenar y evaluar los modelos, integrarlos en el servicio a bordo, guardar episodios en disco y conectar la vista de Tierra. Las hipótesis del clasificador describirán patrones de simulación. La aplicación mostrará la procedencia y antigüedad de las mediciones junto a cada resultado.
+**Disponible hoy en `main`:**
+
+- **Motor a bordo ([`prototype/astro/engine.py`](prototype/astro/engine.py)):**
+  - Calibración de **línea base personal fija** (`mediana` y `MAD`) durante reposo estable y detección sostenida de elevación fuera de ejercicio.
+  - **Sensibilidad personal al CO₂ (`OLS`)** en ventanas de hasta 5 minutos y **proyección de tiempo hasta límite (`ETA`)** sobre pendiente de 120 s (usando como única referencia NASA `3.0 mmHg` promedio de 1 h, NASA OCHMO-TB-004, con nota histórica de cefalea desde `2.3 mmHg`).
+  - **Proyección de dosis de radiación a 1 h** comparando exposición sin refugio vs. con refugio activado (`shelter_factor = 0.35`), integrada por trapecio solo en intervalos continuos válidos ($\le 5\text{ s}$).
+  - **Perfiles de entorno simulado:** `station` (Estación Orbital), `transit` (Tránsito / Nave), `rover` (Rover / EVA) y `base` (Hábitat Lunar/Base).
+  - **Contexto solar histórico NASA DONKI:** evento `2024-05-11T04:07:00-SEP-001` dividido en 4 fases (`watch`, `arrival`, `peak`, `decay`), evaluado de forma independiente al pulso.
+- **Modelos de IA integrados ([`ASTRO-VITALS-AI-Modelos-v1/`](ASTRO-VITALS-AI-Modelos-v1/)):**
+  - **Pronóstico FC +60 s** (`RandomForestRegressor`, `heart_rate_forecast/colab-v1`) con banda de incertidumbre y respaldo por persistencia mientras calibra.
+  - **Clasificador de patrones** (`RandomForestClassifier`, `physiological_patterns/colab-v1`) sobre ventanas de 30 s y 120 s con abstención automática ante baja cobertura ($< 80\%$), datos antiguos ($> 5\text{ s}$), fuente `bidmc` o confianza $< 0.60$.
+- **Consola Web + API + WebSocket ([`prototype/web/`](prototype/web/index.html)):**
+  - Panel en vivo por **REST + WebSocket (`WS /telemetry`)** respaldado en **SQLite** (`logs/astro_vitals.db`), con gráficas en tiempo real, escáner corporal de 7 zonas, banco de escenarios, check-in conductual con **minijuego de reacción**, Coach de rutinas por participación, filtro de privacidad (`share_behavioral=False` por defecto) e informe **SBAR** descargable en Markdown.
+- **Adaptador universal de archivos ([`prototype/astro/adapters/`](prototype/astro/adapters/loader.py)):**
+  - Ingesta y conversión explícita de registros `.csv`, `.tsv`, `.json` y `.jsonl` (p. ej. `ppm` → `mmHg` con presión total conocida, `kPa` → `mmHg`, `mSv/h` → `μSv/h`, rechazando unidades incompatibles como `Gy`).
 
 ![Consola del prototipo durante un cambio simulado de cabina](prototype/previews/consola-cabina.png)
 
-## Vistas y funcionamiento
+## Guía rápida para probar esta versión
 
-| Vista | Qué podrá hacer su usuario |
-| --- | --- |
-| **Astronauta · a bordo** | Consultar señales, actividad y calidad de los sensores. Abrir un aviso para ver qué cambió, desde cuándo y respecto a qué referencia. Registrar esfuerzo o malestar y reconocer el aviso. La consola básica ya funciona. |
-| **Base de operaciones · Tierra** | Ver el último estado recibido de cada astronauta, comparar tendencias y revisar episodios y observaciones. Mostrará por separado la hora de medición y la de recepción para reconocer información atrasada. Esta vista está planificada. |
+### 1. Requisitos e instalación
 
-En el MVP, la pasarela enviará la telemetría al servicio de la nave. Ese servicio hará el análisis local, actualizará la consola y guardará los mensajes pendientes. Si se corta el enlace, la nave podrá seguir registrando episodios. Al volver la conexión, Tierra recibirá los mensajes pendientes y reconocerá los duplicados.
+Se recomienda **Python 3.12 o 3.13** (compatible con `scikit-learn` y `joblib` incluidos en `prototype/requirements.txt`).
 
-## Stack tecnológico
+**macOS / Linux:**
 
-| Componente | Tecnología | Estado |
-| --- | --- | --- |
-| Pasarela, API y consola | Python, FastAPI, Pydantic, HTTPX y Textual | En uso. La consola consulta la API local por HTTP. |
-| Preparación de datos y modelos | Python y NumPy para los datos. pandas y scikit-learn para el entrenamiento previsto | Datos preparados. Los modelos del MVP están por entrenar e integrar. |
-| Historial y sincronización | SQLite en cada nodo, cola persistente, HTTP y WebSocket | Planificado para conservar y transmitir episodios. |
-| Vista web de Tierra | React, TypeScript, Vite y Recharts | Planificado para el panel y sus gráficas. |
-| Verificación | pytest en el prototipo y pruebas de integridad en Python | En uso para contratos, señales, etiquetas y particiones de datos. |
-
-## Modelos que vamos a construir
-
-| Modelo | Entradas y salida | Datos para construirlo |
-| --- | --- | --- |
-| **Pronóstico de frecuencia cardíaca** · Random Forest de regresión | Usa el historial de frecuencia cardíaca (FC) y respiratoria (FR) para estimar la FC **60 segundos después**, en latidos/minuto. | [BIDMC](data/bidmc/README.md). 3.170 ventanas reales de registros hospitalarios terrestres, separadas por participante. La respuesta de entrenamiento es la FC observada un minuto después en el mismo registro. |
-| **Clasificación de patrones** · Random Forest de clasificación | Usa FC, FR, CO₂ local, actividad, duración de la fase y diferencias respecto a la referencia personal. Distingue reposo esperado, actividad o recuperación esperada, recuperación con desviación persistente y cambio conjunto de cabina y fisiología. | [Cohorte sintética](data/fusion_simulada/README.md). 9.470 ventanas de 30 perfiles y 120 sesiones. Se generaron juntas las señales y las etiquetas de cada episodio. |
-
-Cada cinco segundos se analizan los últimos 120 segundos. El pronóstico se comparará con conservar el último pulso y con extrapolar su tendencia. Para el clasificador se medirán errores por clase, falsas alertas por hora simulada, demora y abstenciones. Las ventanas de una misma persona o perfil permanecen en una sola partición. Si falta una señal obligatoria, la interfaz indicará qué resultado queda sin evaluar. [Contrato de entradas, salidas y evaluación](CONTRATO_DE_DATOS.md)
-
-## Variables y por qué importan
-
-| Variable | Por qué se considera |
-| --- | --- |
-| FC (latidos/minuto) y FR (respiraciones/minuto) | Sus valores y tendencias permiten seguir la respuesta al esfuerzo y la recuperación. Son las entradas comunes de ambos modelos. |
-| Actividad y segundos desde el inicio de la fase | Un pulso elevado se interpreta de manera distinta durante el ejercicio y durante la recuperación. |
-| Referencia personal de FC y FR | Permite comparar un episodio con el reposo previo de esa persona. La consola debe indicar cuándo sigue calibrando. |
-| CO₂ de cabina | Permite observar si un cambio respiratorio coincide con un cambio ambiental. El modelo usa presión parcial en mmHg. La serie histórica de la ISS viene en ppm y su conversión requiere conocer la presión total. |
-| Tasa de dosis del dosímetro (μSv/h) | Sirve para estimar exposición acumulada durante los intervalos con lecturas válidas. El módulo ambiental usa reglas y cálculos. |
-| SpO₂ (%) y autorreporte | La saturación es una señal opcional para visualizar. El astronauta podrá registrar esfuerzo, malestar y observaciones para interpretar un episodio. |
-| Tiempo, fuente y calidad | Permiten distinguir una medición reciente de una atrasada, un registro real de una simulación y un dato ausente de un cero. |
-
-## Datos complementarios
-
-| Fuente preparada | Uso |
-| --- | --- |
-| [PPG-DaLiA](data/ppg_dalia/README.md) | 11.693 ventanas de ocho actividades terrestres para explorar movimiento y señales de muñeca. |
-| [WESAD](data/wesad/README.md) | 1.060 ventanas de condición basal, estrés inducido y diversión. Uso científico no comercial con atribución. |
-| [MMASH](data/mmash/README.md) | 22 episodios de sueño de 21 participantes para una posible vista de descanso, eficiencia y despertares. |
-| [NASA EDA · RR-1](data/iss_rr1/README.md) | 12.087 lecturas de cabina de la ISS y 39 registros diarios de radiación ambiental. Son referencias históricas con unidades y fechas propias. |
-| [NASA DONKI](data/donki/README.md) | Evento de partículas solares observado el 11 de mayo de 2024. Da contexto a la demo. La dosis personal procede del dosímetro simulado. |
-
-Los originales de **PPG-DaLiA (2,86 GB)** y **WESAD (2,25 GB)** se distribuyen por separado. El repositorio incluye sus tablas preparadas, instrucciones y comprobantes de integridad. Para recuperar ambos ZIP en su ubicación esperada, ejecutar `.\.venv\Scripts\python.exe ml\descargar_fuentes.py actividad estres`. Cada fuente conserva su licencia y atribución. [Inventario completo de datos](DATOS_ALTERNATIVOS.md)
-
-## Cómo probarlo
-
-Desde la raíz del proyecto, en Windows con Python 3.14 instalado:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r prototype\requirements.txt
-.\.venv\Scripts\python.exe prototype\run.py
+```zsh
+git clone https://github.com/aNew-54/astro-vitals.git
+cd astro-vitals
+python3.13 -m venv prototype/.venv
+prototype/.venv/bin/pip install -r prototype/requirements.txt
 ```
 
-Después de instalar las dependencias también se puede abrir **Iniciar prototipo.cmd**. Usa `1` a `6` para elegir un escenario, `P` para pausar, `S` para simular el refugio durante el escenario de radiación y `Q` para salir. El registro BIDMC de ejemplo está incluido y la demo funciona sin conexión.
+**Windows (PowerShell):**
 
-## Próximos hitos
+```powershell
+git clone https://github.com/aNew-54/astro-vitals.git
+cd astro-vitals
+python -m venv prototype\.venv
+prototype\.venv\Scripts\python.exe -m pip install -r prototype\requirements.txt
+```
 
-1. Fijar los criterios de aceptación de las alertas, entrenar ambos modelos y compararlos en validación antes de abrir el conjunto de prueba.
-2. Integrar resultados y autorreportes en la consola. Revisar con un mentor de salud los mensajes que verá el astronauta.
-3. Añadir almacenamiento local, vista de Tierra y sincronización. Probar un corte de enlace y la recuperación de los episodios.
-4. Revisar los recursos anunciados para el 13 de noviembre y registrar qué cambios justifican en las entradas, reglas o pantallas.
+*(Si usas `uv`, puedes crear el entorno en segundos con `uv venv --python 3.13 prototype/.venv && uv pip install --python prototype/.venv/bin/python -r prototype/requirements.txt`.)*
 
-[Guía del prototipo](prototype/README.md) · [Alcance del MVP](MVP_ASTRO_VITALS.md) · [Arquitectura técnica](ARQUITECTURA_TECNICA.md)
+### 2. Lanzar la Consola Web (recomendado)
+
+**macOS / Linux:**
+
+```zsh
+prototype/.venv/bin/python prototype/run.py --web
+```
+
+**Windows (PowerShell):**
+
+```powershell
+prototype\.venv\Scripts\python.exe prototype\run.py --web
+```
+
+Luego abre en el navegador: **`http://127.0.0.1:8000/`** (también disponible en `/ui/`).
+
+- En el pie de página debe aparecer **`API: EN LÍNEA`** en verde y el indicador **`● ENLACE ACTIVO`** (streaming cada 1 s vía `WS /telemetry`).
+- Desde el panel **`ENTRADA DE TELEMETRÍA`** puedes probar en vivo:
+  - `REPOSO` / `EJERCICIO` (comparar predicción FC +60 s vs. persistencia).
+  - `RAMPA CO₂` (tras $\ge 24$ muestras con variación $\ge 0.40\text{ mmHg}$ verás activarse la sensibilidad personal `OLS` y el `ETA`).
+  - `TORMENTA DONKI` + `REFUGIO (SHELTER)` (fases solares y reducción de dosis al 35 %).
+  - `PÉRDIDA SEÑAL` / `BIDMC REAL` (muestra `SIN SEÑAL` / `--` y abstención explícita de la IA sin rellenar con ceros).
+- En la barra lateral izquierda (**`BIENESTAR`** y **`MONITOR`**): prueba el **minijuego de reacción de 6 intentos**, completa rutinas del Coach, cambia el switch de **privacidad conductual** y descarga el **informe SBAR (`.md`)**.
+
+### 3. Otras formas de ejecución
+
+```zsh
+# Arrancar con perfil inicial específico (station | transit | rover | base)
+prototype/.venv/bin/python prototype/run.py --web --environment rover
+
+# Abrir en modo consola de terminal (Textual TUI)
+prototype/.venv/bin/python prototype/run.py --tui
+
+# Reproducir un archivo propio (.csv, .tsv, .json, .jsonl) al iniciar
+prototype/.venv/bin/python prototype/run.py --web --replay ruta/al/registro.csv
+```
+
+### 4. Conectar un emisor Python externo (sensores de traje simulados)
+
+Mientras `run.py --web` esté activo, puedes pausar el generador interno y enviar paquetes desde cualquier aplicación Python hacia `POST http://127.0.0.1:8000/api/v1/telemetry` con `source="measured"`:
+
+```python
+import time
+from datetime import datetime, timezone
+from uuid import uuid4
+import httpx
+
+API = "http://127.0.0.1:8000"
+with httpx.Client(timeout=2.0) as client:
+    client.post(f"{API}/api/control", json={"paused": True})
+    for i in range(30):
+        client.post(f"{API}/api/v1/telemetry", json={
+            "sample_id": str(uuid4()),
+            "measured_at": datetime.now(timezone.utc).isoformat(),
+            "crew_id": "ASTRA-001",
+            "location_id": "suit-eva-01",
+            "hr": 86.0 + i * 0.4,
+            "rr": 18.0 + i * 0.1,
+            "co2": 2.3 + i * 0.05,
+            "dose_rate": 0.45,
+            "spo2": 97.6,
+            "bp_sys": 124.0,
+            "bp_dia": 78.0,
+            "temp_c": 37.0,
+            "hydration_pct": 83.0,
+            "activity": "exercise",
+            "source": "measured",
+        })
+        time.sleep(1.0)
+```
+
+### 5. Ejecutar las pruebas de verificación (50 tests)
+
+```zsh
+PYTHONPATH=prototype prototype/.venv/bin/pytest prototype/tests/ -v
+```
+
+---
+
+## Arquitectura y stack tecnológico
+
+| Componente | Tecnología | Ubicación |
+| --- | --- | --- |
+| API a bordo + puente Web/WS | Python, FastAPI, Pydantic, Uvicorn, `websockets` | [`prototype/astro/api.py`](prototype/astro/api.py), [`web_bridge.py`](prototype/astro/web_bridge.py) |
+| Motor fisiológico y ambiental | Calibración `MAD`, OLS CO₂, trapecio radiación, DONKI | [`prototype/astro/engine.py`](prototype/astro/engine.py), [`donki.py`](prototype/astro/donki.py) |
+| Modelos de IA locales | `scikit-learn` (`RandomForest`), `joblib`, NumPy | [`prototype/astro/ml_models.py`](prototype/astro/ml_models.py), [`ASTRO-VITALS-AI-Modelos-v1/`](ASTRO-VITALS-AI-Modelos-v1/) |
+| Persistencia local | SQLite (`sqlite3`, preservando `NULL` estrictos) | [`prototype/astro/storage.py`](prototype/astro/storage.py) |
+| Consola Web | HTML5, CSS3, JS vanilla + Canvas ECG + WebSocket | [`prototype/web/`](prototype/web/index.html) |
+| Consola Terminal (TUI) | Textual + HTTPX | [`prototype/astro/tui.py`](prototype/astro/tui.py) |
+| Pruebas automatizadas | `pytest` (50 pruebas: unitarias, contratos, ML, E2E) | [`prototype/tests/`](prototype/tests/) |
+
+## Datos preparados y modelos entrenados
+
+| Modelo / Dataset | Detalle |
+| --- | --- |
+| **Pronóstico FC +60 s** | `RandomForestRegressor` entrenado sobre ventanas reales de [BIDMC](data/bidmc/README.md) (`14` características de ventanas 30 s / 120 s). |
+| **Clasificación de patrones** | `RandomForestClassifier` entrenado sobre [cohorte sintética](data/fusion_simulada/README.md) (`25` características, 4 clases, umbral de abstención `0.60`). |
+| [PPG-DaLiA](data/ppg_dalia/README.md) | 11.693 ventanas de actividad terrestre. |
+| [WESAD](data/wesad/README.md) | 1.060 ventanas de condición basal y estrés. |
+| [MMASH](data/mmash/README.md) | 22 episodios de sueño de 21 participantes. |
+| [NASA EDA · RR-1](data/iss_rr1/README.md) | 12.087 lecturas de cabina ISS y 39 registros diarios de radiación ambiental. |
+| [NASA DONKI](data/donki/README.md) | Evento solar histórico `2024-05-11T04:07:00-SEP-001` usado para contexto por fases. |
+
+[Guía detallada del prototipo](prototype/README.md) · [Contrato de datos](CONTRATO_DE_DATOS.md) · [Alcance del MVP](MVP_ASTRO_VITALS.md) · [Arquitectura técnica](ARQUITECTURA_TECNICA.md)
