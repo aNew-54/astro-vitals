@@ -323,6 +323,137 @@ def build_episode_report(
     }
 
 
+def _format_baseline_md(baseline: Any) -> str:
+    if not baseline:
+        return "calibrando / no disponible"
+    if not isinstance(baseline, dict):
+        return _sanitize_text(str(baseline))
+    hr = baseline.get("hr", baseline.get("hr_median"))
+    rr = baseline.get("rr", baseline.get("rr_median"))
+    hr_mad = baseline.get("hr_mad")
+    rr_mad = baseline.get("rr_mad")
+    status = str(baseline.get("status") or ("LISTA" if hr is not None or rr is not None else "CALIBRANDO")).upper()
+    if status == "READY":
+        status = "LISTA"
+    parts = [status]
+    if hr is not None:
+        mad_txt = f" (MAD {hr_mad})" if hr_mad is not None else ""
+        parts.append(f"FC base {hr} bpm{mad_txt}")
+    if rr is not None:
+        mad_txt = f" (MAD {rr_mad})" if rr_mad is not None else ""
+        parts.append(f"FR base {rr} resp/min{mad_txt}")
+    if len(parts) == 1:
+        extras = [f"{k}={v}" for k, v in baseline.items() if k != "status" and v is not None]
+        if extras:
+            parts.extend(extras)
+    return " · ".join(parts)
+
+
+def _format_external_event_md(event: Any) -> str:
+    if not event:
+        return "ninguno"
+    if not isinstance(event, dict):
+        return _sanitize_text(str(event))
+    ev_id = event.get("sep_id") or event.get("id") or "DONKI"
+    phase = str(event.get("phase") or "sin fase").upper()
+    parts = [f"Evento solar {ev_id}", f"fase={phase}"]
+    if event.get("event_time"):
+        parts.append(f"inicio={event['event_time']}")
+    if event.get("source"):
+        parts.append(f"fuente={event['source']}")
+    return " · ".join(parts)
+
+
+def _format_co2_sensitivity_md(sens: Any) -> str:
+    if not sens:
+        return "no disponible"
+    if not isinstance(sens, dict):
+        return _sanitize_text(str(sens))
+    status = str(sens.get("status") or "")
+    slope = sens.get("slope")
+    if status == "insufficient_data" or slope is None:
+        reason = sens.get("reason") or "variación insuficiente para regresión"
+        samples = sens.get("sample_count")
+        sample_txt = f" ({samples} muestras)" if samples is not None else ""
+        return f"En espera de calibración: {reason}{sample_txt}"
+    parts = [f"Pendiente={slope} rpm/mmHg"]
+    if sens.get("r2") is not None:
+        parts.append(f"R²={sens['r2']}")
+    thr = sens.get("personal_threshold_mmhg", sens.get("co2_personal"))
+    if thr is not None:
+        parts.append(f"Umbral personal≈{thr} mmHg")
+    return " · ".join(parts)
+
+
+def _format_projections_md(proj: Any) -> str:
+    if not proj:
+        return "sin proyecciones disponibles"
+    if not isinstance(proj, dict):
+        return _sanitize_text(str(proj))
+    parts: list[str] = []
+    if "co2" in proj and isinstance(proj["co2"], dict):
+        co2 = proj["co2"]
+        avg_1h = co2.get("moving_avg_1h_mmhg")
+        cov = co2.get("coverage_pct")
+        nasa_ref = co2.get("nasa_1h_ref_mmhg", 3.0)
+        eta_min = co2.get("eta_minutes")
+        avg_txt = f"{avg_1h} mmHg" if avg_1h is not None else "sin lectura (null)"
+        cov_txt = f" (cob. {cov}% vs ref. NASA {nasa_ref} mmHg)" if cov is not None else ""
+        eta_txt = f"~{eta_min} min" if eta_min is not None else (co2.get("reason") or "sin tendencia ascendente")
+        parts.append(f"CO₂ prom. 1h={avg_txt}{cov_txt}; ETA límite={eta_txt}")
+    if "radiation" in proj and isinstance(proj["radiation"], dict):
+        rad = proj["radiation"]
+        dose_tot = rad.get("dose_total_usv")
+        no_sh = rad.get("projected_without_shelter")
+        with_sh = rad.get("projected_with_shelter")
+        rad_bits = []
+        if dose_tot is not None:
+            rad_bits.append(f"acumulada={dose_tot} μSv")
+        if no_sh is not None:
+            rad_bits.append(f"proy. +1h sin refugio={no_sh} μSv")
+        if with_sh is not None:
+            rad_bits.append(f"con refugio={with_sh} μSv")
+        if rad_bits:
+            parts.append("Radiación: " + ", ".join(rad_bits))
+    for k, v in proj.items():
+        if k in {"co2", "radiation"} or v is None:
+            continue
+        if isinstance(v, dict):
+            nested = ", ".join(f"{nk}={nv}" for nk, nv in v.items() if nv is not None)
+            if nested:
+                parts.append(f"{k}: {nested}")
+        else:
+            parts.append(f"{k}={_sanitize_text(str(v))}")
+    return " · ".join(parts) if parts else "sin proyecciones activas"
+
+
+def _format_ml_models_md(ml_models: Any) -> str:
+    if not ml_models:
+        return "no disponible"
+    if not isinstance(ml_models, dict):
+        return _sanitize_text(str(ml_models))
+    if "forecast" in ml_models or "pattern" in ml_models:
+        bits: list[str] = []
+        fc = ml_models.get("forecast")
+        if isinstance(fc, dict):
+            fc_val = fc.get("forecast_hr")
+            fc_method = fc.get("method") or fc.get("status") or fc.get("reason") or "en espera"
+            bits.append(
+                f"Pronóstico FC +60 s: {fc_val} bpm ({fc_method})"
+                if fc_val is not None
+                else f"Pronóstico FC +60 s: {fc_method}"
+            )
+        pat = ml_models.get("pattern")
+        if isinstance(pat, dict):
+            if pat.get("available"):
+                bits.append(f"Patrón RF: {pat.get('pattern')} (confianza {pat.get('score')})")
+            else:
+                bits.append(f"Patrón RF: {pat.get('status') or 'en espera'} ({pat.get('reason') or 'requiere ventana válida'})")
+        return " · ".join(bits) if bits else "en espera"
+    parts = [f"{k}={_sanitize_text(str(v))}" for k, v in ml_models.items() if v is not None]
+    return " · ".join(parts) if parts else "no disponible"
+
+
 def _render_markdown(
     *,
     situacion: dict[str, Any],
@@ -361,8 +492,8 @@ def _render_markdown(
         f"- **Actividad declarada:** {antecedentes['activity']}",
         f"- **Dosis acumulada (μSv):** {_format_value(antecedentes['dose_total_usv'], 'μSv')}",
         f"- **Cobertura de dosis completa:** {_format_value(antecedentes['dose_complete'])}",
-        f"- **Línea base personal:** {antecedentes['baseline'] if antecedentes['baseline'] is not None else 'calibrando / no disponible'}",
-        f"- **Evento externo:** {antecedentes['external_event'] if antecedentes['external_event'] is not None else 'ninguno'}",
+        f"- **Línea base personal:** {_format_baseline_md(antecedentes['baseline'])}",
+        f"- **Evento externo:** {_format_external_event_md(antecedentes['external_event'])}",
     ])
 
     if effective_share:
@@ -402,9 +533,9 @@ def _render_markdown(
     for item in evaluacion["alternatives"]:
         lines.append(f"  - {item}")
     if evaluacion["co2_sensitivity"] is not None:
-        lines.append(f"- **Sensibilidad CO₂:** {evaluacion['co2_sensitivity']}")
+        lines.append(f"- **Sensibilidad CO₂:** {_format_co2_sensitivity_md(evaluacion['co2_sensitivity'])}")
     if evaluacion["projections"] is not None:
-        lines.append(f"- **Proyecciones (bajo supuestos explícitos):** {evaluacion['projections']}")
+        lines.append(f"- **Proyecciones (bajo supuestos explícitos):** {_format_projections_md(evaluacion['projections'])}")
 
     lines.extend([
         "",
@@ -421,7 +552,7 @@ def _render_markdown(
         f"- **Fuente:** {provenance['source']}",
         f"- **Versión de reglas:** {provenance['rules_version']}",
         f"- **Versión de configuración:** {provenance['config_version']}",
-        f"- **Modelos ML:** {provenance['ml_models']}",
+        f"- **Modelos ML:** {_format_ml_models_md(provenance['ml_models'])}",
         f"- **Privacidad conductual compartida (`share_behavioral`):** {effective_share}",
         "- **Línea de tiempo del episodio:**",
     ])

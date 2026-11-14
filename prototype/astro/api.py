@@ -3,11 +3,8 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 
 from .contracts import (
     ActivityDeclaration,
@@ -22,8 +19,6 @@ from .gateway import ControlUpdate, Gateway
 from .glossary import get_glossary
 from .storage import Storage
 from .web_bridge import create_web_router
-
-WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
 
 def create_app(
@@ -162,23 +157,6 @@ def create_app(
             gateway_url=gateway_url,
         )
     )
-
-    if WEB_DIR.is_dir() and (WEB_DIR / "index.html").is_file():
-
-        @api.get("/", include_in_schema=False)
-        def web_index():
-            return FileResponse(WEB_DIR / "index.html")
-
-        for asset_dir in ("css", "js", "fonts"):
-            subdir = WEB_DIR / asset_dir
-            if subdir.is_dir():
-                api.mount(
-                    f"/{asset_dir}",
-                    StaticFiles(directory=subdir),
-                    name=f"web-{asset_dir}",
-                )
-
-        api.mount("/ui", StaticFiles(directory=WEB_DIR, html=True), name="web-ui")
 
     return api
 

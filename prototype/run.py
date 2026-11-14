@@ -10,7 +10,9 @@ import socket
 import subprocess
 import sys
 import time
-import webbrowser
+import json
+import urllib.error
+import urllib.request
 
 import httpx
 
@@ -59,14 +61,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="Mantener API y pasarela sin abrir interfaz interactiva",
     )
     mode.add_argument(
-        "--web",
+        "--tui",
+        "--ui-only",
+        dest="tui",
         action="store_true",
-        help="Servir la consola web en http://127.0.0.1:<onboard-port>/",
+        help="Abrir la consola TUI operacional de terminal (modo por defecto)",
     )
     mode.add_argument(
-        "--tui",
+        "--simulator",
+        "--sim",
+        "--sim-tui",
+        dest="simulator",
         action="store_true",
-        help="Abrir la TUI de terminal (modo por defecto)",
+        help="Abrir la TUI independiente del simulador de escenarios y sensores",
     )
     parser.add_argument(
         "--environment",
@@ -85,6 +92,33 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _services_are_healthy(onboard_url: str, gateway_url: str) -> bool:
+    for url in (f"{onboard_url.rstrip('/')}/health", f"{gateway_url.rstrip('/')}/health"):
+        try:
+            with urllib.request.urlopen(url, timeout=1.5) as resp:
+                if resp.status != 200:
+                    return False
+                data = json.loads(resp.read().decode("utf-8"))
+                if data.get("status") != "ok":
+                    return False
+        except (OSError, urllib.error.URLError, ValueError):
+            return False
+    return True
+
+
+def _launch_selected_tui(args: argparse.Namespace, onboard_url: str, gateway_url: str) -> int:
+    if args.simulator:
+        from astro.sim_tui import SimulatorTUIApp
+
+        SimulatorTUIApp(onboard_url=onboard_url, gateway_url=gateway_url).run()
+        return 0
+
+    from astro.tui import AstroVitalsApp
+
+    AstroVitalsApp(onboard_url=onboard_url).run()
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -93,6 +127,22 @@ def main(argv: list[str] | None = None) -> int:
     for port in (args.onboard_port, args.gateway_port):
         if not 1024 <= port <= 65535:
             parser.error("El puerto debe estar entre 1024 y 65535.")
+
+    onboard_url = f"http://127.0.0.1:{args.onboard_port}"
+    gateway_url = f"http://127.0.0.1:{args.gateway_port}"
+    onboard_busy = port_is_busy(args.onboard_port)
+    gateway_busy = port_is_busy(args.gateway_port)
+
+    if (
+        not args.services_only
+        and args.replay is None
+        and onboard_busy
+        and gateway_busy
+        and _services_are_healthy(onboard_url, gateway_url)
+    ):
+        return _launch_selected_tui(args, onboard_url, gateway_url)
+
+    for port in (args.onboard_port, args.gateway_port):
         if port_is_busy(port):
             print(f"El puerto {port} está ocupado. Cierra la demo anterior o elige otros puertos.")
             return 1
@@ -162,20 +212,6 @@ def main(argv: list[str] | None = None) -> int:
                 sent = _replay_file(client, env["ONBOARD_URL"], env["GATEWAY_URL"], args.replay)
                 print(f"Replay cargado: {sent} registros desde {args.replay}", flush=True)
 
-        if args.web:
-            web_url = f"{env['ONBOARD_URL']}/"
-            print(
-                f"Consola web {web_url} | API {env['ONBOARD_URL']} | Pasarela {env['GATEWAY_URL']} | Ctrl+C para detener",
-                flush=True,
-            )
-            try:
-                webbrowser.open(web_url)
-            except Exception:
-                pass
-            while all(process.poll() is None for process in processes):
-                time.sleep(0.5)
-            raise RuntimeError("Un servicio se detuvo; revisa los logs.")
-
         if args.services_only:
             print(
                 f"API {env['ONBOARD_URL']} | Pasarela {env['GATEWAY_URL']} | Ctrl+C para detener",
@@ -185,10 +221,7 @@ def main(argv: list[str] | None = None) -> int:
                 time.sleep(0.5)
             raise RuntimeError("Un servicio se detuvo; revisa los logs.")
 
-        from astro.tui import AstroVitalsApp
-
-        AstroVitalsApp(env["ONBOARD_URL"], env["GATEWAY_URL"]).run()
-        return 0
+        return _launch_selected_tui(args, env["ONBOARD_URL"], env["GATEWAY_URL"])
     except KeyboardInterrupt:
         return 0
     except (RuntimeError, OSError, ValueError, httpx.HTTPError) as exc:

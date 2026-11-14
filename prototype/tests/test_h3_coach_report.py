@@ -326,3 +326,31 @@ def test_sbar_report_and_privacy_filter():
     assert bidmc_report["antecedentes"]["dose_total_usv"] is None
     assert "CO₂=sin lectura (null)" in bidmc_report["markdown"]
     assert "Tasa dosis=sin lectura (null)" in bidmc_report["markdown"]
+
+    # El Markdown SBAR no debe exponer diccionarios crudos de Python
+    nested_report = build_episode_report({
+        "assessment": {"level": "normal", "title": "Estable"},
+        "latest": {
+            "measured_at": NOW.isoformat(),
+            "hr": 72.0,
+            "rr": 14.0,
+            "co2": 2.0,
+            "dose_rate": 0.5,
+            "activity": "rest",
+            "source": "simulated",
+        },
+        "baseline": {"status": "ready", "hr": 71.95, "rr": 14.9, "hr_mad": 0.45, "rr_mad": 0.1},
+        "co2_sensitivity": {"status": "insufficient_data", "slope": None, "sample_count": 98, "reason": "Variación insuficiente"},
+        "projections": {
+            "co2": {"moving_avg_1h_mmhg": 2.0, "coverage_pct": 28.3, "nasa_1h_ref_mmhg": 3.0, "eta_minutes": None, "reason": "tendencia_no_ascendente"},
+            "radiation": {"dose_total_usv": 0.51, "projected_without_shelter": 1.01, "projected_with_shelter": 0.59},
+        },
+        "external_event": {"sep_id": "2024-05-11T04:07:00-SEP-001", "phase": "watch", "source": "NASA DONKI"},
+        "ml": {"forecast": {"status": "calibrating", "reason": "cobertura_insuficiente"}, "pattern": {"available": False, "status": "en espera"}},
+    })
+    md_nested = nested_report["markdown"]
+    for raw_repr in ("{'status':", "{'moving_avg_1h_mmhg':", "{'sep_id':", "{'forecast':"):
+        assert raw_repr not in md_nested
+    assert "FC base 71.95 bpm (MAD 0.45)" in md_nested
+    assert "Evento solar 2024-05-11T04:07:00-SEP-001" in md_nested
+    assert "CO₂ prom. 1h=2.0 mmHg" in md_nested
