@@ -1,0 +1,103 @@
+{
+  "name": "physiological_patterns",
+  "version": "colab-v1",
+  "task": "classification",
+  "algorithm": "rf_personalized",
+  "trained_at_utc": "2026-11-14T07:05:19.465946+00:00",
+  "feature_order": [
+    "hr_last",
+    "hr_mean_30s",
+    "hr_sd_30s",
+    "hr_slope_30s",
+    "hr_mean_120s",
+    "hr_sd_120s",
+    "hr_slope_120s",
+    "rr_last",
+    "rr_mean_30s",
+    "rr_sd_30s",
+    "rr_slope_30s",
+    "rr_mean_120s",
+    "rr_sd_120s",
+    "rr_slope_120s",
+    "co2_last",
+    "co2_mean_30s",
+    "co2_sd_30s",
+    "co2_slope_30s",
+    "co2_mean_120s",
+    "co2_sd_120s",
+    "co2_slope_120s",
+    "activity",
+    "phase_duration_s",
+    "hr_delta",
+    "rr_delta"
+  ],
+  "units": {
+    "hr": "bpm",
+    "rr": "resp/min",
+    "co2": "mmHg",
+    "phase_duration_s": "s",
+    "slope": "channel_unit/s",
+    "activity": {
+      "rest": 0,
+      "exercise": 1,
+      "recovery": 2
+    }
+  },
+  "transformations": "original preparar_bidmc.features_at, windows 30/120 s, population SD, OLS slopes; fixed initial rest mean for deltas; no imputation",
+  "dataset_sha256": {
+    "fusion_simulada/ventanas_train.csv": "77393d8d1983fddbe7b48ed37cc716db0f23c87501158e369b5b6c9541b78a83",
+    "fusion_simulada/ventanas_validation.csv": "1f75a547ac6571990d18ebfa3becfe8b35bc5df0d545e33f7b0d6851e0e0288e",
+    "fusion_simulada/ventanas_test.csv": "b561ee9878fbff94ea66e426de051fded66d766ca79e445efd3de20593d3e3b3",
+    "fusion_simulada/manifest.json": "e3773f19c3527518d4e43d6f6d103eb147fedab6fe8b39b3325daa4883d05176"
+  },
+  "seed": 2026,
+  "hyperparameters": {
+    "n_estimators": 200,
+    "min_samples_leaf": 3,
+    "random_state": 2026,
+    "n_jobs": 1
+  },
+  "selected_parameters": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "class_weight": "balanced",
+    "criterion": "gini",
+    "max_depth": null,
+    "max_features": "sqrt",
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 3,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 200,
+    "n_jobs": 1,
+    "oob_score": false,
+    "random_state": 2026,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "dependencies": {
+    "numpy": "2.4.6",
+    "scipy": "1.16.3",
+    "scikit-learn": "1.6.1",
+    "joblib": "1.6.0"
+  },
+  "python": "3.13.18",
+  "model_sha256": "d48e096cd55446e8cb2c5134c97b95f38ba1cc996e5d457fdd1bc935bf0971e5",
+  "artifact_bytes": 588274,
+  "runtime": {
+    "training_evaluation_s": 18.43746346399996,
+    "prediction_single_row_ms": 87.94868112000131,
+    "python_allocations_peak_bytes": 30854764,
+    "memory_scope": "tracemalloc Python allocations, not total RSS"
+  },
+  "smoke_only": false,
+  "limitations": [
+    "Experimental software, no clinical or NASA validation",
+    "BIDMC terrestrial patients; classifier synthetic profiles",
+    "Scores are not clinical probabilities",
+    "Trend anchored at decision t using last valid value; may differ from raw-sample age-adjusted trend"
+  ]
+}

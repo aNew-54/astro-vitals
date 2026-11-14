@@ -1,0 +1,1465 @@
+{
+  "validation": {
+    "majority": {
+      "windows": 1570,
+      "accuracy": 0.5700636942675159,
+      "macro_f1": 0.1815415821501014,
+      "report": {
+        "baseline_expected": {
+          "precision": 0.5700636942675159,
+          "recall": 1.0,
+          "f1-score": 0.7261663286004056,
+          "support": 895.0
+        },
+        "activity_expected": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 421.0
+        },
+        "persistent_recovery_deviation": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 130.0
+        },
+        "combined_cabin_physiology_pattern": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 124.0
+        },
+        "accuracy": 0.5700636942675159,
+        "macro avg": {
+          "precision": 0.14251592356687898,
+          "recall": 0.25,
+          "f1-score": 0.1815415821501014,
+          "support": 1570.0
+        },
+        "weighted avg": {
+          "precision": 0.32497261552192785,
+          "recall": 0.5700636942675159,
+          "f1-score": 0.4139610599346262,
+          "support": 1570.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          895,
+          0,
+          0,
+          0
+        ],
+        [
+          421,
+          0,
+          0,
+          0
+        ],
+        [
+          130,
+          0,
+          0,
+          0
+        ],
+        [
+          124,
+          0,
+          0,
+          0
+        ]
+      ],
+      "labels": [
+        "baseline_expected",
+        "activity_expected",
+        "persistent_recovery_deviation",
+        "combined_cabin_physiology_pattern"
+      ]
+    },
+    "rf_without_personalization": {
+      "windows": 1570,
+      "accuracy": 0.9834394904458599,
+      "macro_f1": 0.9672940364229599,
+      "report": {
+        "baseline_expected": {
+          "precision": 0.988950276243094,
+          "recall": 1.0,
+          "f1-score": 0.9944444444444445,
+          "support": 895.0
+        },
+        "activity_expected": {
+          "precision": 0.9676674364896074,
+          "recall": 0.995249406175772,
+          "f1-score": 0.9812646370023419,
+          "support": 421.0
+        },
+        "persistent_recovery_deviation": {
+          "precision": 0.9830508474576272,
+          "recall": 0.8923076923076924,
+          "f1-score": 0.9354838709677419,
+          "support": 130.0
+        },
+        "combined_cabin_physiology_pattern": {
+          "precision": 1.0,
+          "recall": 0.9193548387096774,
+          "f1-score": 0.957983193277311,
+          "support": 124.0
+        },
+        "accuracy": 0.9834394904458599,
+        "macro avg": {
+          "precision": 0.9849171400475821,
+          "recall": 0.9517279842982854,
+          "f1-score": 0.9672940364229599,
+          "support": 1570.0
+        },
+        "weighted avg": {
+          "precision": 0.9836274510631754,
+          "recall": 0.9834394904458599,
+          "f1-score": 0.9831484134700362,
+          "support": 1570.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          895,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          419,
+          2,
+          0
+        ],
+        [
+          0,
+          14,
+          116,
+          0
+        ],
+        [
+          10,
+          0,
+          0,
+          114
+        ]
+      ],
+      "labels": [
+        "baseline_expected",
+        "activity_expected",
+        "persistent_recovery_deviation",
+        "combined_cabin_physiology_pattern"
+      ]
+    },
+    "rf_personalized": {
+      "windows": 1570,
+      "accuracy": 0.986624203821656,
+      "macro_f1": 0.9739192417697069,
+      "report": {
+        "baseline_expected": {
+          "precision": 0.988950276243094,
+          "recall": 1.0,
+          "f1-score": 0.9944444444444445,
+          "support": 895.0
+        },
+        "activity_expected": {
+          "precision": 0.9767441860465116,
+          "recall": 0.997624703087886,
+          "f1-score": 0.9870740305522914,
+          "support": 421.0
+        },
+        "persistent_recovery_deviation": {
+          "precision": 0.9917355371900827,
+          "recall": 0.9230769230769231,
+          "f1-score": 0.9561752988047809,
+          "support": 130.0
+        },
+        "combined_cabin_physiology_pattern": {
+          "precision": 1.0,
+          "recall": 0.9193548387096774,
+          "f1-score": 0.957983193277311,
+          "support": 124.0
+        },
+        "accuracy": 0.986624203821656,
+        "macro avg": {
+          "precision": 0.989357499869922,
+          "recall": 0.9600141162186216,
+          "f1-score": 0.9739192417697069,
+          "support": 1570.0
+        },
+        "weighted avg": {
+          "precision": 0.9867805219094657,
+          "recall": 0.986624203821656,
+          "f1-score": 0.9864195219435036,
+          "support": 1570.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          895,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          420,
+          1,
+          0
+        ],
+        [
+          0,
+          10,
+          120,
+          0
+        ],
+        [
+          10,
+          0,
+          0,
+          114
+        ]
+      ],
+      "labels": [
+        "baseline_expected",
+        "activity_expected",
+        "persistent_recovery_deviation",
+        "combined_cabin_physiology_pattern"
+      ]
+    }
+  },
+  "selected": "rf_personalized",
+  "selection_split": "validation",
+  "smoke_only": false,
+  "uncertainty": {
+    "validation_curve": [
+      {
+        "threshold": 0,
+        "coverage": 1.0,
+        "accepted": 1570,
+        "error": 0.01337579617834395
+      },
+      {
+        "threshold": 0.5,
+        "coverage": 0.9878980891719745,
+        "accepted": 1551,
+        "error": 0.0070921985815602835
+      },
+      {
+        "threshold": 0.6,
+        "coverage": 0.9745222929936306,
+        "accepted": 1530,
+        "error": 0.0
+      },
+      {
+        "threshold": 0.7,
+        "coverage": 0.9719745222929936,
+        "accepted": 1526,
+        "error": 0.0
+      },
+      {
+        "threshold": 0.8,
+        "coverage": 0.9687898089171975,
+        "accepted": 1521,
+        "error": 0.0
+      },
+      {
+        "threshold": 0.9,
+        "coverage": 0.9382165605095542,
+        "accepted": 1473,
+        "error": 0.0
+      }
+    ],
+    "coverage_constraint_met": true,
+    "selected_threshold": 0.6,
+    "test_curve": [
+      {
+        "threshold": 0,
+        "coverage": 1.0,
+        "accepted": 1594,
+        "error": 0.002509410288582183
+      },
+      {
+        "threshold": 0.5,
+        "coverage": 1.0,
+        "accepted": 1594,
+        "error": 0.002509410288582183
+      },
+      {
+        "threshold": 0.6,
+        "coverage": 0.9962358845671268,
+        "accepted": 1588,
+        "error": 0.0
+      },
+      {
+        "threshold": 0.7,
+        "coverage": 0.9937264742785445,
+        "accepted": 1584,
+        "error": 0.0
+      },
+      {
+        "threshold": 0.8,
+        "coverage": 0.9849435382685069,
+        "accepted": 1570,
+        "error": 0.0
+      },
+      {
+        "threshold": 0.9,
+        "coverage": 0.9598494353826851,
+        "accepted": 1530,
+        "error": 0.0
+      }
+    ],
+    "test_selected": {
+      "coverage": 0.9962358845671268,
+      "abstention_rate": 0.0037641154328732496,
+      "accepted_metrics": {
+        "windows": 1588,
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "report": {
+          "baseline_expected": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 905.0
+          },
+          "activity_expected": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 417.0
+          },
+          "persistent_recovery_deviation": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 126.0
+          },
+          "combined_cabin_physiology_pattern": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 140.0
+          },
+          "accuracy": 1.0,
+          "macro avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1588.0
+          },
+          "weighted avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 1588.0
+          }
+        },
+        "confusion_matrix": [
+          [
+            905,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            417,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            126,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            140
+          ]
+        ],
+        "labels": [
+          "baseline_expected",
+          "activity_expected",
+          "persistent_recovery_deviation",
+          "combined_cabin_physiology_pattern"
+        ]
+      }
+    }
+  },
+  "test_comparisons": {
+    "majority": {
+      "windows": 1594,
+      "accuracy": 0.5677540777917189,
+      "macro_f1": 0.18107242897158862,
+      "report": {
+        "baseline_expected": {
+          "precision": 0.5677540777917189,
+          "recall": 1.0,
+          "f1-score": 0.7242897158863545,
+          "support": 905.0
+        },
+        "activity_expected": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 421.0
+        },
+        "persistent_recovery_deviation": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 128.0
+        },
+        "combined_cabin_physiology_pattern": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 140.0
+        },
+        "accuracy": 0.5677540777917189,
+        "macro avg": {
+          "precision": 0.14193851944792973,
+          "recall": 0.25,
+          "f1-score": 0.18107242897158862,
+          "support": 1594.0
+        },
+        "weighted avg": {
+          "precision": 0.32234469284912526,
+          "recall": 0.5677540777917189,
+          "f1-score": 0.4112184396970833,
+          "support": 1594.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          905,
+          0,
+          0,
+          0
+        ],
+        [
+          421,
+          0,
+          0,
+          0
+        ],
+        [
+          128,
+          0,
+          0,
+          0
+        ],
+        [
+          140,
+          0,
+          0,
+          0
+        ]
+      ],
+      "labels": [
+        "baseline_expected",
+        "activity_expected",
+        "persistent_recovery_deviation",
+        "combined_cabin_physiology_pattern"
+      ]
+    },
+    "rf_without_personalization": {
+      "windows": 1594,
+      "accuracy": 0.986198243412798,
+      "macro_f1": 0.9731208161230593,
+      "report": {
+        "baseline_expected": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 905.0
+        },
+        "activity_expected": {
+          "precision": 0.9925925925925926,
+          "recall": 0.9548693586698337,
+          "f1-score": 0.9733656174334141,
+          "support": 421.0
+        },
+        "persistent_recovery_deviation": {
+          "precision": 0.8680555555555556,
+          "recall": 0.9765625,
+          "f1-score": 0.9191176470588235,
+          "support": 128.0
+        },
+        "combined_cabin_physiology_pattern": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 140.0
+        },
+        "accuracy": 0.986198243412798,
+        "macro avg": {
+          "precision": 0.9651620370370371,
+          "recall": 0.9828579646674585,
+          "f1-score": 0.9731208161230593,
+          "support": 1594.0
+        },
+        "weighted avg": {
+          "precision": 0.987448301500999,
+          "recall": 0.986198243412798,
+          "f1-score": 0.9864705042427835,
+          "support": 1594.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          905,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          402,
+          19,
+          0
+        ],
+        [
+          0,
+          3,
+          125,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          140
+        ]
+      ],
+      "labels": [
+        "baseline_expected",
+        "activity_expected",
+        "persistent_recovery_deviation",
+        "combined_cabin_physiology_pattern"
+      ]
+    },
+    "rf_personalized": {
+      "windows": 1594,
+      "accuracy": 0.9974905897114178,
+      "macro_f1": 0.9949335548172757,
+      "report": {
+        "baseline_expected": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 905.0
+        },
+        "activity_expected": {
+          "precision": 0.9976133651551312,
+          "recall": 0.9928741092636579,
+          "f1-score": 0.9952380952380953,
+          "support": 421.0
+        },
+        "persistent_recovery_deviation": {
+          "precision": 0.9769230769230769,
+          "recall": 0.9921875,
+          "f1-score": 0.9844961240310077,
+          "support": 128.0
+        },
+        "combined_cabin_physiology_pattern": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 140.0
+        },
+        "accuracy": 0.9974905897114178,
+        "macro avg": {
+          "precision": 0.9936341105195521,
+          "recall": 0.9962654023159145,
+          "f1-score": 0.9949335548172757,
+          "support": 1594.0
+        },
+        "weighted avg": {
+          "precision": 0.9975165499224994,
+          "recall": 0.9974905897114178,
+          "f1-score": 0.9974973287146846,
+          "support": 1594.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          905,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          418,
+          3,
+          0
+        ],
+        [
+          0,
+          1,
+          127,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          140
+        ]
+      ],
+      "labels": [
+        "baseline_expected",
+        "activity_expected",
+        "persistent_recovery_deviation",
+        "combined_cabin_physiology_pattern"
+      ],
+      "by_profile": {
+        "F26": {
+          "windows": 330,
+          "accuracy": 1.0,
+          "macro_f1": 1.0,
+          "report": {
+            "baseline_expected": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 175.0
+            },
+            "activity_expected": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 91.0
+            },
+            "persistent_recovery_deviation": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 26.0
+            },
+            "combined_cabin_physiology_pattern": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 38.0
+            },
+            "accuracy": 1.0,
+            "macro avg": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 330.0
+            },
+            "weighted avg": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 330.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              175,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              91,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              26,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              38
+            ]
+          ],
+          "labels": [
+            "baseline_expected",
+            "activity_expected",
+            "persistent_recovery_deviation",
+            "combined_cabin_physiology_pattern"
+          ]
+        },
+        "F27": {
+          "windows": 309,
+          "accuracy": 1.0,
+          "macro_f1": 1.0,
+          "report": {
+            "baseline_expected": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 173.0
+            },
+            "activity_expected": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 83.0
+            },
+            "persistent_recovery_deviation": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 20.0
+            },
+            "combined_cabin_physiology_pattern": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 33.0
+            },
+            "accuracy": 1.0,
+            "macro avg": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 309.0
+            },
+            "weighted avg": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 309.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              173,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              83,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              20,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              33
+            ]
+          ],
+          "labels": [
+            "baseline_expected",
+            "activity_expected",
+            "persistent_recovery_deviation",
+            "combined_cabin_physiology_pattern"
+          ]
+        },
+        "F28": {
+          "windows": 310,
+          "accuracy": 0.9967741935483871,
+          "macro_f1": 0.9939378943461586,
+          "report": {
+            "baseline_expected": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 198.0
+            },
+            "activity_expected": {
+              "precision": 0.9855072463768116,
+              "recall": 1.0,
+              "f1-score": 0.9927007299270073,
+              "support": 68.0
+            },
+            "persistent_recovery_deviation": {
+              "precision": 1.0,
+              "recall": 0.9666666666666667,
+              "f1-score": 0.9830508474576272,
+              "support": 30.0
+            },
+            "combined_cabin_physiology_pattern": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 14.0
+            },
+            "accuracy": 0.9967741935483871,
+            "macro avg": {
+              "precision": 0.9963768115942029,
+              "recall": 0.9916666666666667,
+              "f1-score": 0.9939378943461586,
+              "support": 310.0
+            },
+            "weighted avg": {
+              "precision": 0.9968209443665265,
+              "recall": 0.9967741935483871,
+              "f1-score": 0.9967586292218236,
+              "support": 310.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              198,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              68,
+              0,
+              0
+            ],
+            [
+              0,
+              1,
+              29,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              14
+            ]
+          ],
+          "labels": [
+            "baseline_expected",
+            "activity_expected",
+            "persistent_recovery_deviation",
+            "combined_cabin_physiology_pattern"
+          ]
+        },
+        "F29": {
+          "windows": 312,
+          "accuracy": 0.9967948717948718,
+          "macro_f1": 0.9932684216852987,
+          "report": {
+            "baseline_expected": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 168.0
+            },
+            "activity_expected": {
+              "precision": 1.0,
+              "recall": 0.9887640449438202,
+              "f1-score": 0.9943502824858758,
+              "support": 89.0
+            },
+            "persistent_recovery_deviation": {
+              "precision": 0.9583333333333334,
+              "recall": 1.0,
+              "f1-score": 0.9787234042553191,
+              "support": 23.0
+            },
+            "combined_cabin_physiology_pattern": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 32.0
+            },
+            "accuracy": 0.9967948717948718,
+            "macro avg": {
+              "precision": 0.9895833333333334,
+              "recall": 0.997191011235955,
+              "f1-score": 0.9932684216852987,
+              "support": 312.0
+            },
+            "weighted avg": {
+              "precision": 0.9969284188034189,
+              "recall": 0.9967948717948718,
+              "f1-score": 0.9968199148689593,
+              "support": 312.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              168,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              88,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              23,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              32
+            ]
+          ],
+          "labels": [
+            "baseline_expected",
+            "activity_expected",
+            "persistent_recovery_deviation",
+            "combined_cabin_physiology_pattern"
+          ]
+        },
+        "F30": {
+          "windows": 333,
+          "accuracy": 0.993993993993994,
+          "macro_f1": 0.9888576779026217,
+          "report": {
+            "baseline_expected": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 191.0
+            },
+            "activity_expected": {
+              "precision": 1.0,
+              "recall": 0.9777777777777777,
+              "f1-score": 0.9887640449438202,
+              "support": 90.0
+            },
+            "persistent_recovery_deviation": {
+              "precision": 0.9354838709677419,
+              "recall": 1.0,
+              "f1-score": 0.9666666666666667,
+              "support": 29.0
+            },
+            "combined_cabin_physiology_pattern": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 23.0
+            },
+            "accuracy": 0.993993993993994,
+            "macro avg": {
+              "precision": 0.9838709677419355,
+              "recall": 0.9944444444444445,
+              "f1-score": 0.9888576779026217,
+              "support": 333.0
+            },
+            "weighted avg": {
+              "precision": 0.9943814782524459,
+              "recall": 0.993993993993994,
+              "f1-score": 0.9940603524873188,
+              "support": 333.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              191,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              88,
+              2,
+              0
+            ],
+            [
+              0,
+              0,
+              29,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              23
+            ]
+          ],
+          "labels": [
+            "baseline_expected",
+            "activity_expected",
+            "persistent_recovery_deviation",
+            "combined_cabin_physiology_pattern"
+          ]
+        }
+      }
+    }
+  },
+  "test": {
+    "windows": 1594,
+    "accuracy": 0.9974905897114178,
+    "macro_f1": 0.9949335548172757,
+    "report": {
+      "baseline_expected": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 905.0
+      },
+      "activity_expected": {
+        "precision": 0.9976133651551312,
+        "recall": 0.9928741092636579,
+        "f1-score": 0.9952380952380953,
+        "support": 421.0
+      },
+      "persistent_recovery_deviation": {
+        "precision": 0.9769230769230769,
+        "recall": 0.9921875,
+        "f1-score": 0.9844961240310077,
+        "support": 128.0
+      },
+      "combined_cabin_physiology_pattern": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 140.0
+      },
+      "accuracy": 0.9974905897114178,
+      "macro avg": {
+        "precision": 0.9936341105195521,
+        "recall": 0.9962654023159145,
+        "f1-score": 0.9949335548172757,
+        "support": 1594.0
+      },
+      "weighted avg": {
+        "precision": 0.9975165499224994,
+        "recall": 0.9974905897114178,
+        "f1-score": 0.9974973287146846,
+        "support": 1594.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        905,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        418,
+        3,
+        0
+      ],
+      [
+        0,
+        1,
+        127,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        140
+      ]
+    ],
+    "labels": [
+      "baseline_expected",
+      "activity_expected",
+      "persistent_recovery_deviation",
+      "combined_cabin_physiology_pattern"
+    ],
+    "by_profile": {
+      "F26": {
+        "windows": 330,
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "report": {
+          "baseline_expected": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 175.0
+          },
+          "activity_expected": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 91.0
+          },
+          "persistent_recovery_deviation": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 26.0
+          },
+          "combined_cabin_physiology_pattern": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 38.0
+          },
+          "accuracy": 1.0,
+          "macro avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 330.0
+          },
+          "weighted avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 330.0
+          }
+        },
+        "confusion_matrix": [
+          [
+            175,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            91,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            26,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            38
+          ]
+        ],
+        "labels": [
+          "baseline_expected",
+          "activity_expected",
+          "persistent_recovery_deviation",
+          "combined_cabin_physiology_pattern"
+        ]
+      },
+      "F27": {
+        "windows": 309,
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "report": {
+          "baseline_expected": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 173.0
+          },
+          "activity_expected": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 83.0
+          },
+          "persistent_recovery_deviation": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 20.0
+          },
+          "combined_cabin_physiology_pattern": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 33.0
+          },
+          "accuracy": 1.0,
+          "macro avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 309.0
+          },
+          "weighted avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 309.0
+          }
+        },
+        "confusion_matrix": [
+          [
+            173,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            83,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            20,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            33
+          ]
+        ],
+        "labels": [
+          "baseline_expected",
+          "activity_expected",
+          "persistent_recovery_deviation",
+          "combined_cabin_physiology_pattern"
+        ]
+      },
+      "F28": {
+        "windows": 310,
+        "accuracy": 0.9967741935483871,
+        "macro_f1": 0.9939378943461586,
+        "report": {
+          "baseline_expected": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 198.0
+          },
+          "activity_expected": {
+            "precision": 0.9855072463768116,
+            "recall": 1.0,
+            "f1-score": 0.9927007299270073,
+            "support": 68.0
+          },
+          "persistent_recovery_deviation": {
+            "precision": 1.0,
+            "recall": 0.9666666666666667,
+            "f1-score": 0.9830508474576272,
+            "support": 30.0
+          },
+          "combined_cabin_physiology_pattern": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 14.0
+          },
+          "accuracy": 0.9967741935483871,
+          "macro avg": {
+            "precision": 0.9963768115942029,
+            "recall": 0.9916666666666667,
+            "f1-score": 0.9939378943461586,
+            "support": 310.0
+          },
+          "weighted avg": {
+            "precision": 0.9968209443665265,
+            "recall": 0.9967741935483871,
+            "f1-score": 0.9967586292218236,
+            "support": 310.0
+          }
+        },
+        "confusion_matrix": [
+          [
+            198,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            68,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            29,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            14
+          ]
+        ],
+        "labels": [
+          "baseline_expected",
+          "activity_expected",
+          "persistent_recovery_deviation",
+          "combined_cabin_physiology_pattern"
+        ]
+      },
+      "F29": {
+        "windows": 312,
+        "accuracy": 0.9967948717948718,
+        "macro_f1": 0.9932684216852987,
+        "report": {
+          "baseline_expected": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 168.0
+          },
+          "activity_expected": {
+            "precision": 1.0,
+            "recall": 0.9887640449438202,
+            "f1-score": 0.9943502824858758,
+            "support": 89.0
+          },
+          "persistent_recovery_deviation": {
+            "precision": 0.9583333333333334,
+            "recall": 1.0,
+            "f1-score": 0.9787234042553191,
+            "support": 23.0
+          },
+          "combined_cabin_physiology_pattern": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 32.0
+          },
+          "accuracy": 0.9967948717948718,
+          "macro avg": {
+            "precision": 0.9895833333333334,
+            "recall": 0.997191011235955,
+            "f1-score": 0.9932684216852987,
+            "support": 312.0
+          },
+          "weighted avg": {
+            "precision": 0.9969284188034189,
+            "recall": 0.9967948717948718,
+            "f1-score": 0.9968199148689593,
+            "support": 312.0
+          }
+        },
+        "confusion_matrix": [
+          [
+            168,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            88,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            23,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            32
+          ]
+        ],
+        "labels": [
+          "baseline_expected",
+          "activity_expected",
+          "persistent_recovery_deviation",
+          "combined_cabin_physiology_pattern"
+        ]
+      },
+      "F30": {
+        "windows": 333,
+        "accuracy": 0.993993993993994,
+        "macro_f1": 0.9888576779026217,
+        "report": {
+          "baseline_expected": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 191.0
+          },
+          "activity_expected": {
+            "precision": 1.0,
+            "recall": 0.9777777777777777,
+            "f1-score": 0.9887640449438202,
+            "support": 90.0
+          },
+          "persistent_recovery_deviation": {
+            "precision": 0.9354838709677419,
+            "recall": 1.0,
+            "f1-score": 0.9666666666666667,
+            "support": 29.0
+          },
+          "combined_cabin_physiology_pattern": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 23.0
+          },
+          "accuracy": 0.993993993993994,
+          "macro avg": {
+            "precision": 0.9838709677419355,
+            "recall": 0.9944444444444445,
+            "f1-score": 0.9888576779026217,
+            "support": 333.0
+          },
+          "weighted avg": {
+            "precision": 0.9943814782524459,
+            "recall": 0.993993993993994,
+            "f1-score": 0.9940603524873188,
+            "support": 333.0
+          }
+        },
+        "confusion_matrix": [
+          [
+            191,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            88,
+            2,
+            0
+          ],
+          [
+            0,
+            0,
+            29,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            23
+          ]
+        ],
+        "labels": [
+          "baseline_expected",
+          "activity_expected",
+          "persistent_recovery_deviation",
+          "combined_cabin_physiology_pattern"
+        ]
+      }
+    }
+  }
+}

@@ -7,3 +7,5 @@ __pycache__/
 *.pyc
 prototype/logs/
 prototype/.test-*/
+.DS_Store
+**/.DS_Store

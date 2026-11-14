@@ -3,6 +3,9 @@
 *.gz binary
 *.png binary
 *.pdf binary
+*.joblib binary
+*.woff2 binary
+*.ttf binary
 # Preserve the original bytes of data with published checksums or acquisition receipts.
 data/bidmc/raw/** -text
 prototype/data/** -text

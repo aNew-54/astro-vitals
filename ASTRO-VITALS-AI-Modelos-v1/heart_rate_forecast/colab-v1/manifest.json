@@ -1,0 +1,91 @@
+{
+  "name": "heart_rate_forecast",
+  "version": "colab-v1",
+  "task": "forecast",
+  "algorithm": "random_forest",
+  "trained_at_utc": "2026-11-14T07:05:01.007212+00:00",
+  "feature_order": [
+    "hr_last",
+    "hr_mean_30s",
+    "hr_sd_30s",
+    "hr_slope_30s",
+    "hr_mean_120s",
+    "hr_sd_120s",
+    "hr_slope_120s",
+    "rr_last",
+    "rr_mean_30s",
+    "rr_sd_30s",
+    "rr_slope_30s",
+    "rr_mean_120s",
+    "rr_sd_120s",
+    "rr_slope_120s"
+  ],
+  "units": {
+    "hr": "bpm",
+    "rr": "resp/min",
+    "co2": "mmHg",
+    "phase_duration_s": "s",
+    "slope": "channel_unit/s",
+    "activity": {
+      "rest": 0,
+      "exercise": 1,
+      "recovery": 2
+    }
+  },
+  "transformations": "original preparar_bidmc.features_at, windows 30/120 s, population SD, OLS slopes; fixed initial rest mean for deltas; no imputation",
+  "dataset_sha256": {
+    "bidmc/preparado/ventanas_train.csv": "a02968a18d2db8a5801982e1bee51e4b059bcdf9e6e4c1e1178c390daa292db8",
+    "bidmc/preparado/ventanas_validation.csv": "22b243731b5cad44ed1f272fa1b0b282a31d72a21a0ea4508bb5327b787a2b83",
+    "bidmc/preparado/ventanas_test.csv": "9d70e4ce655de04f6d2713b175af2823d6e37a8a81165337827348b071af9fa3",
+    "bidmc/preparado/manifest.json": "31c77337d42ddf4ece52ac705c91bfe8be0900b5d3531d760ed767a48544b5d6"
+  },
+  "seed": 2026,
+  "hyperparameters": {
+    "n_estimators": 200,
+    "min_samples_leaf": 3,
+    "random_state": 2026,
+    "n_jobs": 1
+  },
+  "selected_parameters": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "criterion": "squared_error",
+    "max_depth": null,
+    "max_features": 1.0,
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 3,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 200,
+    "n_jobs": 1,
+    "oob_score": false,
+    "random_state": 2026,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "dependencies": {
+    "numpy": "2.4.6",
+    "scipy": "1.16.3",
+    "scikit-learn": "1.6.1",
+    "joblib": "1.6.0"
+  },
+  "python": "3.13.18",
+  "model_sha256": "676a4aa2f7812c82145ab6bebc9a6e64f76ef8239618be6058ab6d6aa42af846",
+  "artifact_bytes": 2782380,
+  "runtime": {
+    "training_evaluation_s": 11.760273875000053,
+    "prediction_single_row_ms": 89.13203099999919,
+    "python_allocations_peak_bytes": 5585560,
+    "memory_scope": "tracemalloc Python allocations, not total RSS"
+  },
+  "smoke_only": false,
+  "limitations": [
+    "Experimental software, no clinical or NASA validation",
+    "BIDMC terrestrial patients; classifier synthetic profiles",
+    "Scores are not clinical probabilities",
+    "Trend anchored at decision t using last valid value; may differ from raw-sample age-adjusted trend"
+  ]
+}

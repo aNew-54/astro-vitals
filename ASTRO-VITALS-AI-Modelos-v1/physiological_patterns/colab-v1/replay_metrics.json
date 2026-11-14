@@ -1,0 +1,328 @@
+{
+  "split": "test",
+  "model_version": "colab-v1",
+  "model_sha256": "d48e096cd55446e8cb2c5134c97b95f38ba1cc996e5d457fdd1bc935bf0971e5",
+  "source_hashes": {
+    "telemetria.csv.gz": "f9601ddf2f6b6a6c7212acb13ae2ecb27581bf7eb49c5d08432c59bd23d8ff26",
+    "anotaciones.csv.gz": "804cbd3fab04336f890f61eb96b67abca325864eba0724d459d51bcc3e9f3e60",
+    "sesiones.csv": "62ffbd930c7d5f3d91a1d26bf52f361d0196a0145c9190a713a4956ee32bf499"
+  },
+  "conventional_with_required_signal_quality": {
+    "decision_count": 3120,
+    "coverage": 0.9371794871794872,
+    "abstention_rate": 0.06282051282051282,
+    "abstention_reasons": {
+      "quality": 196
+    },
+    "accepted_known_truth": {
+      "windows": 2642,
+      "accuracy": 0.9375473126419379,
+      "macro_f1": 0.8882299835883287,
+      "report": {
+        "baseline_expected": {
+          "precision": 0.9795114263199369,
+          "recall": 0.9818325434439179,
+          "f1-score": 0.9806706114398422,
+          "support": 1266.0
+        },
+        "activity_expected": {
+          "precision": 0.8833849329205367,
+          "recall": 0.9727272727272728,
+          "f1-score": 0.9259058950784208,
+          "support": 880.0
+        },
+        "persistent_recovery_deviation": {
+          "precision": 0.9784172661870504,
+          "recall": 0.5461847389558233,
+          "f1-score": 0.7010309278350515,
+          "support": 249.0
+        },
+        "combined_cabin_physiology_pattern": {
+          "precision": 0.9132075471698113,
+          "recall": 0.979757085020243,
+          "f1-score": 0.9453125,
+          "support": 247.0
+        },
+        "accuracy": 0.9375473126419379,
+        "macro avg": {
+          "precision": 0.9386302931493338,
+          "recall": 0.8701254100368143,
+          "f1-score": 0.8882299835883287,
+          "support": 2642.0
+        },
+        "weighted avg": {
+          "precision": 0.9411916616664011,
+          "recall": 0.9375473126419379,
+          "f1-score": 0.9327687624083189,
+          "support": 2642.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          1243,
+          0,
+          0,
+          23
+        ],
+        [
+          21,
+          856,
+          3,
+          0
+        ],
+        [
+          0,
+          113,
+          136,
+          0
+        ],
+        [
+          5,
+          0,
+          0,
+          242
+        ]
+      ],
+      "labels": [
+        "baseline_expected",
+        "activity_expected",
+        "persistent_recovery_deviation",
+        "combined_cabin_physiology_pattern"
+      ]
+    },
+    "ambiguous_decisions": 297,
+    "ambiguous_accepted": 282,
+    "episodes": {
+      "false_alert_starts": 6,
+      "normal_annotated_hours": 3.1486111111111112,
+      "false_alerts_per_normal_hour": 1.9056021173356859,
+      "episodes": [
+        {
+          "session": "S37e7f404ffbb06d3",
+          "pattern": "persistent_recovery_deviation",
+          "onset_s": 445,
+          "delay_s": 110
+        },
+        {
+          "session": "S53baf2f7aebfb619",
+          "pattern": "combined_cabin_physiology_pattern",
+          "onset_s": 505,
+          "delay_s": 0
+        },
+        {
+          "session": "Sb035b31c56831522",
+          "pattern": "persistent_recovery_deviation",
+          "onset_s": 455,
+          "delay_s": 115
+        },
+        {
+          "session": "Sd5478ca615367e0c",
+          "pattern": "combined_cabin_physiology_pattern",
+          "onset_s": 395,
+          "delay_s": 0
+        },
+        {
+          "session": "S765255316c496735",
+          "pattern": "persistent_recovery_deviation",
+          "onset_s": 440,
+          "delay_s": 115
+        },
+        {
+          "session": "S576047545efe719e",
+          "pattern": "combined_cabin_physiology_pattern",
+          "onset_s": 185,
+          "delay_s": 10
+        },
+        {
+          "session": "S8ea118cfd8d1f415",
+          "pattern": "persistent_recovery_deviation",
+          "onset_s": 450,
+          "delay_s": 115
+        },
+        {
+          "session": "Sf9d90b8ee1196590",
+          "pattern": "combined_cabin_physiology_pattern",
+          "onset_s": 290,
+          "delay_s": 0
+        },
+        {
+          "session": "S8ae56e25494df413",
+          "pattern": "persistent_recovery_deviation",
+          "onset_s": 445,
+          "delay_s": 110
+        },
+        {
+          "session": "Sd841b419571fef3d",
+          "pattern": "combined_cabin_physiology_pattern",
+          "onset_s": 610,
+          "delay_s": 15
+        }
+      ],
+      "episodes_total": 10,
+      "episodes_detected": 10,
+      "episodes_missed": 0,
+      "mean_delay_detected_s": 59.0,
+      "definition": "5 s decision grid after calibration; false alert = onset of anomalous prediction run while truth normal; denominator includes abstentions; episode delay from first anomalous annotation, misses listed"
+    }
+  },
+  "with_uncertainty": {
+    "decision_count": 3120,
+    "coverage": 0.6269230769230769,
+    "abstention_rate": 0.3730769230769231,
+    "abstention_reasons": {
+      "outside_training_envelope": 836,
+      "quality": 196,
+      "low_model_score": 132
+    },
+    "accepted_known_truth": {
+      "windows": 1939,
+      "accuracy": 0.9757607013924704,
+      "macro_f1": 0.9511843946971926,
+      "report": {
+        "baseline_expected": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 1086.0
+        },
+        "activity_expected": {
+          "precision": 0.9172535211267606,
+          "recall": 1.0,
+          "f1-score": 0.9568411386593205,
+          "support": 521.0
+        },
+        "persistent_recovery_deviation": {
+          "precision": 1.0,
+          "recall": 0.7359550561797753,
+          "f1-score": 0.8478964401294499,
+          "support": 178.0
+        },
+        "combined_cabin_physiology_pattern": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 154.0
+        },
+        "accuracy": 0.9757607013924704,
+        "macro avg": {
+          "precision": 0.9793133802816901,
+          "recall": 0.9339887640449438,
+          "f1-score": 0.9511843946971926,
+          "support": 1939.0
+        },
+        "weighted avg": {
+          "precision": 0.9777664180026004,
+          "recall": 0.9757607013924704,
+          "f1-score": 0.9744403298527838,
+          "support": 1939.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          1086,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          521,
+          0,
+          0
+        ],
+        [
+          0,
+          47,
+          131,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          154
+        ]
+      ],
+      "labels": [
+        "baseline_expected",
+        "activity_expected",
+        "persistent_recovery_deviation",
+        "combined_cabin_physiology_pattern"
+      ]
+    },
+    "ambiguous_decisions": 297,
+    "ambiguous_accepted": 17,
+    "episodes": {
+      "false_alert_starts": 0,
+      "normal_annotated_hours": 3.1486111111111112,
+      "false_alerts_per_normal_hour": 0.0,
+      "episodes": [
+        {
+          "session": "S37e7f404ffbb06d3",
+          "pattern": "persistent_recovery_deviation",
+          "onset_s": 445,
+          "delay_s": 115
+        },
+        {
+          "session": "S53baf2f7aebfb619",
+          "pattern": "combined_cabin_physiology_pattern",
+          "onset_s": 505,
+          "delay_s": 105
+        },
+        {
+          "session": "Sb035b31c56831522",
+          "pattern": "persistent_recovery_deviation",
+          "onset_s": 455,
+          "delay_s": 120
+        },
+        {
+          "session": "Sd5478ca615367e0c",
+          "pattern": "combined_cabin_physiology_pattern",
+          "onset_s": 395,
+          "delay_s": 110
+        },
+        {
+          "session": "S765255316c496735",
+          "pattern": "persistent_recovery_deviation",
+          "onset_s": 440,
+          "delay_s": 120
+        },
+        {
+          "session": "S576047545efe719e",
+          "pattern": "combined_cabin_physiology_pattern",
+          "onset_s": 185,
+          "delay_s": 105
+        },
+        {
+          "session": "S8ea118cfd8d1f415",
+          "pattern": "persistent_recovery_deviation",
+          "onset_s": 450,
+          "delay_s": 115
+        },
+        {
+          "session": "Sf9d90b8ee1196590",
+          "pattern": "combined_cabin_physiology_pattern",
+          "onset_s": 290,
+          "delay_s": 110
+        },
+        {
+          "session": "S8ae56e25494df413",
+          "pattern": "persistent_recovery_deviation",
+          "onset_s": 445,
+          "delay_s": 115
+        },
+        {
+          "session": "Sd841b419571fef3d",
+          "pattern": "combined_cabin_physiology_pattern",
+          "onset_s": 610,
+          "delay_s": 100
+        }
+      ],
+      "episodes_total": 10,
+      "episodes_detected": 10,
+      "episodes_missed": 0,
+      "mean_delay_detected_s": 111.5,
+      "definition": "5 s decision grid after calibration; false alert = onset of anomalous prediction run while truth normal; denominator includes abstentions; episode delay from first anomalous annotation, misses listed"
+    }
+  }
+}

@@ -1,5 +1,6 @@
-"""Contrato reducido de telemetría; unidades fijas para esta demostración."""
+"""Contrato de telemetría y peticiones de control/contexto; unidades fijas para esta demostración."""
 
+import math
 from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
@@ -15,11 +16,79 @@ class Telemetry(BaseModel):
     co2: float | None = Field(default=None, ge=0, le=100, description="mmHg")
     dose_rate: float | None = Field(default=None, ge=0, description="μSv/h")
     activity: Literal["rest", "exercise", "recovery", "unknown"]
-    source: Literal["simulated", "bidmc"]
+    source: Literal["simulated", "bidmc", "replayed", "measured"]
     original_time_s: float | None = Field(default=None, ge=0)
+
+    crew_id: str | None = Field(default=None, max_length=64)
+    location_id: str | None = Field(default=None, max_length=64)
+    spo2: float | None = Field(default=None, ge=0, le=100, description="%")
+    bp_sys: float | None = Field(default=None, ge=0, le=300, description="mmHg")
+    bp_dia: float | None = Field(default=None, ge=0, le=200, description="mmHg")
+    temp_c: float | None = Field(default=None, ge=20, le=45, description="°C")
+    hydration_pct: float | None = Field(default=None, ge=0, le=100, description="%")
+    extras: dict[str, float | str | None] | None = None
+    source_ref: str | None = Field(default=None, max_length=256)
 
     @model_validator(mode="after")
     def preserve_real_data_provenance(self):
         if self.source == "bidmc" and (self.co2 is not None or self.dose_rate is not None):
             raise ValueError("BIDMC no contiene CO₂ ni dosimetría: deben ser null.")
         return self
+
+    @model_validator(mode="after")
+    def validate_extras(self):
+        if self.extras is None:
+            return self
+        for key, value in self.extras.items():
+            if not isinstance(key, str) or not key.strip():
+                raise ValueError("Las claves de 'extras' deben ser cadenas no vacías.")
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                if not math.isfinite(value):
+                    raise ValueError(f"Valor no finito en extras[{key!r}].")
+        return self
+
+
+class CheckInRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+
+    reaction_ms: list[float] = Field(min_length=1)
+    false_starts: int = Field(default=0, ge=0)
+    lapses: int | None = Field(default=None, ge=0)
+    sleep_hours: float = Field(default=7.0, ge=0, le=24)
+    mood: int = Field(default=3, ge=1, le=5)
+    source: Literal["declared", "simulated"] = "declared"
+
+    @model_validator(mode="after")
+    def validate_reaction_ms(self):
+        for value in self.reaction_ms:
+            if not math.isfinite(value) or value <= 0:
+                raise ValueError("Todos los valores de reaction_ms deben ser finitos y mayores que 0.")
+        return self
+
+
+class ActivityDeclaration(BaseModel):
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+
+    activity: Literal["rest", "exercise", "recovery", "unknown"]
+    started_at: AwareDatetime | None = None
+    note: str | None = None
+
+
+class ContextEventRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+
+    kind: Literal["solar", "clear"] = "solar"
+    phase: Literal["watch", "arrival", "peak", "decay"] = "watch"
+    shelter: bool = False
+
+
+class PrivacyUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+
+    share_behavioral: bool
+
+
+class EnvironmentUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+
+    environment: Literal["transit", "station", "rover", "base"]
