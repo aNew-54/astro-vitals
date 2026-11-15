@@ -1,18 +1,18 @@
 /* =========================================================
-   ASTRA HEALTH · MODELO (sin DOM)
-   Estado único que se RELLENA desde la API (REST + WebSocket).
-   Aquí no se generan datos: solo se evalúa la severidad para
-   colorear la interfaz y se describen métricas y zonas.
-   Severidad: 0 = nominal · 1 = precaución · 2 = alerta.
-   TODOS los umbrales son de simulación (educativos, no clínicos).
+   ASTRA HEALTH · MODEL (no DOM)
+   Single state that is FILLED from the API (REST + WebSocket).
+   No data is generated here: only severity is evaluated to
+   color the interface, and metrics and zones are described.
+   Severity: 0 = nominal · 1 = caution · 2 = alert.
+   ALL thresholds are simulation-only (educational, non-clinical).
    ========================================================= */
 "use strict";
 
-const SEV_LABEL = ["NOMINAL", "PRECAUCIÓN", "ALERTA"];
+const SEV_LABEL = ["NOMINAL", "CAUTION", "ALERT"];
 const SEV_KEY = ["ok", "warn", "alert"];
-const SEV_MISSING = "SIN SEÑAL";
+const SEV_MISSING = "NO SIGNAL";
 
-/* ---------- 1. ESTADO ÚNICO (vacío hasta la primera lectura) ---------- */
+/* ---------- 1. SINGLE STATE (empty until the first reading) ---------- */
 const state = {
     ready: false,
     measurementId: null,
@@ -37,7 +37,7 @@ const state = {
 
 const isNum = v => typeof v === "number" && Number.isFinite(v);
 
-/* SQLite puede devolver fechas sin zona horaria: se interpretan como UTC. */
+/* SQLite may return dates without a time zone: they are interpreted as UTC. */
 function parseTs(value) {
     if (!value) return null;
     const text = String(value);
@@ -46,7 +46,7 @@ function parseTs(value) {
     return Number.isNaN(date.getTime()) ? null : date;
 }
 
-/* ---------- 2. REGLAS DE SEVERIDAD ---------- */
+/* ---------- 2. SEVERITY RULES ---------- */
 const RULES = {
     hr:   v => (v < 50 || v > 120) ? 2 : (v < 60 || v > 100) ? 1 : 0,
     bp:   (s, d) => (s >= 140 || d >= 90 || s < 90) ? 2 : (s >= 130 || d >= 85 || s < 100) ? 1 : 0,
@@ -63,7 +63,7 @@ const RULES = {
 const r0 = v => Math.round(v);
 const r1 = v => Math.round(v * 10) / 10;
 
-/* Evalúa con los valores tal como se muestran (redondeados). Devuelve null si falta señal. */
+/* Evaluates using the values as displayed (rounded). Returns null if the signal is missing. */
 function evaluate() {
     const s = state;
 
@@ -81,159 +81,159 @@ function evaluate() {
     };
 }
 
-const MISSING_MSG = "Sin lectura disponible en la fuente actual.";
+const MISSING_MSG = "No reading available from the current source.";
 
-/* ---------- 3. DESCRIPCIÓN DE MÉTRICAS (valor, causa probable, acción) ---------- */
+/* ---------- 3. METRIC DESCRIPTIONS (value, probable cause, action) ---------- */
 const METRIC_INFO = {
     hr: {
-        label: "FREC. CARDÍACA",
+        label: "HEART RATE",
         fmt: () => isNum(state.hr) ? `${r0(state.hr)} BPM` : "--",
         cause: () => !isNum(state.hr)
             ? MISSING_MSG
             : state.hr > 100
-                ? "Taquicardia: esfuerzo EVA, estrés térmico, deshidratación o hipoxia."
-                : "Frecuencia baja inusual: revisar contacto del sensor y fatiga extrema.",
+                ? "Tachycardia: EVA exertion, thermal stress, dehydration or hypoxia."
+                : "Unusually low rate: check sensor contact and extreme fatigue.",
         action: () => !isNum(state.hr)
             ? MISSING_MSG
             : state.hr > 100
-                ? "Reducir carga de trabajo, hidratar y verificar temperatura y SpO₂; repetir lectura en 5 min."
-                : "Verificar el parche del sensor; si persiste, revisar el registro y contexto de actividad."
+                ? "Reduce workload, hydrate and check temperature and SpO₂; repeat the reading in 5 min."
+                : "Check the sensor patch; if it persists, review the record and the activity context."
     },
     bp: {
-        label: "PRESIÓN ARTERIAL",
+        label: "BLOOD PRESSURE",
         fmt: () => isNum(state.sys) && isNum(state.dia) ? `${r0(state.sys)}/${r0(state.dia)} mmHg` : "--/--",
         cause: () => (!isNum(state.sys) || !isNum(state.dia))
             ? MISSING_MSG
             : state.sys < 100
-                ? "Presión baja: posible deshidratación o desplazamiento de fluidos."
-                : "Presión elevada: sobreesfuerzo, deshidratación, estrés o cambios de fluidos en microgravedad.",
+                ? "Low pressure: possible dehydration or fluid shift."
+                : "Elevated pressure: overexertion, dehydration, stress or fluid shifts in microgravity.",
         action: () => (!isNum(state.sys) || !isNum(state.dia))
             ? MISSING_MSG
             : state.sys < 100
-                ? "Hidratar, descansar sentado/anclado y volver a medir."
-                : "Pausar la actividad intensa, respirar con calma y volver a medir en 10 min."
+                ? "Hydrate, rest while seated/anchored and measure again."
+                : "Pause intense activity, breathe calmly and measure again in 10 min."
     },
     spo2: {
         label: "SpO₂",
         fmt: () => isNum(state.spo2) ? `${r1(state.spo2).toFixed(1)} %` : "--",
         cause: () => !isNum(state.spo2)
             ? MISSING_MSG
-            : "Saturación baja: posible hipoxia leve (revisar presión/composición de O₂ y sellado del casco).",
+            : "Low saturation: possible mild hypoxia (check O₂ pressure/composition and helmet seal).",
         action: () => !isNum(state.spo2)
             ? MISSING_MSG
-            : "Detener esfuerzo, verificar suministro de O₂ y ajuste del casco."
+            : "Stop exertion, verify the O₂ supply and the helmet fit."
     },
     temp: {
-        label: "TEMPERATURA",
+        label: "BODY TEMPERATURE",
         fmt: () => isNum(state.temp) ? `${r1(state.temp).toFixed(1)} °C` : "--",
         cause: () => !isNum(state.temp)
             ? MISSING_MSG
             : state.temp < 36
-                ? "Temperatura baja: pérdida de calor del traje o sensor mal colocado."
-                : "Temperatura alta: estrés térmico (sistema de enfriamiento del traje) o carga ambiental.",
+                ? "Low temperature: heat loss from the suit or a poorly placed sensor."
+                : "High temperature: thermal stress (suit cooling system) or environmental load.",
         action: () => !isNum(state.temp)
             ? MISSING_MSG
             : state.temp < 36
-                ? "Revisar aislamiento y calefacción del traje; reabrigar."
-                : "Revisar enfriamiento del traje, hidratar y repetir lectura."
+                ? "Check the suit insulation and heating; add layers."
+                : "Check suit cooling, hydrate and repeat the reading."
     },
     rr: {
-        label: "FREC. RESPIRATORIA",
+        label: "RESPIRATORY RATE",
         fmt: () => isNum(state.rr) ? `${r0(state.rr)} rpm` : "--",
         cause: () => !isNum(state.rr)
             ? MISSING_MSG
-            : "Respiración fuera de rango: asociada a esfuerzo, CO₂ elevado o hipoxia.",
+            : "Breathing out of range: associated with exertion, elevated CO₂ or hypoxia.",
         action: () => !isNum(state.rr)
             ? MISSING_MSG
-            : "Reducir esfuerzo y verificar ppCO₂ y SpO₂ del ambiente."
+            : "Reduce exertion and check ambient ppCO₂ and SpO₂."
     },
     co2: {
         label: "ppCO₂",
         fmt: () => isNum(state.co2) ? `${r1(state.co2).toFixed(1)} mmHg` : "--",
         cause: () => !isNum(state.co2)
             ? MISSING_MSG
-            : "CO₂ ambiental elevado: posible falla o saturación del depurador / mala ventilación.",
+            : "Elevated ambient CO₂: possible scrubber failure or saturation / poor ventilation.",
         action: () => !isNum(state.co2)
             ? MISSING_MSG
-            : "Verificar depuradores de CO₂ y flujo de aire, reducir esfuerzo y notificar a Control de Misión."
+            : "Check the CO₂ scrubbers and airflow, reduce exertion and notify Mission Control."
     },
     hyd: {
-        label: "HIDRATACIÓN",
+        label: "HYDRATION",
         fmt: () => isNum(state.hyd) ? `${r0(state.hyd)} %` : "--",
         cause: () => !isNum(state.hyd)
             ? MISSING_MSG
-            : "Hidratación insuficiente: ingesta de agua por debajo del protocolo.",
+            : "Insufficient hydration: water intake below protocol.",
         action: () => !isNum(state.hyd)
             ? MISSING_MSG
-            : "Beber según protocolo, revisar la bolsa de agua del traje y registrar la ingesta."
+            : "Drink per protocol, check the suit water bag and log the intake."
     },
     fat: {
-        label: "FATIGA",
+        label: "FATIGUE",
         fmt: () => isNum(state.fat) ? `${r0(state.fat)}/100` : "--",
         cause: () => !isNum(state.fat)
             ? MISSING_MSG
-            : "Fatiga acumulada: carga EVA alta, descanso insuficiente o confinamiento prolongado.",
+            : "Accumulated fatigue: high EVA load, insufficient rest or prolonged confinement.",
         action: () => !isNum(state.fat)
             ? MISSING_MSG
-            : "Reducir carga, programar descanso y ajustar el plan de tareas."
+            : "Reduce load, schedule rest and adjust the task plan."
     },
     cm: {
-        label: "CONTRAMEDIDAS",
+        label: "COUNTERMEASURES",
         fmt: () => isNum(state.cm) ? `${r0(state.cm)} %` : "--",
         cause: () => !isNum(state.cm)
             ? MISSING_MSG
-            : "Cumplimiento bajo de ejercicio resistivo: riesgo de pérdida ósea y muscular a largo plazo.",
+            : "Low resistance-exercise compliance: long-term risk of bone and muscle loss.",
         action: () => !isNum(state.cm)
             ? MISSING_MSG
-            : "Reprogramar la sesión de ejercicio y registrar su cumplimiento."
+            : "Reschedule the exercise session and log its compliance."
     },
     dose: {
-        label: "TASA DE DOSIS",
+        label: "DOSE RATE",
         fmt: () => isNum(state.dose) ? `${state.dose < 10 ? state.dose.toFixed(2) : r0(state.dose)} µSv/h` : "--",
         cause: () => !isNum(state.dose)
             ? MISSING_MSG
-            : "Tasa de dosis elevada: posible evento de partículas solares (SPE).",
+            : "Elevated dose rate: possible solar particle event (SPE).",
         action: () => !isNum(state.dose)
             ? MISSING_MSG
-            : "Buscar la zona de mayor blindaje, limitar actividad externa y notificar a Control de Misión."
+            : "Move to the most shielded area, limit external activity and notify Mission Control."
     }
 };
 
-/* ---------- 4. ZONAS CORPORALES (riesgos NASA de referencia) ---------- */
+/* ---------- 4. BODY ZONES (NASA reference risks) ---------- */
 const ZONES = {
     head: {
-        code: "01", name: "CABEZA / OJOS", metrics: ["co2", "spo2", "bp"],
-        nasa: "SANS: el ojo y el cerebro pueden cambiar en vuelo por el desplazamiento de fluidos. También CO₂ elevado y estrés por aislamiento (salud mental y rendimiento)."
+        code: "01", name: "HEAD / EYES", metrics: ["co2", "spo2", "bp"],
+        nasa: "SANS: the eye and brain can change in flight due to fluid shift. Also elevated CO₂ and isolation stress (mental health and performance)."
     },
     lungs: {
-        code: "02", name: "PULMONES", metrics: ["spo2", "rr", "co2"],
-        nasa: "Entorno cerrado: calidad del aire, CO₂ y umbrales seguros de oxígeno; la hipoxia leve es un riesgo que NASA estudia."
+        code: "02", name: "LUNGS", metrics: ["spo2", "rr", "co2"],
+        nasa: "Closed environment: air quality, CO₂ and safe oxygen thresholds; mild hypoxia is a risk NASA studies."
     },
     heart: {
-        code: "03", name: "CORAZÓN", metrics: ["hr", "bp"],
-        nasa: "Riesgo cardiovascular en misiones largas: adaptación a gravedad alterada, radiación y esfuerzo durante EVA."
+        code: "03", name: "HEART", metrics: ["hr", "bp"],
+        nasa: "Cardiovascular risk on long missions: adaptation to altered gravity, radiation and exertion during EVA."
     },
     abdomen: {
         code: "04", name: "ABDOMEN / CORE", metrics: ["hyd", "temp"],
-        nasa: "Nutrición y balance de fluidos, termorregulación y respuestas del sistema inmunitario alteradas por el estrés del vuelo."
+        nasa: "Nutrition and fluid balance, thermoregulation and immune responses altered by flight stress."
     },
     arms: {
-        code: "05", name: "BRAZOS Y MANOS", metrics: ["hr", "hyd", "fat"],
-        nasa: "Esfuerzo en EVA, carga del traje y fatiga muscular de miembros superiores."
+        code: "05", name: "ARMS AND HANDS", metrics: ["hr", "hyd", "fat"],
+        nasa: "EVA exertion, suit load and upper-limb muscle fatigue."
     },
     spine: {
-        code: "06", name: "COLUMNA Y CADERA", metrics: ["temp", "hyd", "cm", "fat"],
-        nasa: "Gravedad alterada: pérdida ósea y cambios en la columna; el ejercicio resistivo es la contramedida principal."
+        code: "06", name: "SPINE AND HIPS", metrics: ["temp", "hyd", "cm", "fat"],
+        nasa: "Altered gravity: bone loss and spinal changes; resistive exercise is the main countermeasure."
     },
     legs: {
-        code: "07", name: "PIERNAS", metrics: ["bp", "hr", "cm", "fat"],
-        nasa: "Atrofia muscular y desplazamiento de fluidos con gravedad alterada; las contramedidas de ejercicio son clave."
+        code: "07", name: "LEGS", metrics: ["bp", "hr", "cm", "fat"],
+        nasa: "Muscle atrophy and fluid shift under altered gravity; exercise countermeasures are key."
     }
 };
 
-const RADIATION_NASA = "Radiación espacial: riesgo de alta prioridad para NASA (efectos a largo plazo como cáncer, enfermedad cardiovascular y cambios cognitivos).";
+const RADIATION_NASA = "Space radiation: a high-priority risk for NASA (long-term effects such as cancer, cardiovascular disease and cognitive changes).";
 
-/* Calcula severidad, causa y acción de cada zona a partir de S = evaluate(). */
+/* Computes the severity, cause and action of each zone from S = evaluate(). */
 function computeZones(S) {
     const out = {};
     const radFloor = S.dose === 2;
@@ -260,7 +260,7 @@ function computeZones(S) {
     return out;
 }
 
-/* Zona de mayor severidad (para el modo AUTO del escáner). */
+/* Zone with the highest severity (for the scanner's AUTO mode). */
 function worstZone(zones) {
     let best = null;
     Object.keys(zones).forEach(id => {

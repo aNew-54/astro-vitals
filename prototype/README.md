@@ -1,99 +1,99 @@
-# ASTRO-VITALS · Guía del prototipo (`prototype/`)
+# ASTRO-VITALS · Prototype Guide (`prototype/`)
 
-Arquitectura local en procesos independientes conectados por red local:
+Local architecture consisting of independent processes connected through a local network:
 
-**Pasarela / fuente externa (`8002` o emisor propio) → API a bordo + Motor IA + SQLite (`8000`) → Consola Web (`/` + `WS /telemetry`) o TUI Textual**.
+**Gateway / External Source (`8002` or custom emitter) → Onboard API + AI Engine + SQLite (`8000`) → Web Console (`/` + `WS /telemetry`) or Textual TUI.**
 
-## Instalación y ejecución rápida
+## Quick Installation and Execution
 
-Desde `astro-vitals/prototype/`:
+From `astro-vitals/prototype/`:
 
 ```zsh
-# Crear entorno virtual con Python 3.12 / 3.13 e instalar dependencias
+# Create a virtual environment with Python 3.12 / 3.13 and install dependencies
 python3.13 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 
-# Iniciar con Consola Web en http://127.0.0.1:8000/
+# Start with the Web Console at http://127.0.0.1:8000/
 .venv/bin/python run.py --web
 ```
 
-En Windows (PowerShell):
+On Windows (PowerShell):
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe run.py --web
+.\\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\\.venv\Scripts\python.exe run.py --web
 ```
 
-### Opciones de `run.py`
+### `run.py` Options
 
-| Flag | Descripción |
+| Flag | Description |
 | --- | --- |
-| `--web` | Inicia API (`8000`) + pasarela (`8002`), imprime URL y abre la consola web |
-| `--tui` | Inicia la consola interactiva de terminal (`Textual`, modo por defecto) |
-| `--services-only` | Mantiene activos ambos servicios HTTP/WS sin abrir interfaz |
-| `--environment {station,transit,rover,base}` | Selecciona el perfil inicial de entorno simulado |
-| `--replay <ruta>` | Convierte un `.csv`, `.tsv`, `.json` o `.jsonl`, pausa la pasarela e ingesta las muestras |
-| `--onboard-port <puerto>` | Puerto de la API y consola web (por defecto `8000`) |
-| `--gateway-port <puerto>` | Puerto de la pasarela simulada (por defecto `8002`) |
+| `--web` | Starts the API (`8000`) + gateway (`8002`), prints the URL, and opens the Web Console |
+| `--tui` | Starts the interactive terminal console (`Textual`, default mode) |
+| `--services-only` | Keeps both HTTP/WS services running without opening an interface |
+| `--environment {station,transit,rover,base}` | Selects the initial simulated environment profile |
+| `--replay <path>` | Converts a `.csv`, `.tsv`, `.json`, or `.jsonl` file, pauses the gateway, and ingests the samples |
+| `--onboard-port <port>` | API and Web Console port (default: `8000`) |
+| `--gateway-port <port>` | Simulated gateway port (default: `8002`) |
 
-La base SQLite local se guarda por defecto en `prototype/logs/astro_vitals.db` (configurable mediante `ASTRO_DB_PATH`).
+The local SQLite database is stored by default at `prototype/logs/astro_vitals.db` (configurable through `ASTRO_DB_PATH`).
 
 ---
 
-## Qué probar en la Consola Web (`http://127.0.0.1:8000/`)
+## What to Test in the Web Console (`http://127.0.0.1:8000/`)
 
-### Panel `ENTRADA DE TELEMETRÍA` (`/api/control`)
+### `TELEMETRY INPUT` Panel (`/api/control`)
 
-| Control | Qué demuestra en vivo |
+| Control | What It Demonstrates in Real Time |
 | --- | --- |
-| `REPOSO` | Estado basal y calibración fija de línea base (`mediana`/`MAD`) |
-| `EJERCICIO` | Respuesta fisiológica esperada vs. pronóstico FC +60 s (`RandomForestRegressor`) |
-| `CABINA CO₂` | Elevación directa de ppCO₂ y respiración; dispara hipótesis combinada no clínica |
-| `RAMPA CO₂` | Subida progresiva según el perfil; tras $\ge 24$ muestras ($\Delta\text{CO}_2 \ge 0.40\text{ mmHg}$) activa regresión **OLS de sensibilidad** y **ETA al límite** |
-| `TORMENTA DONKI` | Evento solar histórico `2024-05-11T04:07:00-SEP-001` por fases (`watch` → `arrival` → `peak` → `decay`) |
-| `REFUGIO (SHELTER)` | Reduce la tasa de dosis simulada (`shelter_factor = 0.35`) y compara proyección de dosis a 1 h con/sin refugio |
-| `PÉRDIDA SEÑAL` | Pone canales biométricos en `null`; muestra `SIN SEÑAL` / `--` y abstención explícita |
-| `BIDMC REAL` | Reproduce `data/bidmc_01_Numerics.csv` (1 Hz) conservando `co2` y `dose_rate` en `null` sin fabricar datos espaciales |
-| `ENTORNO` | Cambia umbrales de hábitat y multiplicador de radiación (`station`, `transit`, `rover`, `base`) |
-| `RECONOCER (ACK)` | Registra el reconocimiento de una alerta vigente (`+5 pts`) sin resolver la condición subyacente |
+| `REST` | Baseline state and fixed baseline calibration (`median`/`MAD`) |
+| `EXERCISE` | Expected physiological response vs. +60 s HR forecast (`RandomForestRegressor`) |
+| `CABIN CO₂` | Direct increase in ppCO₂ and respiration; triggers a non-clinical combined hypothesis |
+| `CO₂ RAMP` | Progressive increase according to the profile; after $\ge 24$ samples ($\Delta\text{CO}\_2 \ge 0.40\text{ mmHg}$), activates **OLS sensitivity regression** and **time-to-limit estimation (ETA)** |
+| `DONKI STORM` | Historical solar event `2024-05-11T04:07:00-SEP-001` displayed in phases (`watch` → `arrival` → `peak` → `decay`) |
+| `SHELTER` | Reduces the simulated dose rate (`shelter_factor = 0.35`) and compares the 1-hour dose projection with and without shelter |
+| `SIGNAL LOSS` | Sets biometric channels to `null`; displays `NO SIGNAL` / `--` and explicit abstention |
+| `REAL BIDMC` | Replays `data/bidmc_01_Numerics.csv` (1 Hz), preserving `co2` and `dose_rate` as `null` without fabricating space-related data |
+| `ENVIRONMENT` | Changes habitat thresholds and radiation multiplier (`station`, `transit`, `rover`, `base`) |
+| `ACKNOWLEDGE (ACK)` | Records acknowledgment of an active alert (`+5 pts`) without resolving the underlying condition |
 
-### Barra lateral de módulos (`MÓDULOS`)
+### Module Sidebar (`MODULES`)
 
-- **`MONITOR` / `ALERTAS`:** métricas completas, explicación del clasificador ML, intervalo de predicción de pulso, proyecciones CO₂/dosis y vista/descarga del **informe SBAR (`.md`)**.
-- **`BIENESTAR`:**
-  - **Minijuego psicomotor de 6 intentos:** envía `/api/v1/checkin` con mediana en ms, falsas salidas, lapsos $> 500\text{ ms}$, sueño y ánimo.
-  - **Coach de participación:** rutinas preventivas (`+10 pts` rutina, `+15 pts` check-in, `+5 pts` ACK); puntos e insignias premian únicamente participación.
-  - **Switch de privacidad:** por defecto `share_behavioral=False` oculta sueño, ánimo y reacción del informe SBAR externo.
-- **`HISTORIAL` / `PERFIL` / `AJUSTES`:** series temporales desde SQLite, ficha de `ASTRA-001` y ajustes visuales/sonoros.
+- **`MONITOR` / `ALERTS`:** Complete metrics, ML classifier explanation, pulse prediction interval, CO₂/dose projections, and SBAR report viewing/downloading (`.md`).
+- **`WELLNESS`:**
+  - **Six-attempt psychomotor mini-game:** Sends `/api/v1/checkin` with median reaction time in ms, false starts, lapses $> 500\text{ ms}$, sleep, and mood.
+  - **Engagement Coach:** Preventive routines (`+10 pts` per routine, `+15 pts` per check-in, `+5 pts` per ACK); points and badges reward participation only.
+  - **Privacy Toggle:** By default, `share_behavioral=False` hides sleep, mood, and reaction data from the external SBAR report.
+- **`HISTORY` / `PROFILE` / `SETTINGS`:** Time series from SQLite, `ASTRA-001` profile, and visual/audio settings.
 
 ---
 
-## Procesos independientes y endpoints
+## Independent Processes and Endpoints
 
-Si quieres correr cada servicio en su propia terminal desde `prototype/`:
+To run each service in its own terminal from `prototype/`:
 
 ```zsh
-# Terminal 1: API a bordo + Consola Web + WebSocket
+# Terminal 1: Onboard API + Web Console + WebSocket
 .venv/bin/python -m uvicorn astro.api:app --host 127.0.0.1 --port 8000
 
-# Terminal 2: Pasarela simulada / reproductor BIDMC
+# Terminal 2: Simulated Gateway / BIDMC Player
 .venv/bin/python -m uvicorn astro.gateway:app --host 127.0.0.1 --port 8002
 
-# Terminal 3 (opcional): TUI de terminal
+# Terminal 3 (optional): Terminal TUI
 .venv/bin/python -m astro.tui
 ```
 
-### API publicada en `:8000`
+### API Available on `:8000`
 
-- **Motor y dominio (`/api/v1/*`):**
+- **Engine and Domain (`/api/v1/*`):**
   - `GET /health` · `GET /docs`
   - `POST /api/v1/telemetry` · `GET /api/v1/state` · `GET /api/v1/trends` · `GET /api/v1/glossary`
   - `POST /api/v1/ack` · `POST /api/v1/checkin`
   - `GET /api/v1/routines` · `POST /api/v1/routines/{routine_id}/done`
   - `POST /api/v1/context/activity` · `POST /api/v1/context/event` · `POST /api/v1/context/environment`
   - `POST /api/v1/privacy` · `GET /api/v1/report`
-- **Puente SQLite y Web (`/api/*` + WebSocket):**
+- **SQLite and Web Bridge (`/api/*` + WebSocket):**
   - `GET/POST /api/astronauts/` · `GET /api/astronauts/{id}`
   - `GET/POST /api/measurements/` · `GET /api/measurements/latest`
   - `GET/POST /api/alerts/` · `PATCH /api/alerts/{id}/ack`
@@ -102,21 +102,21 @@ Si quieres correr cada servicio en su propia terminal desde `prototype/`:
 
 ---
 
-## Verificación automatizada
+## Automated Verification
 
-Desde `astro-vitals/prototype/`:
+From `astro-vitals/prototype/`:
 
 ```zsh
-# Ejecutar las 50 pruebas (backend, pasarela, dominio, ML, coach/SBAR, adaptadores, WebBridge y E2E)
+# Run all 50 tests (backend, gateway, domain, ML, coach/SBAR, adapters, WebBridge, and E2E)
 PYTHONPATH=. .venv/bin/pytest tests/ -v
 
-# Revisar sintaxis JS de la consola web
+# Check Web Console JavaScript syntax
 for f in web/js/*.js; do node --check "$f" || exit 1; done
 ```
 
-Adaptador de archivos en línea de comandos (`csv`, `tsv`, `json`, `jsonl`):
+Command-line file adapter (`csv`, `tsv`, `json`, `jsonl`):
 
 ```zsh
-PYTHONPATH=. .venv/bin/python -m astro.adapters.loader inspect ruta/al/archivo.csv
-PYTHONPATH=. .venv/bin/python -m astro.adapters.loader convert ruta/al/archivo.csv --output-dir logs/replay
+PYTHONPATH=. .venv/bin/python -m astro.adapters.loader inspect path/to/file.csv
+PYTHONPATH=. .venv/bin/python -m astro.adapters.loader convert path/to/file.csv --output-dir logs/replay
 ```

@@ -12,12 +12,64 @@
     const MAX_VISIBLE = 4;
     const AUTO_DISMISS = { 1: 6500, 2: 9500 };   // ms según severidad
     const RATE_LIMIT_MS = 8000;                   // evita repetir la misma alerta
-    const SOUND_GAP_MS = 320;                     // agrupa ráfagas de alertas
 
     const lastNotified = {};
     let lastSoundAt = 0;
-    let audioCtx = null;
     let stack = null;
+
+    /* ---------- SONIDO DESDE ARCHIVO ---------- */
+    // Ruta relativa a index.html: funciona tanto en "/" como en "/ui/".
+    const ALERT_SOUND_SRC = new URL("sounds/sound_alert.mp3", document.baseURI).href;
+    const ALERT_VOLUME = 0.8;                     // de 0 a 1
+    const ALERT_REPEATS = 2;                      // cuántas veces suena
+    const SOUND_GAP_MS = 250;                     // evita duplicar el sonido en una misma ráfaga
+
+    const alertAudio = new Audio(ALERT_SOUND_SRC);
+    alertAudio.preload = "auto";
+    alertAudio.volume = ALERT_VOLUME;
+    alertAudio.load();
+
+    let repeatsLeft = 0;
+    alertAudio.addEventListener("ended", () => {
+        if (repeatsLeft > 0) {
+            repeatsLeft--;
+            alertAudio.currentTime = 0;
+            try { alertAudio.play().catch(() => fallbackBeep()); } catch (_) { fallbackBeep(); }
+        }
+    });
+    alertAudio.addEventListener("error", () => {
+        console.warn("No se pudo cargar el audio de alerta:", ALERT_SOUND_SRC);
+    });
+
+    /* ---------- RESPALDO: pitido sintetizado ---------- */
+    // Si el MP3 no carga (ruta/servidor) o el navegador bloquea la reproducción,
+    // generamos un pitido con Web Audio para que la alerta siempre sea audible.
+    let audioCtx = null;
+    function getAudioCtx() {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return null;
+        if (!audioCtx) audioCtx = new Ctx();
+        if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+        return audioCtx;
+    }
+
+    function fallbackBeep(sev) {
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+        const t0 = ctx.currentTime;
+        const freq = sev >= 2 ? 880 : 660;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "square";
+        osc.frequency.setValueAtTime(freq, t0);
+        osc.frequency.setValueAtTime(freq * 1.5, t0 + 0.12);
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.exponentialRampToValueAtTime(0.12, t0 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.32);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(t0);
+        osc.stop(t0 + 0.34);
+    }
 
     /* ---------- 1. CONTENEDOR ---------- */
     function getStack() {
@@ -29,57 +81,43 @@
         return stack;
     }
 
-    /* ---------- 2. SONIDO SINTETIZADO (Web Audio, sin archivos) ---------- */
-    function getAudioContext() {
-        if (audioCtx) return audioCtx;
-        const AC = window.AudioContext || window.webkitAudioContext;
-        if (!AC) return null;
-        try { audioCtx = new AC(); } catch (e) { audioCtx = null; }
-        return audioCtx;
-    }
-
-    // Los navegadores bloquean el audio hasta el primer gesto del usuario.
+    let audioUnlocked = false;
     function unlockAudio() {
-        const ctx = getAudioContext();
-        if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
+        if (audioUnlocked) return;
+        audioUnlocked = true;
+        getAudioCtx();               // crea/reanuda el contexto dentro del gesto del usuario
+        alertAudio.muted = true;
+        let p;
+        try { p = alertAudio.play(); } catch (_) { p = null; }
+        if (!p || typeof p.then !== "function") {
+            alertAudio.muted = false;
+            return;
+        }
+        p.then(() => { alertAudio.pause(); alertAudio.currentTime = 0; alertAudio.muted = false; })
+            .catch(() => { audioUnlocked = false; alertAudio.muted = false; });
     }
     document.addEventListener("pointerdown", unlockAudio, { passive: true });
     document.addEventListener("keydown", unlockAudio);
 
-    function beep(ctx, start, freq, duration, volume) {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "square";
-        osc.frequency.setValueAtTime(freq, start);
-        gain.gain.setValueAtTime(0.0001, start);
-        gain.gain.exponentialRampToValueAtTime(volume, start + 0.015);
-        gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-        osc.connect(gain).connect(ctx.destination);
-        osc.start(start);
-        osc.stop(start + duration + 0.02);
-    }
-
     function playAlertSound(sev) {
         if (!ui.alerts.sound) return;
         const now = performance.now();
-        if (now - lastSoundAt < SOUND_GAP_MS) return;   // no superponer ráfagas
+        if (now - lastSoundAt < SOUND_GAP_MS) return;
         lastSoundAt = now;
 
-        const ctx = getAudioContext();
-        if (!ctx) return;
-
-        const play = () => {
-            const t = ctx.currentTime + 0.03;
-            if (sev >= 2) {
-                [880, 660, 880].forEach((f, i) => beep(ctx, t + i * 0.2, f, 0.13, 0.07));
-            } else {
-                beep(ctx, t, 620, 0.11, 0.05);
-                beep(ctx, t + 0.2, 620, 0.11, 0.05);
-            }
-        };
-
-        if (ctx.state === "suspended") ctx.resume().then(play).catch(() => {});
-        else play();
+        repeatsLeft = Math.max(0, ALERT_REPEATS - 1);
+        try { alertAudio.currentTime = 0; } catch (_) { /* aún sin metadatos */ }
+        let p;
+        try { p = alertAudio.play(); } catch (_) { p = null; }
+        if (!p || typeof p.then !== "function") {
+            fallbackBeep(sev);
+            return;
+        }
+        p.catch(err => {
+            console.warn("Audio bloqueado o no encontrado, usando pitido de respaldo:", err);
+            audioUnlocked = false;   // se reintenta en la próxima interacción
+            fallbackBeep(sev);
+        });
     }
 
     /* ---------- 3. AVISO FLOTANTE ---------- */

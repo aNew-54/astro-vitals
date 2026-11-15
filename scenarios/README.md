@@ -1,24 +1,24 @@
-# Guion v1 del clasificador experimental
+# Experimental Classifier v1 Script
 
-Cuatro sesiones ficticias de 15 minutos permiten revisar qué etiqueta se esperaría en cada ventana antes de generar señales de entrenamiento. Los tiempos son relativos al inicio de cada sesión y los intervalos incluyen el comienzo y excluyen el final. [Guion por intervalos](guion_v1.csv) · [Anotaciones cada 5 s](anotaciones_v1.csv)
+Four fictional 15-minute sessions make it possible to review the expected label for each window before generating training signals. Times are relative to the beginning of each session, and intervals include the start and exclude the end. [Interval-based script](guion_v1.csv) · [Annotations every 5 seconds](anotaciones_v1.csv)
 
-| Sesión | Qué ocurre en el guion | Qué debe poder distinguirse |
+| Session | Events in the Script | What Should Be Distinguishable |
 | --- | --- | --- |
-| Habitual | Reposo inicial, ejercicio desde 240 s, recuperación desde 480 s y reposo desde 720 s. | Ejercicio y recuperación habitual comparten `activity_expected`. El reposo se etiqueta `baseline_expected`. |
-| Recuperación | Ejercicio desde 200 s. Desde 420 s se inyecta una recuperación más lenta que la curva esperada para ese perfil y esfuerzo. | A partir de 450 s, `persistent_recovery_deviation`. La primera ventana completa candidata termina en 570 s. |
-| Cabina | En reposo, suben conjuntamente CO₂ local y respuesta respiratoria desde 240 s hasta 630 s. La FR falta entre 570 y 630 s. | El patrón `combined_cabin_physiology_pattern` empieza a los 270 s. Una interrupción del sensor conserva la verdad del guion y limita la evaluación. |
-| Coincidencia | Tras el ejercicio, se inyectan juntos recuperación lenta y cambio de cabina entre 420 y 660 s. | Es un caso ambiguo para un clasificador de una sola etiqueta. Se conserva para evaluar el comportamiento ante combinaciones. |
+| Baseline | Initial rest, exercise starting at 240 s, recovery starting at 480 s, and rest starting at 720 s. | Exercise and normal recovery share `activity_expected`. Rest is labeled `baseline_expected`. |
+| Recovery | Exercise starts at 200 s. From 420 s onward, a slower recovery than the expected curve for that profile and effort is introduced. | From 450 s onward, `persistent_recovery_deviation`. The first complete candidate window ends at 570 s. |
+| Cabin | While at rest, local CO₂ and respiratory response increase together from 240 s to 630 s. RR data is unavailable between 570 s and 630 s. | The `combined_cabin_physiology_pattern` begins at 270 s. A sensor interruption preserves the ground truth of the script while limiting evaluation. |
+| Coincidence | After exercise, slow recovery and a cabin change are introduced simultaneously between 420 s and 660 s. | This is an ambiguous case for a single-label classifier. It is retained to evaluate behavior when multiple patterns occur together. |
 
-**Reglas de anotación de la demo.** Los primeros 120 s de cada sesión sirven para calibración en reposo. Una intervención aislada se considera sostenida tras 30 s sin interrupción. Cambiar la disponibilidad de un sensor no reinicia la intervención. En las sesiones habituales, la etiqueta se obtiene de la fase. En las intervenidas, se obtiene del cambio inyectado y su duración. Estas son decisiones experimentales del guion sintético.
+**Demo Annotation Rules.** The first 120 seconds of each session are used for resting calibration. An isolated intervention is considered sustained after 30 uninterrupted seconds. Changing sensor availability does not reset the intervention. In baseline sessions, the label is determined by the phase. In intervention sessions, the label is determined by the injected change and its duration. These are experimental decisions specific to the synthetic script.
 
-`pattern_at_t` guarda la verdad del escenario al final de la ventana. `window_status` indica si puede usarse como ejemplo de una sola clase. Una ventana candidata abarca 120 s con la misma fase y etiqueta. Las ventanas mixtas se conservan como transiciones. Una coincidencia de intervenciones deja vacía la etiqueta única. Las pérdidas programadas de sensor se evalúan con la misma cobertura y antigüedad que en el contrato. Si una ventana cumple varias condiciones de exclusión, se registra en este orden calibración, coincidencia de patrones, señal insuficiente y transición.
+`pattern_at_t` stores the scenario ground truth at the end of the window. `window_status` indicates whether the window can be used as a single-class example. A candidate window spans 120 seconds with the same phase and label. Mixed windows are retained as transitions. When interventions coincide, the single label is left empty. Scheduled sensor outages are evaluated using the same coverage and data freshness requirements defined in the contract. If a window meets multiple exclusion conditions, they are recorded in the following order: calibration, pattern coincidence, insufficient signal, and transition.
 
-El guion produce **720 instantes**, de los cuales **313** son candidatos antes de generar telemetría. Se reparten en 160 de reposo, 92 de actividad/recuperación esperada, 24 de desviación de recuperación y 37 de cambio de cabina. Los 233 instantes de transición se pueden usar para medir demora desde el inicio de un episodio. También se conservan 96 de calibración, 30 de señal insuficiente y 48 de coincidencia.
+The script generates **720 time points**, of which **313** are candidates before telemetry generation. They are distributed as follows: 160 rest, 92 expected activity/recovery, 24 recovery deviations, and 37 cabin changes. The 233 transition time points can also be used to measure detection delay from the beginning of an episode. Additionally, 96 calibration points, 30 insufficient-signal points, and 48 coincidence points are retained.
 
-**Aplicación del guion.** La cohorte de fusión v2 amplía estas plantillas con 30 perfiles, tiempos de intervención variables y controles de reposo de igual duración. Sus particiones contienen las mediciones generadas y pasan filtros adicionales de calidad y contraste. Los conteos anteriores describen exclusivamente las cuatro plantillas del guion. [Datos de entrenamiento del clasificador](../data/fusion_simulada/README.md) · [Contrato de entradas y salidas](../CONTRATO_DE_DATOS.md)
+**Script Application.** The v2 fusion cohort extends these templates with 30 profiles, variable intervention timings, and rest controls of equal duration. Its splits contain the generated measurements and undergo additional quality and contrast filters. The counts above refer exclusively to the four script templates. [Classifier training data](../data/fusion_simulada/README.md) · [Input and output contract](../CONTRATO_DE_DATOS.md)
 
-Las anotaciones se reproducen desde la raíz del proyecto con el siguiente comando.
+The annotations can be reproduced from the project root directory using the following command:
 
 ```powershell
-.\.venv\Scripts\python.exe ml\preparar_etiquetas.py
+.\\.venv\Scripts\python.exe ml\preparar_etiquetas.py
 ```

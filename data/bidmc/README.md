@@ -1,38 +1,34 @@
-# BIDMC · datos para el pronóstico de frecuencia cardíaca
+## BIDMC · Data for Heart Rate Forecasting
 
-Preparación v1 del 3 de noviembre de 2026. Se conservaron los parámetros numéricos y los metadatos de los 53 registros de BIDMC 1.0.0. Cada archivo original se comprobó con el listado SHA-256 del proveedor. La copia ligera del prototipo sigue siendo independiente. [Dataset y cita](https://physionet.org/content/bidmc/1.0.0/) · [Sumas publicadas](raw/SHA256SUMS.txt)
+Preparation v1, November 3, 2026. The numeric parameters and metadata of the 53 BIDMC 1.0.0 records were preserved. Each original file was checked against the vendor’s SHA-256 listing. The prototype’s lightweight copy remains independent. Dataset and citation · Published checksums
 
-## Resultado
+## Result
+Split	Participants assigned / with windows	Records assigned / with windows	Usable windows
+Training	32 / 31	39 / 38	2,316
+Validation	7 / 7	7 / 7	427
+Held-out test	7 / 7	7 / 7	427
 
-| Partición | Participantes asignados / con ventanas | Registros asignados / con ventanas | Ventanas utilizables |
-| --- | --- | --- | --- |
-| Entrenamiento | 32 / 31 | 39 / 38 | 2.316 |
-| Validación | 7 / 7 | 7 / 7 | 427 |
-| Prueba reservada | 7 / 7 | 7 / 7 | 427 |
+The 53 records total 25,493 measurements and correspond to 46 participant identifiers. Three identifiers appear in more than one record. The split was fixed before creating windows, using the MIMIC II matched wdb ID field of each Fix.txt file. The participant of record 01 belongs to training because the team already used one of their examples to design the contract. The rest are ordered by the SHA-256 hash of a fixed prefix plus their identifier. The last seven are assigned to test and the seven before them to validation. Meaning of the identifier at PhysioNet
 
-Los 53 registros suman 25.493 mediciones y corresponden a 46 identificadores de participante. Tres identificadores se repiten en varios registros. La partición se fijó antes de crear ventanas usando el campo `MIMIC II matched wdb ID` de cada archivo `Fix.txt`. El participante del registro 01 pertenece a entrenamiento porque el equipo ya usó un ejemplo suyo para diseñar el contrato. Los demás se ordenan por el hash SHA-256 de un prefijo fijo y su identificador. Se asignan los últimos siete a prueba y los siete anteriores a validación. [Significado del identificador en PhysioNet](https://archive.physionet.org/physiobank/database/mimic2wdb/matched/)
+Of 3,232 candidate windows, 61 were excluded for signal coverage or staleness and one for lack of the target at +60 s. The first 61 belong to record 13, which has valid RR in 23.91 % of seconds. The inventory keeps each exclusion’s cause. Record 23 starts at −1 s and ends at 479 s. Original timestamps are preserved. Per-record inventory
 
-De 3.232 ventanas candidatas, 61 se excluyeron por cobertura o antigüedad de señales y una por falta del objetivo a +60 s. Las 61 primeras pertenecen al registro 13, con FR válida en el 23,91 % de los segundos. El inventario conserva su causa de exclusión. El registro 23 empieza en −1 s y termina en 479 s. Se conservan los tiempos de origen. [Inventario por registro](preparado/inventario.csv)
+## Files for the modeling team
+The training windows, the validation windows and the test windows are stored separately. Each row has record and participant identifiers, decision time, target time, 14 input features and target_hr_bpm.
+The manifest lists the 14 predictor columns. Use only that list as model input. Identifiers and times are for auditing. The HR measured at target_t_s is the training response.
+The inventory records HR and RR coverage, the longest gap per channel, missing seconds, split, checksums and windows excluded per record. The original measurements and metadata are kept in raw/bidmc_csv/.
 
-## Archivos para el equipo de modelos
+Preparation. The grid is 1 Hz. The original temporal order is respected, and one example is generated every 5 s if the 120 s of history and the target time fit within the same record. Windows include t and exclude t − duration. In each 30 s and 120 s window, at least 80 % valid measurements per channel and a last reading no more than 5 s old are required. For this experiment, positive HR values up to 300 bpm and positive RR values up to 100/min are considered. These are engineering filters. Non-finite values, gaps and excluded measurements are kept in the originals and omitted from calculations. A missing target HR discards that row.
 
-- Las [ventanas de entrenamiento](preparado/ventanas_train.csv), las [de validación](preparado/ventanas_validation.csv) y las [de prueba](preparado/ventanas_test.csv) se guardan por separado. Cada fila cuenta con identificador de registro y participante, instante de decisión, instante objetivo, 14 variables de entrada y `target_hr_bpm`.
-- El [manifiesto](preparado/manifest.json) enumera las 14 columnas predictoras. Usar únicamente esa lista como entrada del modelo. Los identificadores y tiempos sirven para auditoría. La FC medida en `target_t_s` es la respuesta de entrenamiento.
-- El [inventario](preparado/inventario.csv) registra cobertura de FC y FR, mayor hueco por canal, segundos ausentes, partición, sumas de verificación y ventanas excluidas por registro. Las mediciones y los metadatos originales se conservan en `raw/bidmc_csv/`.
+For each signal, the last valid value is computed, and for each window, the mean, the population standard deviation and the least-squares slope with respect to real time in seconds. There is no interpolation. Slopes are expressed in bpm/s or (breaths/minute)/s. Every transformation ends at t. The offset between t and target_t_s is always 60 s.
 
-**Preparación.** La cuadrícula es de 1 Hz. Se respeta el orden temporal original y se genera un ejemplo cada 5 s si caben los 120 s de historia y el instante objetivo en el mismo registro. Las ventanas incluyen `t` y excluyen `t − duración`. En cada ventana de 30 y 120 s se exige al menos 80 % de mediciones válidas por canal y una última lectura de hasta 5 s de antigüedad. Para este experimento se consideran FC positivas hasta 300 bpm y FR positivas hasta 100/min. Son filtros de ingeniería. Valores no finitos, huecos y mediciones excluidas se conservan en los originales y se omiten de los cálculos. Una FC objetivo ausente descarta esa fila.
+Validation baseline. On the same 427 windows from seven participants, keeping the last HR gave a mean absolute error of 2.31 bpm. Extrapolating the slope of the last 30 s from the last valid reading to the target time gave 6.51 bpm. These are per-window mean errors on land-based hospital recordings. Neighboring windows overlap. The test set was reserved for the final evaluation of the chosen method.
 
-Por señal se calcula el último valor válido, y en cada ventana, la media, la desviación estándar poblacional y la pendiente por mínimos cuadrados respecto al tiempo real en segundos. No hay interpolación. Las pendientes se expresan en bpm/s o (respiraciones/minuto)/s. Cada transformación termina en `t`. El desplazamiento entre `t` y `target_t_s` es siempre de 60 s.
+## Reproduction
 
-**Referencia de validación.** En las mismas 427 ventanas de siete participantes, conservar la última FC dio un error absoluto medio de **2,31 bpm**. Extrapolar la pendiente de los últimos 30 s desde la última lectura válida hasta el instante objetivo dio **6,51 bpm**. Son errores medios por ventana en registros hospitalarios terrestres. Las ventanas vecinas se solapan. Se reservó la prueba para la evaluación final del método elegido.
+From the project root, with Python 3.10 or later and the standard library, run the following in PowerShell. The first command checks the local files and downloads any missing ones from PhysioNet. The second rebuilds the tables offline.
 
-## Reproducción
-
-Desde la raíz del proyecto, con Python 3.10 o posterior y la biblioteca estándar, ejecutar lo siguiente en PowerShell. El primer comando comprueba los archivos locales y descarga de PhysioNet los que falten. El segundo reconstruye las tablas sin conexión.
-
-```powershell
+powershell
 .\.venv\Scripts\python.exe ml\bidmc_source.py
 .\.venv\Scripts\python.exe ml\preparar_bidmc.py
-```
 
-**Atribución.** Contiene información de BIDMC PPG and Respiration Dataset v1.0.0, de Pimentel, Johnson y Charlton (2018), distribuida bajo Open Data Commons Attribution License v1.0. Se proporciona el aviso original junto a los archivos y se identifican arriba las transformaciones propias. [DOI](https://doi.org/10.13026/C2208R) · [Licencia ODC-By](https://physionet.org/content/bidmc/view-license/1.0.0/) · [Aviso original](raw/LICENSE)
+Attribution. Contains information from the BIDMC PPG and Respiration Dataset v1.0.0, by Pimentel, Johnson and Charlton (2018), distributed under the Open Data Commons Attribution License v1.0. The original notice is provided alongside the files, and our own transformations are identified above. DOI · ODC-By License · Original notice

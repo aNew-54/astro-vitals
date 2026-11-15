@@ -169,7 +169,7 @@ def create_app(
         def web_index():
             return FileResponse(WEB_DIR / "index.html")
 
-        for asset_dir in ("css", "js", "fonts"):
+        for asset_dir in ("css", "js", "fonts", "sounds"):
             subdir = WEB_DIR / asset_dir
             if subdir.is_dir():
                 api.mount(

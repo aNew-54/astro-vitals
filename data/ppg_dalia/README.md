@@ -1,19 +1,19 @@
-# PPG-DaLiA · actividad durante el uso de sensores de muñeca
+# PPG-DaLiA · Activity During Wrist-Worn Sensor Use
 
-La tabla permite entrenar un modelo experimental que reconozca ocho actividades del protocolo terrestre. Cada fila corresponde a un participante durante ocho segundos completos de una sola actividad. Los segmentos consecutivos no se solapan. La frecuencia cardíaca de referencia procede del ECG de pecho y cubre los mismos ocho segundos. En este conjunto se puede estudiar, por ejemplo, cómo cambia la señal de muñeca al subir escaleras o montar en bicicleta.
+The table can be used to train an experimental model that recognizes eight activities from the terrestrial protocol. Each row corresponds to one participant performing a single activity for a complete eight-second period. Consecutive segments do not overlap. The reference heart rate is obtained from chest ECG and covers the same eight seconds. This dataset can be used to study, for example, how the wrist signal changes when climbing stairs or riding a bicycle.
 
-## Archivos
+## Files
 
-- [Descargar el original de UCI](https://archive.ics.uci.edu/ml/machine-learning-databases/00495/data.zip) (2,86 GB). Su ubicación local es `data/ppg_dalia/data.zip`. [Manual de los autores](README_original.pdf) · [Recibo de adquisición](fuente.json).
-- [Inventario por participante](inventario.csv) y [manifiesto de variables, clases y particiones](manifest.json).
-- [Entrenamiento](ventanas_train.csv), [validación](ventanas_validation.csv) y [prueba reservada](ventanas_test.csv). Las particiones contienen nueve, tres y tres participantes, respectivamente.
+- [Download the original dataset from UCI](https://archive.ics.uci.edu/ml/machine-learning-databases/00495/data.zip) (2.86 GB). Its local location is `data/ppg_dalia/data.zip`. [Authors' manual](README_original.pdf) · [Acquisition receipt](fuente.json).
+- [Participant inventory](inventario.csv) and [manifest of variables, classes, and splits](manifest.json).
+- [Training set](ventanas_train.csv), [validation set](ventanas_validation.csv), and [held-out test set](ventanas_test.csv). The splits contain nine, three, and three participants, respectively.
 
-## Preparación
+## Data Preparation
 
-Se usaron los canales sincronizados del archivo original de cada persona. La etiqueta es la actividad de referencia a 4 Hz. Se conservan los segmentos con una sola clase del protocolo, con muestras completas y finitas de acelerometría (32 Hz), señal óptica BVP (64 Hz), conductancia eléctrica de la piel y temperatura (4 Hz). Las seis variables de entrada son el promedio y la desviación poblacional de la magnitud de la aceleración, la desviación del BVP, el promedio y la desviación de la conductancia, y el promedio de temperatura. Conservan la escala numérica de los canales publicados.
+The synchronized channels from each participant's original file were used. The label is the reference activity sampled at 4 Hz. Segments are retained only when they contain a single protocol activity, with complete and finite samples from the accelerometer (32 Hz), optical BVP signal (64 Hz), electrodermal activity, and temperature (4 Hz). The six input features are the mean and population standard deviation of acceleration magnitude, BVP standard deviation, the mean and standard deviation of electrodermal activity, and mean temperature. They preserve the numerical scale of the published channels.
 
-El objetivo es `actividad`. Los valores posibles son reposo sentado, escaleras, fútbol de mesa, bicicleta, conducción, almuerzo, caminar y trabajo. Los códigos de transición quedan fuera. `fc_ecg_referencia_bpm` se conserva para comparación con la señal óptica y queda fuera de los predictores de actividad. También se excluyen de los predictores el participante, la partición y los tiempos de la ventana. Los límites temporales son segundos relativos, con inicio incluido y fin excluido.
+The target variable is `actividad`. Its possible values are sitting, stairs, table soccer, cycling, driving, lunch, walking, and working. Transition codes are excluded. `fc_ecg_referencia_bpm` is retained for comparison with the optical signal and is excluded from the activity predictors. Participant ID, data split, and window timestamps are also excluded from the predictors. Time boundaries are relative seconds, with the start included and the end excluded.
 
-La asignación de participantes se reproduce ordenando sus identificadores por SHA-256 con un prefijo fijo de la fuente. La descarga se comprueba frente al recibo antes de procesar los registros. Se ha usado Python 3.14 con NumPy 2.5.4 en un entorno dedicado a datos. Desde la raíz, ejecutar `.\.venv-datos\Scripts\python.exe ml\preparar_wearables.py ppg_dalia`.
+Participant assignment can be reproduced by sorting their identifiers using SHA-256 with a fixed source prefix. The download is verified against the receipt before processing the records. Python 3.14 with NumPy 2.5.4 was used in a dedicated data environment. From the project root directory, run `.\\.venv-datos\Scripts\python.exe ml\preparar_wearables.py ppg_dalia`.
 
-**Atribución.** Reiss, A., Indlekofer, I. y Schmidt, P. (2019). *PPG-DaLiA*. UCI Machine Learning Repository. Las tablas del proyecto son transformaciones propias de los datos publicados con licencia CC BY 4.0. [Ficha y licencia](https://archive.ics.uci.edu/dataset/495/ppg+dalia) · [DOI](https://doi.org/10.24432/C53890)
+**Attribution.** Reiss, A., Indlekofer, I., and Schmidt, P. (2019). *PPG-DaLiA*. UCI Machine Learning Repository. The project tables are custom transformations of the published data, distributed under the CC BY 4.0 license. [Dataset information and license](https://archive.ics.uci.edu/dataset/495/ppg+dalia) · [DOI](https://doi.org/10.24432/C53890)

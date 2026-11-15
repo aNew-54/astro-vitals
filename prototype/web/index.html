@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,7 +18,7 @@
 <section class="console" id="console">
     <i class="screw tl"></i><i class="screw tr"></i><i class="screw bl"></i><i class="screw br"></i>
 
-    <!-- BARRA DE TÍTULO ESTILO WINAMP -->
+    <!-- WINAMP-STYLE TITLE BAR -->
     <header class="titlebar" id="titlebar">
         <div class="brand">
             <div class="brand-icon" aria-hidden="true">
@@ -26,7 +26,7 @@
             </div>
             <div>
                 <h1>ASTRA <span>HEALTH</span></h1>
-                <small>[ MODELO DE SISTEMA: HW-WINAMP-98 ]</small>
+                <small>[ SYSTEM MODEL: HW-WINAMP-98 ]</small>
             </div>
         </div>
 
@@ -38,10 +38,10 @@
                 <span class="green-text" id="pwr-label">PWR ONLINE</span>
             </div>
             <div class="win-buttons">
-                <button class="win-btn" id="btn-shade" type="button" title="Contraer consola" aria-label="Contraer consola" aria-pressed="false">
+                <button class="win-btn" id="btn-shade" type="button" title="Collapse console" aria-label="Collapse console" aria-pressed="false">
                     <svg viewBox="0 0 12 12" width="11" height="11"><path d="M2 8h8" stroke="currentColor" stroke-width="2" fill="none"/></svg>
                 </button>
-                <button class="win-btn" id="btn-power" type="button" title="Encender / apagar pantallas" aria-label="Encender o apagar pantallas" aria-pressed="false">
+                <button class="win-btn" id="btn-power" type="button" title="Turn screens on / off" aria-label="Turn screens on or off" aria-pressed="false">
                     <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 1v5"/><path d="M3.2 3.2a4 4 0 1 0 5.6 0"/></svg>
                 </button>
             </div>
@@ -50,96 +50,96 @@
 
     <div class="console-workspace" id="console-workspace">
 
-        <!-- RIEL DE MÓDULOS -->
-        <nav class="module-sidebar" aria-label="Módulos del sistema">
-            <span class="sidebar-label">MÓDULOS</span>
+        <!-- MODULE RAIL -->
+        <nav class="module-sidebar" aria-label="System modules">
+            <span class="sidebar-label">MODULES</span>
 
-            <button class="module-button" data-module="monitoring" type="button" title="Monitoreo" aria-label="Monitoreo" aria-pressed="false">
+            <button class="module-button" data-module="monitoring" type="button" title="Monitoring" aria-label="Monitoring" aria-pressed="false">
                 <svg class="module-icon" viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8h3l2-5 3 10 2-5h4"/></svg>
                 <span class="sidebar-text">MONITOR</span>
             </button>
 
-            <button class="module-button" data-module="history" type="button" title="Historial" aria-label="Historial" aria-pressed="false">
+            <button class="module-button" data-module="history" type="button" title="History" aria-label="History" aria-pressed="false">
                 <svg class="module-icon" viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 14V8M6 14V3M10 14V6M14 14V10"/></svg>
-                <span class="sidebar-text">HISTORIAL</span>
+                <span class="sidebar-text">HISTORY</span>
             </button>
 
-            <button class="module-button" data-module="alerts" type="button" title="Alertas" aria-label="Alertas" aria-pressed="false">
+            <button class="module-button" data-module="alerts" type="button" title="Alerts" aria-label="Alerts" aria-pressed="false">
                 <svg class="module-icon" viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l7 12H1z"/><path d="M8 6.5v3.5M8 12v.4"/></svg>
-                <span class="sidebar-text">ALERTAS</span>
+                <span class="sidebar-text">ALERTS</span>
                 <span class="nav-badge" id="alert-count" hidden>0</span>
             </button>
 
-            <button class="module-button" data-module="wellbeing" type="button" title="Bienestar" aria-label="Bienestar" aria-pressed="false">
+            <button class="module-button" data-module="wellbeing" type="button" title="Wellbeing" aria-label="Wellbeing" aria-pressed="false">
                 <svg class="module-icon" viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 10.2A5.2 5.2 0 1 1 5.8 3.5a4.2 4.2 0 0 0 6.7 6.7z"/></svg>
-                <span class="sidebar-text">BIENESTAR</span>
+                <span class="sidebar-text">WELLBEING</span>
             </button>
 
-            <button class="module-button" data-module="profile" type="button" title="Perfil" aria-label="Perfil" aria-pressed="false">
+            <button class="module-button" data-module="profile" type="button" title="Profile" aria-label="Profile" aria-pressed="false">
                 <svg class="module-icon" viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="5" r="3"/><path d="M2 14c1-4.5 11-4.5 12 0"/></svg>
-                <span class="sidebar-text">PERFIL</span>
+                <span class="sidebar-text">PROFILE</span>
             </button>
 
-            <button class="module-button" data-module="settings" type="button" title="Ajustes" aria-label="Ajustes" aria-pressed="false">
+            <button class="module-button" data-module="settings" type="button" title="Settings" aria-label="Settings" aria-pressed="false">
                 <svg class="module-icon" viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/><circle cx="5" cy="4" r="1.6" fill="#15191f"/><circle cx="11" cy="8" r="1.6" fill="#15191f"/><circle cx="6.5" cy="12" r="1.6" fill="#15191f"/></svg>
-                <span class="sidebar-text">AJUSTES</span>
+                <span class="sidebar-text">SETTINGS</span>
             </button>
         </nav>
 
-        <!-- CAJÓN LATERAL -->
+        <!-- SIDE DRAWER -->
         <aside class="module-drawer" id="module-drawer" aria-hidden="true" aria-labelledby="drawer-title">
             <header class="drawer-header">
                 <div>
-                    <small>ASTRA / MÓDULO</small>
-                    <h2 id="drawer-title">MÓDULO DEL SISTEMA</h2>
+                    <small>ASTRA / MODULE</small>
+                    <h2 id="drawer-title">SYSTEM MODULE</h2>
                 </div>
-                <button class="drawer-close" id="close-drawer" type="button" aria-label="Cerrar módulo">✕</button>
+                <button class="drawer-close" id="close-drawer" type="button" aria-label="Close module">✕</button>
             </header>
             <div class="drawer-content" id="drawer-content"></div>
             <footer class="drawer-footer">
                 <span class="status-dot"></span>
-                <span>MÓDULO LOCAL</span>
+                <span>LOCAL MODULE</span>
             </footer>
         </aside>
 
-        <!-- PANEL PRINCIPAL -->
+        <!-- MAIN PANEL -->
         <div class="console-main" id="console-main">
 
             <div class="simulation-banner">
                 <span class="warning-icon" aria-hidden="true">⚠</span>
-                <span>TELEMETRÍA PERSISTIDA — LOS VALORES SE LEEN DE SQLITE A TRAVÉS DE LA API REST Y EL WEBSOCKET. HERRAMIENTA EDUCATIVA, NO APTA PARA USO CLÍNICO REAL NI DIAGNÓSTICO.</span>
-                <span class="badge-source">FUENTE: astra_health.db</span>
+                <span>PERSISTED TELEMETRY — VALUES ARE READ FROM SQLITE THROUGH THE REST API AND THE WEBSOCKET. EDUCATIONAL TOOL, NOT SUITABLE FOR REAL CLINICAL USE OR DIAGNOSIS.</span>
+                <span class="badge-source">SOURCE: astra_health.db</span>
             </div>
 
-            <section class="mission-bar" aria-label="Estado de la misión">
-                <div><small>TRIPULANTE</small><strong id="mission-crew">SIN DATOS</strong></div>
-                <div><small>ROL</small><strong id="mission-role">SIN DATOS</strong></div>
-                <div><small>MISIÓN</small><strong id="mission-name">SIN DATOS</strong></div>
-                <div><small>DÍA</small><strong id="mission-day">SIN DATOS</strong></div>
-                <div><small>ORIGEN DE DATOS</small><strong class="amber-text" id="data-source">SIN DATOS</strong></div>
-                <div><small>ÚLTIMA LECTURA</small><strong id="last-sync-time">SIN DATOS</strong></div>
-                <div><small>ENLACE DE DATOS</small><strong class="blue-text" id="link-latency">CONECTANDO...</strong></div>
-                <div><small>ESTADO GLOBAL</small><strong id="global-status" class="amber-text">● ESPERANDO TELEMETRÍA</strong></div>
+            <section class="mission-bar" aria-label="Mission status">
+                <div><small>CREW MEMBER</small><strong id="mission-crew">NO DATA</strong></div>
+                <div><small>ROLE</small><strong id="mission-role">NO DATA</strong></div>
+                <div><small>MISSION</small><strong id="mission-name">NO DATA</strong></div>
+                <div><small>DAY</small><strong id="mission-day">NO DATA</strong></div>
+                <div><small>DATA SOURCE</small><strong class="amber-text" id="data-source">NO DATA</strong></div>
+                <div><small>LAST READING</small><strong id="last-sync-time">NO DATA</strong></div>
+                <div><small>DATA LINK</small><strong class="blue-text" id="link-latency">CONNECTING...</strong></div>
+                <div><small>GLOBAL STATUS</small><strong id="global-status" class="amber-text">● WAITING FOR TELEMETRY</strong></div>
             </section>
 
             <div class="ticker" aria-hidden="true"><div class="ticker-track" id="ticker-track"></div></div>
 
             <div class="dash-grid">
 
-                <!-- COLUMNA IZQUIERDA -->
+                <!-- LEFT COLUMN -->
                 <div class="col-left">
 
                     <section class="section-block">
                         <div class="section-heading">
-                            <span>MONITORIZACIÓN FISIOLÓGICA</span>
-                            <span class="section-decoration">TIEMPO REAL · REST + WEBSOCKET</span>
+                            <span>PHYSIOLOGICAL MONITORING</span>
+                            <span class="section-decoration">REAL TIME · REST + WEBSOCKET</span>
                         </div>
 
                         <div class="monitoring-grid">
                             <article class="metric-card main-gauge-card" data-metric="hr">
                                 <div class="metric-header-mini">
-                                    <span>FRECUENCIA CARDÍACA</span>
-                                    <span class="badge-status" data-badge>SIN DATOS</span>
+                                    <span>HEART RATE</span>
+                                    <span class="badge-status" data-badge>NO DATA</span>
                                 </div>
                                 <div class="circular-gauge-container">
                                     <svg class="gauge-svg" viewBox="0 0 160 160" aria-hidden="true">
@@ -155,80 +155,80 @@
                                     </div>
                                 </div>
                                 <div class="metric-meta">
-                                    <span>RANGO NORMAL: 60 - 100 BPM</span>
-                                    <span id="hr-avg">PROMEDIO SESIÓN: —</span>
+                                    <span>NORMAL RANGE: 60 - 100 BPM</span>
+                                    <span id="hr-avg">SESSION AVERAGE: —</span>
                                 </div>
                                 <div class="hr-trend">
-                                    <div class="hr-trend-head"><span>EVOLUCIÓN FC</span><span>ÚLTIMAS 12 LECTURAS</span></div>
-                                    <svg class="hr-trend-svg" viewBox="0 0 200 48" preserveAspectRatio="none" role="img" aria-label="Evolución de la frecuencia cardíaca según el historial persistido">
+                                    <div class="hr-trend-head"><span>HR TREND</span><span>LAST 12 READINGS</span></div>
+                                    <svg class="hr-trend-svg" viewBox="0 0 200 48" preserveAspectRatio="none" role="img" aria-label="Heart rate trend based on the persisted history">
                                         <line class="hr-trend-mid" x1="0" y1="24" x2="200" y2="24"></line>
                                         <polygon class="hr-trend-area" id="hr-trend-area" points=""></polygon>
                                         <polyline class="hr-trend-line" id="hr-trend-line" points=""></polyline>
                                         <circle class="hr-trend-dot" id="hr-trend-dot" r="2.4" cx="0" cy="0"></circle>
                                     </svg>
-                                    <div class="hr-trend-range"><span id="hr-trend-min">MÍN —</span><span id="hr-trend-max">MÁX —</span></div>
+                                    <div class="hr-trend-range"><span id="hr-trend-min">MIN —</span><span id="hr-trend-max">MAX —</span></div>
                                 </div>
                             </article>
 
                             <div class="vitals-subgrid">
                                 <article class="metric-card" data-metric="bp" style="--ok: var(--blue-glow)">
-                                    <div class="metric-header-mini"><span>PRESIÓN ARTERIAL</span><span class="badge-status" data-badge>SIN DATOS</span></div>
+                                    <div class="metric-header-mini"><span>BLOOD PRESSURE</span><span class="badge-status" data-badge>NO DATA</span></div>
                                     <div class="lcd-row">
                                         <span class="lcd"><span class="lcd-ghost" aria-hidden="true">888/88</span><span class="lcd-val"><span id="bp-sys">--</span>/<span id="bp-dia">--</span></span></span>
                                         <span class="lcd-unit">mmHg</span>
                                     </div>
-                                    <div class="bar-sparkline" id="bp-spark" aria-label="Tendencia sistólica"></div>
-                                    <div class="metric-meta"><span>RANGO: &lt;130 / &lt;85</span><span>FUENTE: MANGUITO BIO-SUIT</span></div>
+                                    <div class="bar-sparkline" id="bp-spark" aria-label="Systolic trend"></div>
+                                    <div class="metric-meta"><span>RANGE: &lt;130 / &lt;85</span><span>SOURCE: BIO-SUIT CUFF</span></div>
                                 </article>
 
                                 <article class="metric-card" data-metric="spo2">
-                                    <div class="metric-header-mini"><span>SpO<sub>2</sub> · SATURACIÓN</span><span class="badge-status" data-badge>SIN DATOS</span></div>
+                                    <div class="metric-header-mini"><span>SpO<sub>2</sub> · SATURATION</span><span class="badge-status" data-badge>NO DATA</span></div>
                                     <div class="lcd-row">
                                         <span class="lcd"><span class="lcd-ghost" aria-hidden="true">888.8</span><span class="lcd-val" data-lcd>--</span></span>
                                         <span class="lcd-unit">%</span>
                                     </div>
                                     <div class="seg-bar"><div class="seg-fill" data-bar></div></div>
-                                    <div class="metric-meta"><span>RANGO: ≥ 95 %</span><span>FUENTE: OXÍMETRO CASCO</span></div>
+                                    <div class="metric-meta"><span>RANGE: ≥ 95 %</span><span>SOURCE: HELMET OXIMETER</span></div>
                                 </article>
 
                                 <article class="metric-card" data-metric="temp">
-                                    <div class="metric-header-mini"><span>TEMPERATURA CORPORAL</span><span class="badge-status" data-badge>SIN DATOS</span></div>
+                                    <div class="metric-header-mini"><span>BODY TEMPERATURE</span><span class="badge-status" data-badge>NO DATA</span></div>
                                     <div class="lcd-row">
                                         <span class="lcd"><span class="lcd-ghost" aria-hidden="true">88.8</span><span class="lcd-val" data-lcd>--</span></span>
                                         <span class="lcd-unit">°C</span>
                                     </div>
                                     <div class="seg-bar"><div class="seg-fill" data-bar></div></div>
-                                    <div class="metric-meta"><span>RANGO: 36.0 - 37.5 °C</span><span>FUENTE: PARCHE DÉRMICO</span></div>
+                                    <div class="metric-meta"><span>RANGE: 36.0 - 37.5 °C</span><span>SOURCE: SKIN PATCH</span></div>
                                 </article>
 
                                 <article class="metric-card" data-metric="rr" style="--ok: var(--blue-glow)">
-                                    <div class="metric-header-mini"><span>FREC. RESPIRATORIA</span><span class="badge-status" data-badge>SIN DATOS</span></div>
+                                    <div class="metric-header-mini"><span>RESPIRATORY RATE</span><span class="badge-status" data-badge>NO DATA</span></div>
                                     <div class="lcd-row">
                                         <span class="lcd"><span class="lcd-ghost" aria-hidden="true">88</span><span class="lcd-val" data-lcd>--</span></span>
-                                        <span class="lcd-unit">rpm</span>
+                                        <span class="lcd-unit">br/min</span>
                                     </div>
                                     <div class="seg-bar"><div class="seg-fill" data-bar></div></div>
-                                    <div class="metric-meta"><span>RANGO: 12 - 20 rpm</span><span>FUENTE: BANDA TORÁCICA</span></div>
+                                    <div class="metric-meta"><span>RANGE: 12 - 20 br/min</span><span>SOURCE: CHEST BAND</span></div>
                                 </article>
 
                                 <article class="metric-card" data-metric="co2" style="--ok: var(--blue-glow)">
-                                    <div class="metric-header-mini"><span>ppCO<sub>2</sub> AMBIENTE</span><span class="badge-status" data-badge>SIN DATOS</span></div>
+                                    <div class="metric-header-mini"><span>AMBIENT ppCO<sub>2</sub></span><span class="badge-status" data-badge>NO DATA</span></div>
                                     <div class="lcd-row">
                                         <span class="lcd"><span class="lcd-ghost" aria-hidden="true">8.8</span><span class="lcd-val" data-lcd>--</span></span>
                                         <span class="lcd-unit">mmHg</span>
                                     </div>
                                     <div class="seg-bar"><div class="seg-fill" data-bar></div></div>
-                                    <div class="metric-meta"><span>UMBRAL: &lt; 3.0 mmHg</span><span>FUENTE: SENSOR NDIR CASCO</span></div>
+                                    <div class="metric-meta"><span>THRESHOLD: &lt; 3.0 mmHg</span><span>SOURCE: HELMET NDIR SENSOR</span></div>
                                 </article>
 
                                 <article class="metric-card" data-metric="hyd" style="--ok: var(--blue-glow)">
-                                    <div class="metric-header-mini"><span>ÍNDICE HIDRATACIÓN</span><span class="badge-status" data-badge>SIN DATOS</span></div>
+                                    <div class="metric-header-mini"><span>HYDRATION INDEX</span><span class="badge-status" data-badge>NO DATA</span></div>
                                     <div class="lcd-row">
                                         <span class="lcd"><span class="lcd-ghost" aria-hidden="true">88</span><span class="lcd-val" data-lcd>--</span></span>
                                         <span class="lcd-unit">%</span>
                                     </div>
                                     <div class="seg-bar"><div class="seg-fill" data-bar></div></div>
-                                    <div class="metric-meta"><span>RANGO: ≥ 75 %</span><span>FUENTE: BALANCE ESTIMADO</span></div>
+                                    <div class="metric-meta"><span>RANGE: ≥ 75 %</span><span>SOURCE: ESTIMATED BALANCE</span></div>
                                 </article>
                             </div>
                         </div>
@@ -236,45 +236,45 @@
 
                     <section class="section-block scope-block">
                         <div class="section-heading">
-                            <span>OSCILOSCOPIO ECG Y ACTIVIDAD</span>
-                            <span class="section-decoration">CANAL BIO-01 | LEAD II</span>
+                            <span>ECG OSCILLOSCOPE AND ACTIVITY</span>
+                            <span class="section-decoration">CHANNEL BIO-01 | LEAD II</span>
                         </div>
 
                         <div class="scope-row">
                             <div class="monitor-panel" id="ecg-panel">
                                 <div class="monitor-header">
-                                    <span>SEÑAL ECG (DERIVADA DE LA FC)</span>
-                                    <span>BANDA: 0.5 - 40 Hz</span>
-                                    <span class="signal-meter" id="ecg-signal" data-status="warn" title="Calidad de señal ECG">
-                                        <span class="signal-label">SEÑAL</span>
+                                    <span>ECG SIGNAL (DERIVED FROM HR)</span>
+                                    <span>BAND: 0.5 - 40 Hz</span>
+                                    <span class="signal-meter" id="ecg-signal" data-status="warn" title="ECG signal quality">
+                                        <span class="signal-label">SIGNAL</span>
                                         <span class="signal-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
-                                        <b id="ecg-signal-text">SIN DATOS</b>
+                                        <b id="ecg-signal-text">NO DATA</b>
                                     </span>
-                                    <span class="amber-text" id="ecg-state">● SIN SEÑAL</span>
+                                    <span class="amber-text" id="ecg-state">● NO SIGNAL</span>
                                 </div>
-                                <div class="ecg-container"><canvas id="ecg-canvas" aria-label="Electrocardiograma derivado de la frecuencia cardíaca"></canvas></div>
+                                <div class="ecg-container"><canvas id="ecg-canvas" aria-label="Electrocardiogram derived from heart rate"></canvas></div>
                                 <div class="monitor-footer">
-                                    <span>AMPLITUD VIRTUAL: 1.2 mV</span>
-                                    <span>MUESTREO: 250 Hz</span>
-                                    <span>ORIGEN: LECTURA DE FC</span>
+                                    <span>VIRTUAL AMPLITUDE: 1.2 mV</span>
+                                    <span>SAMPLING: 250 Hz</span>
+                                    <span>SOURCE: HR READING</span>
                                 </div>
                             </div>
 
                             <div class="monitor-panel radio-panel">
                                 <div class="monitor-header">
-                                    <span>ESPECTRO DE ACTIVIDAD (VISUAL)</span>
-                                    <span class="amber-text" id="radio-state">● CONECTANDO</span>
+                                    <span>ACTIVITY SPECTRUM (VISUAL)</span>
+                                    <span class="amber-text" id="radio-state">● CONNECTING</span>
                                 </div>
                                 <div class="ecg-container analyzer radio-scope">
-                                    <canvas id="radio-canvas" role="img" aria-label="Espectro decorativo del enlace de telemetría"></canvas>
+                                    <canvas id="radio-canvas" role="img" aria-label="Decorative spectrum of the telemetry link"></canvas>
                                 </div>
                                 <div class="radio-readout">
-                                    <span>ORIGEN <b id="radio-carrier">REST + WEBSOCKET</b></span>
-                                    <span>TRÁFICO <b id="radio-traffic">SIN LECTURA</b></span>
+                                    <span>SOURCE <b id="radio-carrier">REST + WEBSOCKET</b></span>
+                                    <span>TRAFFIC <b id="radio-traffic">NO READING</b></span>
                                 </div>
                                 <div class="monitor-footer">
-                                    <span id="radio-band">CANAL: SIN CONEXIÓN</span>
-                                    <span id="radio-latency">SIN LECTURA</span>
+                                    <span id="radio-band">CHANNEL: NO CONNECTION</span>
+                                    <span id="radio-latency">NO READING</span>
                                 </div>
                             </div>
                         </div>
@@ -282,170 +282,300 @@
 
                     <section class="section-block">
                         <div class="section-heading">
-                            <span>ENTRADA DE TELEMETRÍA</span>
-                            <span class="section-decoration" id="control-source-badge">PASARELA · /api/control</span>
+                            <span>TELEMETRY INPUT</span>
+                            <span class="section-decoration" id="control-source-badge">GATEWAY · /api/control</span>
                         </div>
 
                         <div class="control-panel" id="control-panel">
-                            <div class="scenario-grid" role="group" aria-label="Escenarios de simulación y reproducción">
-                                <button class="scn-btn" type="button" data-scenario="rest">REPOSO</button>
-                                <button class="scn-btn" type="button" data-scenario="exercise">EJERCICIO</button>
-                                <button class="scn-btn" type="button" data-scenario="cabin">CABINA CO₂</button>
-                                <button class="scn-btn" type="button" data-scenario="co2_ramp">RAMPA CO₂</button>
-                                <button class="scn-btn" type="button" data-scenario="solar_event">TORMENTA DONKI</button>
-                                <button class="scn-btn" type="button" data-scenario="signal_loss">PÉRDIDA SEÑAL</button>
-                                <button class="scn-btn" type="button" data-scenario="bidmc">BIDMC REAL</button>
+                            <div class="scenario-grid" role="group" aria-label="Simulation and replay scenarios">
+                                <button class="scn-btn" type="button" data-scenario="rest">REST</button>
+                                <button class="scn-btn" type="button" data-scenario="exercise">EXERCISE</button>
+                                <button class="scn-btn" type="button" data-scenario="cabin">CABIN CO₂</button>
+                                <button class="scn-btn" type="button" data-scenario="co2_ramp">CO₂ RAMP</button>
+                                <button class="scn-btn" type="button" data-scenario="solar_event">DONKI STORM</button>
+                                <button class="scn-btn" type="button" data-scenario="signal_loss">SIGNAL LOSS</button>
+                                <button class="scn-btn" type="button" data-scenario="bidmc">REAL BIDMC</button>
                             </div>
 
                             <div class="control-actions-row">
                                 <label class="env-control" for="env-select">
-                                    <span>ENTORNO</span>
-                                    <select id="env-select" class="hw-select" aria-label="Perfil de entorno">
-                                        <option value="transit">TRÁNSITO (transit)</option>
-                                        <option value="station" selected>ESTACIÓN (station)</option>
+                                    <span>ENVIRONMENT</span>
+                                    <select id="env-select" class="hw-select" aria-label="Environment profile">
+                                        <option value="transit">TRANSIT (transit)</option>
+                                        <option value="station" selected>STATION (station)</option>
                                         <option value="rover">ROVER (rover)</option>
                                         <option value="base">BASE (base)</option>
                                     </select>
                                 </label>
-                                <button class="hw-btn shelter-btn" type="button" id="btn-shelter" aria-pressed="false">REFUGIO (SHELTER)</button>
-                                <button class="hw-btn ack-btn" type="button" id="btn-ack">RECONOCER (ACK)</button>
+                                <button class="hw-btn shelter-btn" type="button" id="btn-shelter" aria-pressed="false">SHELTER</button>
+                                <button class="hw-btn ack-btn" type="button" id="btn-ack">ACKNOWLEDGE (ACK)</button>
                             </div>
 
                             <div class="eq-row">
-                                <label for="eva-slider">CARGA EVA</label>
+                                <label for="eva-slider">EVA LOAD</label>
                                 <input type="range" id="eva-slider" class="eq-slider" min="0" max="100" value="0" step="1" disabled>
                                 <span class="lcd lcd-sm"><span class="lcd-ghost" aria-hidden="true">--</span><span class="lcd-val" id="eva-value">--</span></span><span class="lcd-unit">%</span>
                             </div>
-                            <p class="control-feedback" id="control-status-text">Esperando estado de la pasarela...</p>
+                            <p class="control-feedback" id="control-status-text">Waiting for gateway status...</p>
                         </div>
-                        <p class="module-note">* Selecciona escenario, entorno o refugio simulado en la pasarela. En reproducción BIDMC o pérdida de señal, los canales ausentes muestran SIN SEÑAL (--).</p>
+                        <p class="module-note">* Select a scenario, environment or simulated shelter on the gateway. During BIDMC replay or signal loss, missing channels show NO SIGNAL (--).</p>
                     </section>
 
                     <section class="section-block" id="onboard-ai-summary">
                         <div class="section-heading">
-                            <span>EVALUACIÓN A BORDO · HIPÓTESIS ORIENTATIVA (ESCENARIO SIMULADO)</span>
-                            <span class="section-decoration" id="ai-mode-badge">SOLO A BORDO</span>
+                            <span>ON-BOARD ASSESSMENT · INDICATIVE HYPOTHESIS (SIMULATED SCENARIO)</span>
+                            <span class="section-decoration" id="ai-mode-badge">ON-BOARD ONLY</span>
                         </div>
                         <div class="monitor-panel ai-summary-panel">
                             <div class="ai-summary-grid">
                                 <div class="ai-summary-item ai-summary-wide" id="ai-hypothesis-card" data-status="warn">
-                                    <small>HIPÓTESIS ORIENTATIVA (ESCENARIO SIMULADO)</small>
-                                    <strong id="ai-hypothesis">Esperando telemetría y análisis a bordo...</strong>
-                                    <span class="ai-sub" id="ai-hypothesis-meta">Solo orientación informativa · Sin validez clínica</span>
+                                    <small>INDICATIVE HYPOTHESIS (SIMULATED SCENARIO)</small>
+                                    <strong id="ai-hypothesis">Waiting for telemetry and on-board analysis...</strong>
+                                    <span class="ai-sub" id="ai-hypothesis-meta">Informational guidance only · No clinical validity</span>
                                 </div>
                                 <div class="ai-summary-item">
-                                    <small>PRONÓSTICO FC +60 s</small>
+                                    <small>HR FORECAST +60 s</small>
                                     <strong id="ai-forecast">-- BPM</strong>
-                                    <span class="ai-sub" id="ai-forecast-method">Método: en espera</span>
+                                    <span class="ai-sub" id="ai-forecast-method">Method: waiting</span>
                                 </div>
                                 <div class="ai-summary-item">
-                                    <small>SENSIBILIDAD CO₂ / ETA LÍMITE</small>
+                                    <small>CO₂ SENSITIVITY / ETA TO LIMIT</small>
                                     <strong id="ai-co2-eta">--</strong>
-                                    <span class="ai-sub" id="ai-co2-eta-detail">Sin pendiente calibrada</span>
+                                    <span class="ai-sub" id="ai-co2-eta-detail">No calibrated slope</span>
                                 </div>
                                 <div class="ai-summary-item">
-                                    <small>RACHA Y PUNTOS (COACH)</small>
-                                    <strong id="ai-coach-stats">0 PTS · RACHA 0</strong>
-                                    <span class="ai-sub" id="ai-coach-detail">Solo por participación</span>
+                                    <small>STREAK AND POINTS (COACH)</small>
+                                    <strong id="ai-coach-stats">0 PTS · STREAK 0</strong>
+                                    <span class="ai-sub" id="ai-coach-detail">Participation only</span>
                                 </div>
                             </div>
                         </div>
                     </section>
                 </div>
 
-                <!-- COLUMNA DERECHA: ESCÁNER CORPORAL -->
-                <aside class="col-right" aria-label="Escáner corporal">
+                <!-- RIGHT COLUMN: BODY SCANNER -->
+                <aside class="col-right" aria-label="Body scanner">
                     <section class="section-block">
                         <div class="section-heading">
-                            <span>ESCÁNER CORPORAL</span>
-                            <span class="section-decoration" id="body-summary">SIN TELEMETRÍA</span>
+                            <span>BODY SCANNER</span>
+                            <span class="section-decoration" id="body-summary">NO TELEMETRY</span>
                         </div>
 
                         <div class="body-panel monitor-panel">
                             <div class="body-stage" id="body-stage" data-rad="ok">
-                                <svg id="body-svg" viewBox="0 0 280 420" role="group" aria-label="Mapa corporal con zonas de riesgo probable">
-                                    <rect class="scanline" x="0" y="0" width="280" height="2"/>
+                                <span class="stage-zone" id="stage-zone" aria-hidden="true">OVERVIEW</span>
+                                <svg id="body-svg" viewBox="0 0 280 448" role="group" aria-label="Holographic body map with probable risk zones">
+                                    <defs>
+                                        <linearGradient id="bodyFill" gradientUnits="userSpaceOnUse" x1="0" y1="10" x2="0" y2="420">
+                                            <stop offset="0" stop-color="#00e1ff" stop-opacity=".11"/>
+                                            <stop offset=".28" stop-color="#00ff66" stop-opacity=".07"/>
+                                            <stop offset=".72" stop-color="#00ff66" stop-opacity=".05"/>
+                                            <stop offset="1" stop-color="#00e1ff" stop-opacity=".03"/>
+                                        </linearGradient>
+                                        <radialGradient id="bodyCore" cx=".5" cy=".42" r=".6">
+                                            <stop offset="0" stop-color="#00ff66" stop-opacity=".18"/>
+                                            <stop offset=".45" stop-color="#00e1ff" stop-opacity=".06"/>
+                                            <stop offset="1" stop-color="#00ff66" stop-opacity="0"/>
+                                        </radialGradient>
+                                        <linearGradient id="scanBeam" gradientUnits="userSpaceOnUse" x1="0" y1="-110" x2="0" y2="0">
+                                            <stop offset="0" stop-color="#00ff66" stop-opacity="0"/>
+                                            <stop offset=".55" stop-color="#00ff66" stop-opacity=".06"/>
+                                            <stop offset=".86" stop-color="#00ff66" stop-opacity=".24"/>
+                                            <stop offset=".97" stop-color="#d8ffe8" stop-opacity=".62"/>
+                                            <stop offset="1" stop-color="#ffffff" stop-opacity=".92"/>
+                                        </linearGradient>
+                                        <radialGradient id="baseGlow" cx=".5" cy=".5" r=".5">
+                                            <stop offset="0" stop-color="#00ff66" stop-opacity=".45"/>
+                                            <stop offset=".55" stop-color="#00e1ff" stop-opacity=".16"/>
+                                            <stop offset="1" stop-color="#00e1ff" stop-opacity="0"/>
+                                        </radialGradient>
+                                        <pattern id="bodyMesh" width="9" height="9" patternUnits="userSpaceOnUse">
+                                            <path d="M0 0H9M0 0V9" fill="none" stroke="#00ff66" stroke-opacity=".20" stroke-width=".4"/>
+                                            <circle cx="4.5" cy="4.5" r=".55" fill="#00e1ff" fill-opacity=".35"/>
+                                        </pattern>
+                                        <pattern id="hudGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+                                            <path d="M0 0H20M0 0V20" fill="none" stroke="#00ff66" stroke-opacity=".07" stroke-width=".4"/>
+                                        </pattern>
+                                        <filter id="glowStrong" x="-40%" y="-40%" width="180%" height="180%">
+                                            <feGaussianBlur stdDeviation="4" result="blur"/>
+                                            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                                        </filter>
+                                        <filter id="glowSoft" x="-30%" y="-30%" width="160%" height="160%">
+                                            <feGaussianBlur stdDeviation="1.6" result="blur"/>
+                                            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                                        </filter>
+                                        <clipPath id="bodyClip">
+                                            <use href="#bodyShape"/>
+                                        </clipPath>
 
-                                    <!-- silueta de referencia -->
-                                    <g class="body-base" aria-hidden="true">
-                                        <path class="body-outline" d="M132 58 L148 58 L149 74 C145 78 135 78 131 74 Z"/>
-                                        <path class="body-outline" d="M112 82 C120 76 130 73 140 73 C150 73 160 76 168 82 C173 91 175 103 173 116 L168 148 C166 160 166 172 168 182 L172 200 C173 208 170 214 164 218 L158 222 C152 225 146 226 140 226 C134 226 128 225 122 222 L116 218 C110 214 107 208 108 200 L112 182 C114 172 114 160 112 148 L107 116 C105 103 107 91 112 82 Z"/>
-                                        <path class="body-outline" d="M112 84 C105 88 100 96 98 106 L92 160 C90 176 88 190 87 202 C86 210 89 216 94 216 C99 216 102 212 103 205 L106 190 C108 174 110 160 113 148 L116 110 Z"/>
-                                        <path class="body-outline" d="M168 84 C175 88 180 96 182 106 L188 160 C190 176 192 190 193 202 C194 210 191 216 186 216 C181 216 178 212 177 205 L174 190 C172 174 170 160 167 148 L164 110 Z"/>
-                                        <path class="body-outline" d="M120 224 C117 246 118 270 121 292 C123 312 123 336 123 356 L123 386 C119 390 115 394 115 401 L133 401 C134 394 133 390 131 386 L132 356 C133 336 134 312 137 292 C140 270 141 246 140 224 Z"/>
-                                        <path class="body-outline" d="M160 224 C163 246 162 270 159 292 C157 312 157 336 157 356 L157 386 C161 390 165 394 165 401 L147 401 C146 394 147 390 149 386 L148 356 C147 336 146 312 143 292 C140 270 139 246 140 224 Z"/>
-                                        <ellipse class="body-outline" cx="140" cy="36" rx="18" ry="22"/>
+                                        <!-- anatomical silhouette reused by the holographic layers -->
+                                        <g id="bodyShape">
+                                            <path d="M140 12 C151 12 159 18 160 29 C161 37 159 45 155 51 C152 56 147 60 140 61 C133 60 128 56 125 51 C121 45 119 37 120 29 C121 18 129 12 140 12 Z"/>
+                                            <ellipse cx="120" cy="34" rx="3.6" ry="6.2"/>
+                                            <ellipse cx="160" cy="34" rx="3.6" ry="6.2"/>
+                                            <path d="M130 55 C130 62 129 68 126 73 C132 78 148 78 154 73 C151 68 150 62 150 55 C146 59 134 59 130 55 Z"/>
+                                            <path d="M127 74 C120 78 113 82 108 87 C103 91 101 97 102 103 C103 110 104 115 105 121 C106 134 107 147 109 160 C111 172 112 184 111 195 C110 206 109 216 112 224 C116 230 125 233 134 233 L146 233 C155 233 164 230 168 224 C171 216 170 206 169 195 C168 184 169 172 171 160 C173 147 174 134 175 121 C176 115 177 110 178 103 C179 97 177 91 172 87 C167 82 160 78 153 74 C148 78 132 78 127 74 Z"/>
+                                            <path d="M110 89 C100 91 94 98 94 108 C94 118 96 130 97 142 C98 152 98 160 97 169 C95 181 92 194 91 204 C90 212 90 220 92 226 C93 232 96 237 99 239 C102 240 104 237 104 232 C105 224 104 216 103 208 C102 196 104 186 107 176 C110 166 112 158 113 150 C114 141 114 132 114 123 C114 114 115 105 114 97 C114 92 113 89 110 89 Z"/>
+                                            <path d="M170 89 C180 91 186 98 186 108 C186 118 184 130 183 142 C182 152 182 160 183 169 C185 181 188 194 189 204 C190 212 190 220 188 226 C187 232 184 237 181 239 C178 240 176 237 176 232 C175 224 176 216 177 208 C178 196 176 186 173 176 C170 166 168 158 167 150 C166 141 166 132 166 123 C166 114 165 105 166 97 C166 92 167 89 170 89 Z"/>
+                                            <path d="M146 222 C160 222 170 226 172 234 C174 244 174 256 173 268 C172 282 170 294 169 306 C170 316 173 328 174 340 C175 354 172 368 171 380 C170 390 170 397 171 402 C168 405 163 405 160 402 C160 396 160 388 161 380 C162 364 162 350 160 338 C159 326 157 314 156 304 C154 292 152 278 150 264 C148 252 147 240 145 233 C144 228 145 224 146 222 Z"/>
+                                            <path d="M134 222 C120 222 110 226 108 234 C106 244 106 256 107 268 C108 282 110 294 111 306 C110 316 107 328 106 340 C105 354 108 368 109 380 C110 390 110 397 109 402 C112 405 117 405 120 402 C120 396 120 388 119 380 C118 364 118 350 120 338 C121 326 123 314 124 304 C126 292 128 278 130 264 C132 252 133 240 135 233 C136 228 135 224 134 222 Z"/>
+                                            <ellipse cx="166" cy="406" rx="13" ry="7"/>
+                                            <ellipse cx="114" cy="406" rx="13" ry="7"/>
+                                        </g>
+                                    </defs>
 
-                                        <!-- detalles anatómicos -->
-                                        <path class="body-detail" d="M121 91 Q130 97 139 95"/>
-                                        <path class="body-detail" d="M159 91 Q150 97 141 95"/>
-                                        <path class="body-detail" d="M127 160 Q140 164 153 160"/>
-                                        <path class="body-detail" d="M129 178 Q140 181 151 178"/>
-                                        <path class="body-detail" d="M131 195 Q140 197 149 195"/>
-                                        <path class="body-detail" d="M124 300 Q128 303 132 300"/>
-                                        <path class="body-detail" d="M148 300 Q152 303 156 300"/>
+                                    <!-- holographic grid and base -->
+                                    <rect class="hud-grid" x="0" y="0" width="280" height="448" fill="url(#hudGrid)" aria-hidden="true"/>
+                                    <g class="holo-base" aria-hidden="true">
+                                        <ellipse cx="140" cy="422" rx="60" ry="18" fill="url(#baseGlow)"/>
+                                        <ellipse class="base-ring base-ring-a" cx="140" cy="422" rx="48" ry="13"/>
+                                        <ellipse class="base-ring base-ring-b" cx="140" cy="422" rx="33" ry="8"/>
+                                        <ellipse class="base-ring base-ring-c" cx="140" cy="422" rx="58" ry="16"/>
                                     </g>
 
-                                    <!-- 01 CABEZA / OJOS -->
-                                    <g class="zone" data-zone="head" tabindex="0" role="button" aria-label="Cabeza y ojos">
-                                        <ellipse class="zone-shape" cx="140" cy="36" rx="18" ry="22"/>
-                                        <path class="zone-shape" d="M132 58 L148 58 L149 74 C145 78 135 78 131 74 Z"/>
-                                        <ellipse class="zone-detail" cx="133" cy="38" rx="2.6" ry="5"/>
-                                        <ellipse class="zone-detail" cx="147" cy="38" rx="2.6" ry="5"/>
-                                        <ellipse class="zone-detail" cx="133" cy="33" rx="3" ry="1.6"/>
-                                        <ellipse class="zone-detail" cx="147" cy="33" rx="3" ry="1.6"/>
+                                    <!-- holographic body: halo, plate, mesh and internal lighting -->
+                                    <use href="#bodyShape" class="body-halo" aria-hidden="true"/>
+                                    <use href="#bodyShape" class="body-plate" aria-hidden="true"/>
+                                    <g clip-path="url(#bodyClip)" aria-hidden="true">
+                                        <rect class="body-mesh" x="70" y="-10" width="140" height="470" fill="url(#bodyMesh)"/>
+                                        <rect class="body-core" x="70" y="-10" width="140" height="470" fill="url(#bodyCore)"/>
                                     </g>
 
-                                    <!-- 02 PULMONES -->
-                                    <g class="zone" data-zone="lungs" tabindex="0" role="button" aria-label="Pulmones">
+                                    <!-- 01 HEAD / EYES -->
+                                    <g class="zone" data-zone="head" tabindex="0" role="button" aria-label="Head and eyes" aria-pressed="false">
+                                        <path class="zone-shape" d="M140 12 C151 12 159 18 160 29 C161 37 159 45 155 51 C152 56 147 60 140 61 C133 60 128 56 125 51 C121 45 119 37 120 29 C121 18 129 12 140 12 Z"/>
+                                        <path class="zone-shape" d="M130 55 C130 62 129 68 126 73 C132 78 148 78 154 73 C151 68 150 62 150 55 C146 59 134 59 130 55 Z"/>
+                                        <path class="organ organ-brain" d="M138.5 18 C132.5 17 127 20.5 126.5 26 C123 27.5 121.5 32 124 35 C122.5 38 125 41 129 41 C131.5 43 136 43 138.5 41 Z"/>
+                                        <path class="organ organ-brain" d="M141.5 18 C147.5 17 153 20.5 153.5 26 C157 27.5 158.5 32 156 35 C157.5 38 155 41 151 41 C148.5 43 144 43 141.5 41 Z"/>
+                                        <path class="organ-line" d="M140 20 V41"/>
+                                        <path class="organ-line" d="M129 25 C132.5 24 134 26.5 133 29 M151 25 C147.5 24 146 26.5 147 29 M128 33 C131 32 132.5 34 132 36.5 M152 33 C149 32 147.5 34 148 36.5"/>
+                                        <path class="organ-line" d="M138 41 C137 45 136 49 134 53 M142 41 C143 45 144 49 146 53"/>
+                                        <ellipse class="zone-detail" cx="134.5" cy="43" rx="2.1" ry="2.6"/>
+                                        <ellipse class="zone-detail" cx="145.5" cy="43" rx="2.1" ry="2.6"/>
+                                        <path class="zone-stroke" d="M131 38.5 C133.5 36.5 136.5 36.5 138 38.5 M142 38.5 C143.5 36.5 146.5 36.5 149 38.5"/>
+                                        <path class="zone-stroke" d="M140 46 L138 50.5 L142 50.5"/>
+                                        <path class="organ-line" d="M132 55 C136 58 144 58 148 55"/>
+                                    </g>
+
+                                    <!-- 02 LUNGS -->
+                                    <g class="zone" data-zone="lungs" tabindex="0" role="button" aria-label="Lungs" aria-pressed="false">
                                         <path class="zone-shape" d="M134 94 C127 90 120 93 117 101 C114 111 115 126 117 136 C118 143 124 146 130 143 C135 140 136 133 136 124 Z"/>
                                         <path class="zone-shape" d="M146 94 C153 90 160 93 163 101 C166 111 165 126 163 136 C162 143 156 146 150 143 C145 140 144 133 144 124 Z"/>
+                                        <path class="organ organ-lung" d="M134 94 C127 90 120 93 117 101 C114 111 115 126 117 136 C118 143 124 146 130 143 C135 140 136 133 136 124 Z"/>
+                                        <path class="organ organ-lung" d="M146 94 C153 90 160 93 163 101 C166 111 165 126 163 136 C162 143 156 146 150 143 C145 140 144 133 144 124 Z"/>
+                                        <path class="organ-line" d="M140 74 V97"/>
+                                        <path class="organ-line" d="M140 96 C136 99 131.5 101 128 102 M140 96 C144 99 148.5 101 152 102"/>
+                                        <path class="organ-line" d="M131 105 C128.5 110 127.5 117 128.5 124 M149 105 C151.5 110 152.5 117 151.5 124"/>
                                     </g>
 
-                                    <!-- 03 CORAZÓN -->
-                                    <g class="zone" data-zone="heart" tabindex="0" role="button" aria-label="Corazón">
-                                        <path class="zone-shape" d="M131 112 C125 108 118 111 119 118 C120 126 126 134 131 140 C136 134 142 126 143 118 C144 111 137 108 133 112 Z"/>
+                                    <!-- 03 HEART -->
+                                    <g class="zone" data-zone="heart" tabindex="0" role="button" aria-label="Heart" aria-pressed="false">
+                                        <path class="zone-shape" d="M149 112 C155 108 162 111 161 118 C160 126 154 134 149 140 C144 134 138 126 137 118 C136 111 143 108 147 112 Z"/>
+                                        <path class="organ organ-heart" d="M149 111 C153 106 161 107 162 114 C163 120 159 126 155 131 C152 135 150 140 148 145 C146 141 143 137 140 132 C136 126 135 119 137 115 C139 110 145 107 149 111 Z"/>
+                                        <path class="organ-line" d="M151 110 C150 103 156 100 160 104 C163 107 162 112 159 114"/>
+                                        <path class="organ-line" d="M149 118 C153 122 152 130 148 136 M145 122 C143 127 144 132 147 136"/>
                                     </g>
 
                                     <!-- 04 ABDOMEN -->
-                                    <g class="zone" data-zone="abdomen" tabindex="0" role="button" aria-label="Abdomen y core">
+                                    <g class="zone" data-zone="abdomen" tabindex="0" role="button" aria-label="Abdomen and core" aria-pressed="false">
                                         <path class="zone-shape" d="M120 148 C128 145 152 145 160 148 C163 162 163 180 160 194 C152 199 128 199 120 194 C117 180 117 162 120 148 Z"/>
+                                        <path class="organ organ-soft" d="M128 150 C136 147 147 147 153 150 C156 151 157 156 154 160 C149 166 141 168 134 166 C129 164 125 158 126 154 Z"/>
+                                        <path class="organ organ-soft" d="M145 159 C151 157 157 160 156 166 C155 172 149 175 144 172 C140 169 141 162 145 159 Z"/>
+                                        <path class="organ organ-kidney" d="M131 168 C126 166 122.5 171 123.5 177 C124.5 183 130 185 133 182 C136 179 135 171 131 168 Z"/>
+                                        <path class="organ organ-kidney" d="M149 168 C154 166 157.5 171 156.5 177 C155.5 183 150 185 147 182 C144 179 145 171 149 168 Z"/>
+                                        <path class="organ-line" d="M129 171 C127 174 127 179 129 182 M151 171 C153 174 153 179 151 182"/>
+                                        <path class="organ-line" d="M130 184 C135 181 145 181 150 184 M129 188 C135 185 145 185 151 188 M131 192 C136 189 144 189 149 192"/>
                                     </g>
 
-                                    <!-- 05 BRAZOS -->
-                                    <g class="zone" data-zone="arms" tabindex="0" role="button" aria-label="Brazos y manos">
-                                        <path class="zone-shape" d="M112 84 C105 88 100 96 98 106 L92 160 C90 176 88 190 87 202 C86 210 89 216 94 216 C99 216 102 212 103 205 L106 190 C108 174 110 160 113 148 L116 110 Z"/>
-                                        <path class="zone-shape" d="M168 84 C175 88 180 96 182 106 L188 160 C190 176 192 190 193 202 C194 210 191 216 186 216 C181 216 178 212 177 205 L174 190 C172 174 170 160 167 148 L164 110 Z"/>
+                                    <!-- 05 ARMS -->
+                                    <g class="zone" data-zone="arms" tabindex="0" role="button" aria-label="Arms and hands" aria-pressed="false">
+                                        <path class="zone-shape" d="M110 89 C100 91 94 98 94 108 C94 118 96 130 97 142 C98 152 98 160 97 169 C95 181 92 194 91 204 C90 212 90 220 92 226 C93 232 96 237 99 239 C102 240 104 237 104 232 C105 224 104 216 103 208 C102 196 104 186 107 176 C110 166 112 158 113 150 C114 141 114 132 114 123 C114 114 115 105 114 97 C114 92 113 89 110 89 Z"/>
+                                        <path class="zone-shape" d="M170 89 C180 91 186 98 186 108 C186 118 184 130 183 142 C182 152 182 160 183 169 C185 181 188 194 189 204 C190 212 190 220 188 226 C187 232 184 237 181 239 C178 240 176 237 176 232 C175 224 176 216 177 208 C178 196 176 186 173 176 C170 166 168 158 167 150 C166 141 166 132 166 123 C166 114 165 105 166 97 C166 92 167 89 170 89 Z"/>
+                                        <path class="organ-line" d="M108 94 C104 108 104 126 106 142 C107 152 105 166 102 182 C99 198 97 214 98 228"/>
+                                        <path class="organ-line" d="M172 94 C176 108 176 126 174 142 C173 152 175 166 178 182 C181 198 183 214 182 228"/>
+                                        <circle class="organ-joint" cx="106" cy="172" r="2.2"/>
+                                        <circle class="organ-joint" cx="174" cy="172" r="2.2"/>
                                     </g>
 
-                                    <!-- 06 COLUMNA Y CADERA -->
-                                    <g class="zone" data-zone="spine" tabindex="0" role="button" aria-label="Columna y cadera">
-                                        <path class="zone-shape" d="M118 198 Q140 204 162 198 C166 208 166 218 162 228 C154 234 146 236 140 236 C134 236 126 234 118 228 C114 218 114 208 118 198 Z"/>
-                                        <line class="zone-line" x1="140" y1="78" x2="140" y2="196" stroke-width="7" stroke-dasharray="6 3"/>
+                                    <!-- 06 SPINE AND HIPS -->
+                                    <g class="zone" data-zone="spine" tabindex="0" role="button" aria-label="Spine and hips" aria-pressed="false">
+                                        <path class="zone-shape" d="M116 200 C124 206 156 206 164 200 C168 210 168 220 164 228 C156 234 148 236 140 236 C132 236 124 234 116 228 C112 220 112 210 116 200 Z"/>
+                                        <path class="organ-line" d="M112 92 C120 88 130 86 140 86 M168 92 C160 88 150 86 140 86"/>
+                                        <line class="zone-line" x1="140" y1="80" x2="140" y2="196" stroke-width="7" stroke-dasharray="6 3"/>
+                                        <line class="organ-line organ-spine" x1="140" y1="82" x2="140" y2="196" stroke-width="4" stroke-dasharray="3 5"/>
+                                        <path class="organ-line" d="M116 204 C122 198 130 196 138 196 M164 204 C158 198 150 196 142 196"/>
+                                        <circle class="organ-joint" cx="126" cy="219" r="2.4"/>
+                                        <circle class="organ-joint" cx="154" cy="219" r="2.4"/>
                                     </g>
 
-                                    <!-- 07 PIERNAS -->
-                                    <g class="zone" data-zone="legs" tabindex="0" role="button" aria-label="Piernas">
-                                        <path class="zone-shape" d="M120 224 C117 246 118 270 121 292 C123 312 123 336 123 356 L123 386 C119 390 115 394 115 401 L133 401 C134 394 133 390 131 386 L132 356 C133 336 134 312 137 292 C140 270 141 246 140 224 Z"/>
-                                        <path class="zone-shape" d="M160 224 C163 246 162 270 159 292 C157 312 157 336 157 356 L157 386 C161 390 165 394 165 401 L147 401 C146 394 147 390 149 386 L148 356 C147 336 146 312 143 292 C140 270 139 246 140 224 Z"/>
+                                    <!-- 07 LEGS -->
+                                    <g class="zone" data-zone="legs" tabindex="0" role="button" aria-label="Legs" aria-pressed="false">
+                                        <path class="zone-shape" d="M134 222 C120 222 110 226 108 234 C106 244 106 256 107 268 C108 282 110 294 111 306 C110 316 107 328 106 340 C105 354 108 368 109 380 C110 390 110 397 109 402 C112 405 117 405 120 402 C120 396 120 388 119 380 C118 364 118 350 120 338 C121 326 123 314 124 304 C126 292 128 278 130 264 C132 252 133 240 135 233 C136 228 135 224 134 222 Z"/>
+                                        <path class="zone-shape" d="M146 222 C160 222 170 226 172 234 C174 244 174 256 173 268 C172 282 170 294 169 306 C170 316 173 328 174 340 C175 354 172 368 171 380 C170 390 170 397 171 402 C168 405 163 405 160 402 C160 396 160 388 161 380 C162 364 162 350 160 338 C159 326 157 314 156 304 C154 292 152 278 150 264 C148 252 147 240 145 233 C144 228 145 224 146 222 Z"/>
+                                        <ellipse class="zone-shape" cx="114" cy="406" rx="13" ry="7"/>
+                                        <ellipse class="zone-shape" cx="166" cy="406" rx="13" ry="7"/>
+                                        <path class="organ-line" d="M132 238 C128 260 125 288 125 312 C124 338 122 368 121 394 M137 238 C134 264 132 292 132 314 C131 340 130 370 129 396"/>
+                                        <path class="organ-line" d="M148 238 C152 260 155 288 155 312 C156 338 158 368 159 394 M143 238 C146 264 148 292 148 314 C149 340 150 370 151 396"/>
+                                        <circle class="organ-joint" cx="126.5" cy="312" r="2.2"/>
+                                        <circle class="organ-joint" cx="153.5" cy="312" r="2.2"/>
                                     </g>
 
-                                    <!-- ETIQUETAS IZQUIERDAS -->
-                                    <g class="zone-label" data-zone="head"><line class="leader" x1="62" y1="34" x2="124" y2="34"/><text class="zl-name" x="2" y="30">01 CABEZA</text><text class="zl-state" x="2" y="40">NOMINAL</text></g>
-                                    <g class="zone-label" data-zone="lungs"><line class="leader" x1="62" y1="112" x2="118" y2="112"/><text class="zl-name" x="2" y="108">02 PULMONES</text><text class="zl-state" x="2" y="118">NOMINAL</text></g>
-                                    <g class="zone-label" data-zone="abdomen"><line class="leader" x1="62" y1="172" x2="118" y2="172"/><text class="zl-name" x="2" y="168">04 ABDOMEN</text><text class="zl-state" x="2" y="178">NOMINAL</text></g>
-                                    <g class="zone-label" data-zone="legs"><line class="leader" x1="62" y1="330" x2="123" y2="330"/><text class="zl-name" x="2" y="326">07 PIERNAS</text><text class="zl-state" x="2" y="336">NOMINAL</text></g>
+                                    <!-- glowing outline, particles and scan sweep -->
+                                    <use href="#bodyShape" class="body-contour" aria-hidden="true"/>
+                                    <g class="particles" clip-path="url(#bodyClip)" aria-hidden="true">
+                                        <circle class="particle" cx="130" cy="404" r="1.1" style="--dur:8s;--delay:-1s"/>
+                                        <circle class="particle" cx="147" cy="398" r="1.3" style="--dur:10s;--delay:-4s"/>
+                                        <circle class="particle" cx="136" cy="388" r="0.9" style="--dur:7s;--delay:-2.5s"/>
+                                        <circle class="particle" cx="154" cy="372" r="1.1" style="--dur:9s;--delay:-6s"/>
+                                        <circle class="particle" cx="124" cy="356" r="1" style="--dur:11s;--delay:-3s"/>
+                                        <circle class="particle" cx="142" cy="336" r="1.2" style="--dur:8.5s;--delay:-7s"/>
+                                        <circle class="particle" cx="132" cy="312" r="0.8" style="--dur:7.5s;--delay:-5s"/>
+                                        <circle class="particle" cx="150" cy="290" r="1" style="--dur:10.5s;--delay:-8s"/>
+                                        <circle class="particle" cx="128" cy="262" r="1.1" style="--dur:9.5s;--delay:-2s"/>
+                                        <circle class="particle" cx="146" cy="238" r="0.9" style="--dur:8s;--delay:-6.5s"/>
+                                        <circle class="particle" cx="136" cy="208" r="1.2" style="--dur:11.5s;--delay:-4.5s"/>
+                                        <circle class="particle" cx="152" cy="176" r="0.9" style="--dur:9s;--delay:-7.5s"/>
+                                        <circle class="particle" cx="128" cy="146" r="1" style="--dur:10s;--delay:-9s"/>
+                                        <circle class="particle" cx="144" cy="112" r="1.1" style="--dur:8.6s;--delay:-5.5s"/>
+                                        <circle class="particle" cx="138" cy="80" r="0.8" style="--dur:7.8s;--delay:-1.5s"/>
+                                    </g>
+                                    <g clip-path="url(#bodyClip)" aria-hidden="true">
+                                        <g class="scan-group">
+                                            <rect class="scan-beam" x="70" y="-110" width="140" height="110" fill="url(#scanBeam)"/>
+                                            <line class="scan-edge" x1="70" y1="0" x2="210" y2="0"/>
+                                        </g>
+                                    </g>
 
-                                    <!-- ETIQUETAS DERECHAS -->
-                                    <g class="zone-label" data-zone="heart"><line class="leader" x1="218" y1="122" x2="144" y2="122"/><text class="zl-name" x="278" y="118" text-anchor="end">03 CORAZÓN</text><text class="zl-state" x="278" y="128" text-anchor="end">NOMINAL</text></g>
-                                    <g class="zone-label" data-zone="arms"><line class="leader" x1="218" y1="178" x2="190" y2="178"/><text class="zl-name" x="278" y="174" text-anchor="end">05 BRAZOS</text><text class="zl-state" x="278" y="184" text-anchor="end">NOMINAL</text></g>
-                                    <g class="zone-label" data-zone="spine"><line class="leader" x1="218" y1="150" x2="142" y2="150"/><text class="zl-name" x="278" y="146" text-anchor="end">06 COLUMNA</text><text class="zl-state" x="278" y="156" text-anchor="end">NOMINAL</text></g>
+                                    <!-- LEFT LABELS -->
+                                    <g class="zone-label" data-zone="head"><rect class="zl-plate" x="0" y="21" width="64" height="22" rx="1.5"/><line class="leader" x1="64" y1="32" x2="124" y2="32"/><circle class="leader-node" cx="124" cy="32" r="1.6"/><text class="zl-name" x="3" y="30">01 HEAD</text><text class="zl-state" x="3" y="40">NOMINAL</text></g>
+                                    <g class="zone-label" data-zone="lungs"><rect class="zl-plate" x="0" y="99" width="64" height="22" rx="1.5"/><line class="leader" x1="64" y1="112" x2="118" y2="112"/><circle class="leader-node" cx="118" cy="112" r="1.6"/><text class="zl-name" x="3" y="108">02 LUNGS</text><text class="zl-state" x="3" y="118">NOMINAL</text></g>
+                                    <g class="zone-label" data-zone="abdomen"><rect class="zl-plate" x="0" y="159" width="64" height="22" rx="1.5"/><line class="leader" x1="64" y1="172" x2="118" y2="172"/><circle class="leader-node" cx="118" cy="172" r="1.6"/><text class="zl-name" x="3" y="168">04 ABDOMEN</text><text class="zl-state" x="3" y="178">NOMINAL</text></g>
+                                    <g class="zone-label" data-zone="legs"><rect class="zl-plate" x="0" y="317" width="64" height="22" rx="1.5"/><line class="leader" x1="64" y1="330" x2="116" y2="330"/><circle class="leader-node" cx="116" cy="330" r="1.6"/><text class="zl-name" x="3" y="326">07 LEGS</text><text class="zl-state" x="3" y="336">NOMINAL</text></g>
+
+                                    <!-- RIGHT LABELS -->
+                                    <g class="zone-label" data-zone="heart"><rect class="zl-plate" x="215" y="109" width="63" height="22" rx="1.5"/><line class="leader" x1="215" y1="122" x2="144" y2="122"/><circle class="leader-node" cx="144" cy="122" r="1.6"/><text class="zl-name" x="277" y="118" text-anchor="end">03 HEART</text><text class="zl-state" x="277" y="128" text-anchor="end">NOMINAL</text></g>
+                                    <g class="zone-label" data-zone="arms"><rect class="zl-plate" x="215" y="165" width="63" height="22" rx="1.5"/><line class="leader" x1="215" y1="178" x2="186" y2="178"/><circle class="leader-node" cx="186" cy="178" r="1.6"/><text class="zl-name" x="277" y="174" text-anchor="end">05 ARMS</text><text class="zl-state" x="277" y="184" text-anchor="end">NOMINAL</text></g>
+                                    <g class="zone-label" data-zone="spine"><rect class="zl-plate" x="215" y="137" width="63" height="22" rx="1.5"/><line class="leader" x1="215" y1="150" x2="142" y2="150"/><circle class="leader-node" cx="142" cy="150" r="1.6"/><text class="zl-name" x="277" y="146" text-anchor="end">06 SPINE</text><text class="zl-state" x="277" y="156" text-anchor="end">NOMINAL</text></g>
+
+                                    <!-- HUD frame -->
+                                    <g class="hud-frame" aria-hidden="true">
+                                        <path class="hud-corner" d="M2 8 V2 H14"/>
+                                        <path class="hud-corner" d="M266 2 H278 V8"/>
+                                        <path class="hud-corner" d="M2 440 V446 H14"/>
+                                        <path class="hud-corner" d="M266 446 H278 V440"/>
+                                        <text class="hud-tag" x="8" y="16">BIO-SCAN</text>
+                                        <text class="hud-tag" x="272" y="16" text-anchor="end">HOLO-7 · LIVE</text>
+                                        <text class="hud-caption" x="140" y="445" text-anchor="middle">HOLOGRAPHIC BODY SCAN · 7 ZONES</text>
+                                        <path class="hud-tick" d="M2 60 H6 M2 70 H4 M2 200 H6 M2 210 H4"/>
+                                        <path class="hud-tick" d="M278 60 H274 M278 70 H276 M278 200 H274 M278 210 H276"/>
+                                    </g>
                                 </svg>
+                                <button class="hw-btn zone-reset" type="button" id="zone-reset" aria-label="Back to the scanner overview" hidden>⟲ OVERVIEW</button>
                             </div>
 
-                            <!-- RADIACIÓN -->
+                            <!-- RADIATION -->
                             <div class="rad-row" data-metric="dose">
-                                <div class="metric-header-mini"><span>RADIACIÓN · TASA DE DOSIS</span><span class="badge-status" id="rad-badge" data-badge>SIN DATOS</span></div>
+                                <div class="metric-header-mini"><span>RADIATION · DOSE RATE</span><span class="badge-status" id="rad-badge" data-badge>NO DATA</span></div>
                                 <div class="lcd-row">
                                     <span class="lcd lcd-sm"><span class="lcd-ghost" aria-hidden="true">88</span><span class="lcd-val" id="rad-value" data-lcd>--</span></span>
                                     <span class="lcd-unit">µSv/h</span>
@@ -453,19 +583,19 @@
                                 <div class="seg-bar"><div class="seg-fill" id="rad-bar" data-bar></div></div>
                             </div>
 
-                            <!-- LECTURA DE ZONA -->
+                            <!-- ZONE READOUT -->
                             <div class="zone-readout" id="zone-readout" aria-live="polite">
                                 <div class="zr-head">
-                                    <strong id="zr-title">SIN TELEMETRÍA</strong>
-                                    <span class="badge-status" id="zr-badge">SIN DATOS</span>
+                                    <strong id="zr-title">NO TELEMETRY</strong>
+                                    <span class="badge-status" id="zr-badge">NO DATA</span>
                                 </div>
                                 <ul class="zr-list" id="zr-list"></ul>
-                                <p class="zr-block"><b>RIESGO NASA ASOCIADO</b><span id="zr-nasa">A la espera de la primera medición persistida en astra_health.db.</span></p>
-                                <p class="zr-block"><b>PROBABLE CAUSA</b><span id="zr-cause">—</span></p>
-                                <p class="zr-block"><b>ACCIÓN SUGERIDA</b><span id="zr-action">—</span></p>
+                                <p class="zr-block"><b>ASSOCIATED NASA RISK</b><span id="zr-nasa">Waiting for the first measurement persisted in astra_health.db.</span></p>
+                                <p class="zr-block"><b>PROBABLE CAUSE</b><span id="zr-cause">—</span></p>
+                                <p class="zr-block"><b>SUGGESTED ACTION</b><span id="zr-action">—</span></p>
                                 <div class="zr-buttons">
                                     <button class="hw-btn" type="button" id="zone-auto" aria-pressed="true">AUTO ⟳</button>
-                                    <button class="hw-btn" type="button" id="zone-log">REGISTRAR EN BITÁCORA</button>
+                                    <button class="hw-btn" type="button" id="zone-log">LOG TO JOURNAL</button>
                                 </div>
                             </div>
                         </div>
@@ -474,15 +604,15 @@
             </div>
 
             <footer class="console-footer">
-                <span><span class="status-dot"></span> TELEMETRÍA PERSISTIDA</span>
+                <span><span class="status-dot"></span> PERSISTED TELEMETRY</span>
                 <span>ASTRA HEALTH v1.4.0</span>
-                <span>API: <b id="connection-status">CONECTANDO...</b></span>
+                <span>API: <b id="connection-status">CONNECTING...</b></span>
                 <span>MET <b id="met-clock">042:00:00:00</b></span>
                 <span id="system-clock">00:00:00</span>
             </footer>
         </div>
 
-        <div class="standby" id="standby" hidden>STANDBY — PULSE ⏻ PARA ENCENDER</div>
+        <div class="standby" id="standby" hidden>STANDBY — PRESS ⏻ TO POWER ON</div>
     </div>
 </section>
 </main>

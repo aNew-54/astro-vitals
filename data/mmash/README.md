@@ -1,15 +1,15 @@
-# MMASH · episodios de sueño
+# MMASH · Sleep Episodes
 
-La [tabla de episodios](episodios_sueno.csv) permite reproducir un resumen de descanso en la interfaz. Hay 22 episodios de 21 participantes en las 22 carpetas del estudio. El archivo de `user_11` contiene solo la cabecera y `user_1` aporta dos episodios. La unidad de análisis es un intervalo observado. La cobertura de una jornada limita el estudio de tendencias personales de varias noches. [Inventario de cobertura](resumen.json)
+The [episodes table](episodios_sueno.csv) makes it possible to reproduce a sleep summary in the interface. There are 22 episodes from 21 participants across the study's 22 folders. The `user_11` file contains only the header, while `user_1` contributes two episodes. The unit of analysis is an observed interval. The coverage of a single day limits the analysis of personal trends across multiple nights. [Coverage inventory](resumen.json)
 
-| Campos | Interpretación |
+| Fields | Interpretation |
 | --- | --- |
-| `subject_id`, `episode`, `source_member` | Participante, posición de la fila dentro de su archivo y ruta de origen dentro de `MMASH.zip`. |
-| `bed_day`, `bed_time`, `onset_day`, `onset_time`, `out_day`, `out_time` | Días relativos y horas tal como se publicaron para la entrada en cama, el inicio del sueño y la salida de la cama. |
-| `bed_min`, `sleep_min`, `latency_min`, `waso_min` | Minutos en cama, minutos de sueño, latencia y minutos despierto tras el inicio del sueño. |
-| `efficiency_pct`, `awakenings` | Eficiencia publicada en porcentaje y número de despertares. |
-| `same_day_midnight_wrap` | Vale 1 en los cuatro episodios cuyo reloj de salida es anterior al de entrada y que conservan el mismo día relativo en el original. Para presentar duraciones se usa `bed_min`. |
+| `subject_id`, `episode`, `source_member` | Participant, row position within their file, and source path within `MMASH.zip`. |
+| `bed_day`, `bed_time`, `onset_day`, `onset_time`, `out_day`, `out_time` | Relative days and times as published for going to bed, sleep onset, and getting out of bed. |
+| `bed_min`, `sleep_min`, `latency_min`, `waso_min` | Minutes in bed, minutes of sleep, sleep latency, and minutes awake after sleep onset. |
+| `efficiency_pct`, `awakenings` | Published sleep efficiency percentage and number of awakenings. |
+| `same_day_midnight_wrap` | Set to 1 for the four episodes whose wake-up time is earlier than their bedtime and that retain the same relative day in the original data. The `bed_min` field is used to present durations. |
 
-Para reproducir la tabla desde la raíz del proyecto, ejecutar `.\.venv\Scripts\python.exe ml\preparar_sueno.py`. El script verifica el SHA-256 del ZIP y de la licencia contra las [sumas publicadas](SHA256SUMS.txt). Lee las filas de `sleep.csv` en memoria, selecciona campos y conserva los valores de origen. Los demás archivos del ZIP, entre ellos actigrafía e intervalos entre latidos, permanecen disponibles para otras preguntas. [Comprobante de descarga](fuente.json)
+To reproduce the table from the project root directory, run `.\\.venv\Scripts\python.exe ml\preparar_sueno.py`. The script verifies the SHA-256 hashes of the ZIP file and license against the [published checksums](SHA256SUMS.txt). It reads the rows from `sleep.csv` into memory, selects the relevant fields, and preserves the original values. The other files in the ZIP archive, including actigraphy and inter-beat intervals, remain available for other analyses. [Download receipt](fuente.json)
 
-Esta tabla deriva de *Multilevel Monitoring of Activity and Sleep in Healthy People* v1.0.0, de Rossi, Da Pozzo, Menicagli, Tremolanti, Priami, Sirbu, Clifton, Martini y Morelli (2020), PhysioNet. La base original y la tabla derivada se distribuyen bajo la Open Data Commons Open Database License v1.0. La muestra se recogió en adultos jóvenes sanos en Tierra. [DOI y atribución](https://doi.org/10.13026/cerq-fc86) · [Ficha y referencias de los autores](https://physionet.org/content/mmash/1.0.0/) · [Licencia](LICENSE.txt)
+This table is derived from *Multilevel Monitoring of Activity and Sleep in Healthy People* v1.0.0, by Rossi, Da Pozzo, Menicagli, Tremolanti, Priami, Sirbu, Clifton, Martini, and Morelli (2020), PhysioNet. The original dataset and the derived table are distributed under the Open Data Commons Open Database License v1.0. The sample was collected from healthy young adults on Earth. [DOI and attribution](https://doi.org/10.13026/cerq-fc86) · [Dataset and authors' references](https://physionet.org/content/mmash/1.0.0/) · [License](LICENSE.txt)

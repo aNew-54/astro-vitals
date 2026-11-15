@@ -1,16 +1,16 @@
 /* =========================================================
-   ASTRA HEALTH · MÓDULOS DEL CAJÓN
-   Genera el HTML de cada módulo a partir de:
-     · state / D        → telemetría y severidad en vivo
-     · backend.cache    → astronauta, historial, alertas,
-                          bitácora e insights (API + SQLite)
+   ASTRA HEALTH · DRAWER MODULES
+   Builds the HTML for each module from:
+     · state / D        → live telemetry and severity
+     · backend.cache    → astronaut, history, alerts,
+                          logbook and insights (API + SQLite)
    ========================================================= */
 "use strict";
 
-const D = {};                       // severidad mostrada por métrica (0/1/2 o null)
-const eventLog = [];                // log local de la consola (no se publica)
+const D = {};                       // severity shown per metric (0/1/2 or null)
+const eventLog = [];                // local console log (not published)
 const ui = {
-    mood: null,                     // autoinforme de ánimo: good | ok | bad
+    mood: null,                     // mood self-report: good | ok | bad
     histRange: "24h",
     histMetric: "hr",
     fx: { scan: true, glow: true, flicker: false },
@@ -60,7 +60,7 @@ const segVal = (value, unit = "", cls = "") =>
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const pct = (v, lo, hi) => clamp((v - lo) / (hi - lo) * 100, 0, 100);
 const sanitizeNonClinical = text => String(text ?? "")
-    .replace(/\[IA\s*PREDICTION\]\s*:?\s*/gi, "Hipótesis orientativa (escenario simulado): ")
+    .replace(/\[IA\s*PREDICTION\]\s*:?\s*/gi, "Indicative hypothesis (simulated scenario): ")
     .trim();
 
 function medianReactionMs(times) {
@@ -89,7 +89,7 @@ function extractOnboardInsights() {
 
     const levelRaw = String(assessment.level || "unknown").toLowerCase();
     const levelSev = levelRaw === "alert" ? 2 : levelRaw === "watch" ? 1 : levelRaw === "normal" ? 0 : null;
-    const levelText = levelRaw === "alert" ? "ALERTA" : levelRaw === "watch" ? "PRECAUCIÓN" : levelRaw === "normal" ? "NOMINAL" : "EN OBSERVACIÓN";
+    const levelText = levelRaw === "alert" ? "ALERT" : levelRaw === "watch" ? "CAUTION" : levelRaw === "normal" ? "NOMINAL" : "UNDER OBSERVATION";
 
     const patternObj = (ob.pattern && typeof ob.pattern === "object")
         ? ob.pattern
@@ -100,7 +100,7 @@ function extractOnboardInsights() {
     const rawHypothesis = assessment.hypothesis
         || patternObj?.hypothesis_text
         || assessment.title
-        || "Esperando telemetría y evaluación a bordo";
+        || "Waiting for telemetry and onboard assessment";
     const hypothesis = sanitizeNonClinical(rawHypothesis);
 
     const evidence = Array.isArray(assessment.evidence)
@@ -109,7 +109,7 @@ function extractOnboardInsights() {
     const nextStep = assessment.next_step ? sanitizeNonClinical(assessment.next_step) : null;
     const assessmentMethod = assessment.method ? sanitizeNonClinical(assessment.method) : null;
 
-    // Pronóstico FC +60 s (ML vs persistencia)
+    // HR forecast +60 s (ML vs persistence)
     const fObj = (ob.forecast && typeof ob.forecast === "object")
         ? ob.forecast
         : (ml.forecast && typeof ml.forecast === "object"
@@ -127,12 +127,12 @@ function extractOnboardInsights() {
         fObj?.persistence_bpm ?? fObj?.baseline_persistence_bpm ?? assessment.forecast_hr
     );
     const forecastMethod = sanitizeNonClinical(
-        fObj?.method || fObj?.model_version || assessment.forecast_method || proj.forecast_method || "En espera"
+        fObj?.method || fObj?.model_version || assessment.forecast_method || proj.forecast_method || "Waiting"
     );
     const forecastStatus = fObj?.status || (forecastBpm !== null ? "available" : "unavailable");
     const forecastReason = fObj?.reason ? sanitizeNonClinical(fObj.reason) : null;
 
-    // Sensibilidad CO2
+    // CO2 sensitivity
     const sensObj = (ob.co2_sensitivity && typeof ob.co2_sensitivity === "object")
         ? ob.co2_sensitivity
         : (ob.sensitivity && typeof ob.sensitivity === "object"
@@ -148,7 +148,7 @@ function extractOnboardInsights() {
     const co2SensStatus = sensObj?.status || null;
     const co2SensReason = sensObj?.reason || sensObj?.message || null;
 
-    // Proyecciones: ETA CO2 y dosis con/sin refugio
+    // Projections: CO2 ETA and dose with/without shelter
     const co2ProjObj = (proj.co2 && typeof proj.co2 === "object") ? proj.co2 : proj;
     let co2EtaMin = asFiniteOrNull(
         co2ProjObj.eta_minutes ?? co2ProjObj.eta_min ?? proj.co2_eta_minutes ?? proj.co2_eta_min ?? proj.eta_minutes
@@ -173,10 +173,10 @@ function extractOnboardInsights() {
     const doseTotal = asFiniteOrNull(ob.dose_total);
     const doseComplete = ob.dose_complete;
 
-    // Evento externo DONKI
+    // External DONKI event
     const ext = (ob.external_event && typeof ob.external_event === "object") ? ob.external_event : null;
 
-    // Coach / Rutinas
+    // Coach / Routines
     const rCache = backend.cache.routines;
     const rObj = (rCache && !Array.isArray(rCache) && typeof rCache === "object") ? rCache : {};
     const cObj = (ob.coach && typeof ob.coach === "object") ? ob.coach : {};
@@ -187,8 +187,8 @@ function extractOnboardInsights() {
     const streak = asFiniteOrNull(cObj.streak ?? rObj.streak) ?? 0;
     const badges = Array.isArray(cObj.badges) ? cObj.badges : (Array.isArray(rObj.badges) ? rObj.badges : []);
     const scoringPolicy = cObj.scoring_policy || rObj.scoring_policy
-        || "Puntos otorgados únicamente por participación, nunca por resultados fisiológicos o velocidad.";
-    const demoTimeLabel = cObj.demo_time_label || rObj.demo_time_label || "Intervalo de demostración";
+        || "Points are awarded only for participation, never for physiological results or speed.";
+    const demoTimeLabel = cObj.demo_time_label || rObj.demo_time_label || "Demo interval";
     const latestCheckin = cObj.latest_checkin || rObj.latest_checkin || null;
     const reactionBaselineMs = asFiniteOrNull(cObj.reaction_baseline_ms ?? rObj.reaction_baseline_ms);
 
@@ -255,7 +255,7 @@ function extractOnboardInsights() {
 }
 
 function nowTime() {
-    return new Date().toLocaleTimeString("es-PE", { hour12: false });
+    return new Date().toLocaleTimeString("en-US", { hour12: false });
 }
 
 function logEvent(sev, text) {
@@ -268,7 +268,7 @@ const sevFromApi = level => level === "critical" ? 2 : level === "warning" ? 1 :
 function fmtDateTime(value) {
     const date = parseTs(value);
     return date
-        ? date.toLocaleString("es-PE", { hour12: false })
+        ? date.toLocaleString("en-US", { hour12: false })
         : "—";
 }
 
@@ -290,17 +290,17 @@ function emptyPanel(text) {
         </div>`;
 }
 
-/* ---------- HISTORIAL (mediciones de la API) ---------- */
+/* ---------- HISTORY (API measurements) ---------- */
 const HIST_RANGES = {
     "24h": { ms: 24 * 3600 * 1000, label: "24 H" },
-    "7d":  { ms: 7 * 24 * 3600 * 1000, label: "7 DÍAS" },
-    "42d": { ms: 42 * 24 * 3600 * 1000, label: "MISIÓN" }
+    "7d":  { ms: 7 * 24 * 3600 * 1000, label: "7 DAYS" },
+    "42d": { ms: 42 * 24 * 3600 * 1000, label: "MISSION" }
 };
 
 const HIST_METRICS = {
-    hr:   { label: "FRECUENCIA CARDÍACA", short: "FC",   unit: "BPM", lo: 50,   hi: 110, dec: 0, sev: v => RULES.hr(Math.round(v)) },
-    spo2: { label: "SATURACIÓN SpO₂",     short: "SpO₂", unit: "%",   lo: 90,   hi: 100, dec: 1, sev: v => RULES.spo2(Math.round(v * 10) / 10) },
-    temp: { label: "TEMPERATURA",         short: "TEMP", unit: "°C",  lo: 35.5, hi: 38,  dec: 1, sev: v => RULES.temp(Math.round(v * 10) / 10) }
+    hr:   { label: "HEART RATE", short: "HR",   unit: "BPM", lo: 50,   hi: 110, dec: 0, sev: v => RULES.hr(Math.round(v)) },
+    spo2: { label: "SpO₂ SATURATION",     short: "SpO₂", unit: "%",   lo: 90,   hi: 100, dec: 1, sev: v => RULES.spo2(Math.round(v * 10) / 10) },
+    temp: { label: "TEMPERATURE",         short: "TEMP", unit: "°C",  lo: 35.5, hi: 38,  dec: 1, sev: v => RULES.temp(Math.round(v * 10) / 10) }
 };
 
 function historySeries(metric) {
@@ -326,19 +326,19 @@ function htmlHistory() {
         `<button type="button" class="tab-btn ${k === ui.histMetric ? "is-on" : ""}" data-hist-metric="${k}" aria-pressed="${k === ui.histMetric}">${HIST_METRICS[k].short}</button>`).join("");
 
     const tabs = `
-        <div class="module-section-title"><span>RANGO TEMPORAL</span><span>${HIST_RANGES[ui.histRange].label}</span></div>
-        <div class="tab-row" role="group" aria-label="Rango temporal">${rangeTabs}</div>
+        <div class="module-section-title"><span>TIME RANGE</span><span>${HIST_RANGES[ui.histRange].label}</span></div>
+        <div class="tab-row" role="group" aria-label="Time range">${rangeTabs}</div>
 
-        <div class="module-section-title"><span>PARÁMETRO</span><span>${data.length} MUESTRAS</span></div>
-        <div class="tab-row" role="group" aria-label="Parámetro">${metricTabs}</div>`;
+        <div class="module-section-title"><span>PARAMETER</span><span>${data.length} SAMPLES</span></div>
+        <div class="tab-row" role="group" aria-label="Parameter">${metricTabs}</div>`;
 
     if (shown.length === 0) {
-        return moduleHead("02 / HISTORIAL", "Historial y línea base",
-            `<span class="badge-status" ${sevStyle(1)}>SIN DATOS</span>`) +
-            `<p class="module-intro">Evolución de tus parámetros según las mediciones persistidas en SQLite.</p>` +
+        return moduleHead("02 / HISTORY", "History and baseline",
+            `<span class="badge-status" ${sevStyle(1)}>NO DATA</span>`) +
+            `<p class="module-intro">Trend of your parameters based on the measurements persisted in SQLite.</p>` +
             tabs +
-            emptyPanel("No hay mediciones de este parámetro en el periodo seleccionado. Cambia el rango o registra nuevas mediciones.") +
-            `<p class="module-note">* Historial servido por GET /api/measurements.</p>`;
+            emptyPanel("There are no measurements of this parameter in the selected period. Change the range or record new measurements.") +
+            `<p class="module-note">* History served by GET /api/measurements.</p>`;
     }
 
     const min = Math.min(...shown), max = Math.max(...shown);
@@ -350,12 +350,12 @@ function htmlHistory() {
     const bars = shown.map((v, i) => {
         const h = Math.max(4, pct(v, M.lo, M.hi));
         const last = i === shown.length - 1;
-        return `<div class="hist-bar ${last ? "now" : ""}" style="height:${h.toFixed(1)}%;--c:${sevColor(M.sev(v))}" title="${last ? "Ahora" : "Muestra " + (i + 1)}: ${f(v)} ${M.unit}"></div>`;
+        return `<div class="hist-bar ${last ? "now" : ""}" style="height:${h.toFixed(1)}%;--c:${sevColor(M.sev(v))}" title="${last ? "Now" : "Sample " + (i + 1)}: ${f(v)} ${M.unit}"></div>`;
     }).join("");
 
     const baseBottom = pct(avg, M.lo, M.hi);
 
-    const stats = [["MÍNIMO", min], ["PROMEDIO", avg], ["MÁXIMO", max], ["ACTUAL", current]]
+    const stats = [["MINIMUM", min], ["AVERAGE", avg], ["MAXIMUM", max], ["CURRENT", current]]
         .map(([label, v], i) => `
             <div class="stat-card" ${i === 3 ? sevStyle(curSev) : ""}>
                 <span class="stat-label">${label}</span>
@@ -364,28 +364,28 @@ function htmlHistory() {
 
     const delta = current - avg;
     const stable = Math.abs(delta) < (max - min) * 0.1;
-    const trendLabel = stable ? "TENDENCIA ESTABLE" : delta > 0 ? "TENDENCIA AL ALZA" : "TENDENCIA A LA BAJA";
+    const trendLabel = stable ? "STABLE TREND" : delta > 0 ? "UPWARD TREND" : "DOWNWARD TREND";
     const trendText = stable
-        ? `La lectura actual se mantiene cerca del promedio del periodo (${f(avg)} ${M.unit}).`
-        : `La lectura actual está ${Math.abs(delta).toFixed(M.dec)} ${M.unit} ${delta > 0 ? "por encima" : "por debajo"} del promedio del periodo.`;
+        ? `The current reading stays close to the period average (${f(avg)} ${M.unit}).`
+        : `The current reading is ${Math.abs(delta).toFixed(M.dec)} ${M.unit} ${delta > 0 ? "above" : "below"} the period average.`;
 
-    return moduleHead("02 / HISTORIAL", "Historial y línea base",
+    return moduleHead("02 / HISTORY", "History and baseline",
         `<span class="badge-status" ${sevStyle(curSev)}>${SEV_LABEL[curSev]}</span>`) +
-        `<p class="module-intro">Evolución de tus parámetros según las mediciones persistidas en SQLite. La línea punteada marca el promedio del periodo.</p>` +
+        `<p class="module-intro">Trend of your parameters based on the measurements persisted in SQLite. The dotted line marks the period average.</p>` +
         tabs +
         `<div class="stat-grid">${stats}</div>
 
         <div class="monitor-panel" style="padding:8px">
-            <div class="monitor-header"><span>${M.label}</span><span class="blue-text">● PROMEDIO ${f(avg)} ${M.unit}</span></div>
+            <div class="monitor-header"><span>${M.label}</span><span class="blue-text">● AVERAGE ${f(avg)} ${M.unit}</span></div>
             <div class="hist-chart">${bars}<div class="hist-base" style="bottom:calc(${baseBottom.toFixed(1)}% * .945)"></div></div>
-            <div class="chart-legend"><span><i></i> LECTURA ACTUAL</span><span><i class="lg-base"></i> PROMEDIO DEL PERIODO</span></div>
+            <div class="chart-legend"><span><i></i> CURRENT READING</span><span><i class="lg-base"></i> PERIOD AVERAGE</span></div>
         </div>
 
         <div class="trend-note" ${sevStyle(curSev)}>
             <b>${trendLabel}</b>
             <span>${trendText}</span>
         </div>
-        <p class="module-note">* Últimas ${shown.length} de ${data.length} mediciones del periodo. Fuente: GET /api/measurements.</p>`;
+        <p class="module-note">* Last ${shown.length} of ${data.length} measurements in the period. Source: GET /api/measurements.</p>`;
 }
 
 function formatSbarMarkdown(report) {
@@ -399,22 +399,22 @@ function formatSbarMarkdown(report) {
     const ev = report.evaluacion || report.assessment || {};
     const rec = report.recomendacion || report.recommendation || {};
     return [
-        "# Informe de Episodio (SBAR)",
+        "# Episode Report (SBAR)",
         "",
-        "## 1. Situación",
-        `- Nivel: ${sit.level ?? "--"}`,
-        `- Título: ${sanitizeNonClinical(sit.title || "--")}`,
-        `- Marca de tiempo: ${sit.timestamp ?? "--"}`,
+        "## 1. Situation",
+        `- Level: ${sit.level ?? "--"}`,
+        `- Title: ${sanitizeNonClinical(sit.title || "--")}`,
+        `- Timestamp: ${sit.timestamp ?? "--"}`,
         "",
-        "## 2. Antecedentes",
-        `- Actividad: ${ant.activity ?? "--"}`,
-        `- Dosis acumulada (μSv): ${ant.dose_total_usv ?? "--"}`,
+        "## 2. Background",
+        `- Activity: ${ant.activity ?? "--"}`,
+        `- Accumulated dose (μSv): ${ant.dose_total_usv ?? "--"}`,
         "",
-        "## 3. Evaluación",
-        `- Hipótesis orientativa (escenario simulado): ${sanitizeNonClinical(ev.hypothesis || "--")}`,
+        "## 3. Assessment",
+        `- Indicative hypothesis (simulated scenario): ${sanitizeNonClinical(ev.hypothesis || "--")}`,
         "",
-        "## 4. Recomendación",
-        `- Siguiente paso (ilustrativo): ${sanitizeNonClinical(rec.next_step || "--")}`
+        "## 4. Recommendation",
+        `- Next step (illustrative): ${sanitizeNonClinical(rec.next_step || "--")}`
     ].join("\n");
 }
 
@@ -426,42 +426,42 @@ function htmlOnboardAndReportBlock() {
         ? `${r0(I.forecast.valueBpm)} BPM`
         : "-- BPM";
     const persistStr = I.forecast.persistenceBpm !== null
-        ? ` (persistencia: ${r0(I.forecast.persistenceBpm)} BPM)`
+        ? ` (persistence: ${r0(I.forecast.persistenceBpm)} BPM)`
         : "";
     const forecastDetail = `${I.forecast.method}${I.forecast.reason ? ` · ${I.forecast.reason}` : ""}`;
 
-    let sensText = "Calibrando sensibilidad al CO₂ (requiere variación suficiente y r² ≥ 0.6).";
+    let sensText = "Calibrating CO₂ sensitivity (requires sufficient variation and r² ≥ 0.6).";
     if (I.co2Sensitivity.slope !== null) {
         const r2Part = I.co2Sensitivity.r2 !== null ? ` · r² = ${I.co2Sensitivity.r2.toFixed(2)}` : "";
         const thrPart = I.co2Sensitivity.thresholdMmhg !== null
-            ? ` · Umbral personal estimado: ${I.co2Sensitivity.thresholdMmhg.toFixed(2)} mmHg`
+            ? ` · Estimated personal threshold: ${I.co2Sensitivity.thresholdMmhg.toFixed(2)} mmHg`
             : "";
-        sensText = `Pendiente: +${I.co2Sensitivity.slope.toFixed(2)} rpm/mmHg${r2Part}${thrPart}`;
+        sensText = `Slope: +${I.co2Sensitivity.slope.toFixed(2)} br/min/mmHg${r2Part}${thrPart}`;
     } else if (I.co2Sensitivity.reason) {
         sensText = I.co2Sensitivity.reason;
     }
 
     const etaText = I.projections.co2EtaMin !== null
-        ? `ETA al límite de CO₂: ~${I.projections.co2EtaMin.toFixed(1)} min${I.projections.co2EtaAssumption ? ` (${I.projections.co2EtaAssumption})` : ""}`
-        : (I.projections.co2EtaReason || "ETA CO₂: sin tendencia alcista proyectable.");
+        ? `ETA to CO₂ limit: ~${I.projections.co2EtaMin.toFixed(1)} min${I.projections.co2EtaAssumption ? ` (${I.projections.co2EtaAssumption})` : ""}`
+        : (I.projections.co2EtaReason || "CO₂ ETA: no projectable upward trend.");
 
-    let radProjText = "Proyección de dosis: sin tasa activa o esperando datos.";
+    let radProjText = "Dose projection: no active rate or waiting for data.";
     if (I.projections.doseWithoutShelter !== null || I.projections.doseWithShelter !== null) {
-        const horizon = I.projections.doseHorizonH !== null ? ` en ${I.projections.doseHorizonH} h` : "";
+        const horizon = I.projections.doseHorizonH !== null ? ` in ${I.projections.doseHorizonH} h` : "";
         const wo = I.projections.doseWithoutShelter !== null ? `${I.projections.doseWithoutShelter.toFixed(1)} µSv` : "--";
         const wi = I.projections.doseWithShelter !== null ? `${I.projections.doseWithShelter.toFixed(1)} µSv` : "--";
-        radProjText = `Dosis proyectada${horizon}: sin refugio ${wo} · con refugio ${wi}`;
+        radProjText = `Projected dose${horizon}: without shelter ${wo} · with shelter ${wi}`;
     }
     const doseAccText = I.projections.doseTotal !== null
-        ? `Dosis acumulada: ${I.projections.doseTotal.toFixed(2)} µSv${I.projections.doseComplete === false ? " (cobertura incompleta)" : ""}`
-        : "Dosis acumulada: sin lectura completa";
+        ? `Accumulated dose: ${I.projections.doseTotal.toFixed(2)} µSv${I.projections.doseComplete === false ? " (incomplete coverage)" : ""}`
+        : "Accumulated dose: no complete reading";
 
     const extHtml = I.externalEvent
         ? `<div class="onboard-card" ${sevStyle(1)}>
-            <small>EVENTO EXTERNO NASA DONKI · ${esc(String(I.externalEvent.phase || "ACTIVO").toUpperCase())}</small>
-            <h4>${esc(sanitizeNonClinical(I.externalEvent.title || I.externalEvent.event_id || "Evento solar histórico"))}</h4>
-            <p>${esc(sanitizeNonClinical(I.externalEvent.summary || I.externalEvent.note || "Contexto histórico de tormenta solar en línea de tiempo de demostración."))}</p>
-            ${I.externalEvent.start_time ? `<p><b>Fecha histórica:</b> ${esc(I.externalEvent.start_time)}</p>` : ""}
+            <small>EXTERNAL NASA DONKI EVENT · ${esc(String(I.externalEvent.phase || "ACTIVE").toUpperCase())}</small>
+            <h4>${esc(sanitizeNonClinical(I.externalEvent.title || I.externalEvent.event_id || "Historical solar event"))}</h4>
+            <p>${esc(sanitizeNonClinical(I.externalEvent.summary || I.externalEvent.note || "Historical solar storm context on the demonstration timeline."))}</p>
+            ${I.externalEvent.start_time ? `<p><b>Historical date:</b> ${esc(I.externalEvent.start_time)}</p>` : ""}
            </div>`
         : "";
 
@@ -471,24 +471,24 @@ function htmlOnboardAndReportBlock() {
         : "";
 
     return `
-        <div class="module-section-title"><span>EVALUACIÓN A BORDO E HIPÓTESIS ORIENTATIVA</span><span>/api/v1/state</span></div>
+        <div class="module-section-title"><span>ON-BOARD ASSESSMENT AND INDICATIVE HYPOTHESIS</span><span>/api/v1/state</span></div>
         <div class="onboard-card" ${sevStyle(I.levelSev)}>
-            <small>HIPÓTESIS ORIENTATIVA (ESCENARIO SIMULADO) · ${esc(I.levelText)}</small>
+            <small>INDICATIVE HYPOTHESIS (SIMULATED SCENARIO) · ${esc(I.levelText)}</small>
             <h4>${esc(I.hypothesis)}</h4>
-            ${I.patternText ? `<p><b>Patrón simulado:</b> ${esc(I.patternText)}${I.patternReason ? ` (${esc(I.patternReason)})` : ""}</p>` : ""}
+            ${I.patternText ? `<p><b>Simulated pattern:</b> ${esc(I.patternText)}${I.patternReason ? ` (${esc(I.patternReason)})` : ""}</p>` : ""}
             ${I.evidence.length ? `<ul>${I.evidence.slice(0, 4).map(item => `<li>${esc(item)}</li>`).join("")}</ul>` : ""}
-            ${I.nextStep ? `<p style="margin-top:6px"><b>Revisión sugerida:</b> ${esc(I.nextStep)}</p>` : ""}
+            ${I.nextStep ? `<p style="margin-top:6px"><b>Suggested review:</b> ${esc(I.nextStep)}</p>` : ""}
             ${I.assessmentMethod ? `<p><small>${esc(I.assessmentMethod)}</small></p>` : ""}
         </div>
 
         <div class="onboard-card" ${sevStyle(I.forecast.valueBpm !== null ? 0 : null)}>
-            <small>PRONÓSTICO FC +60 s · ML VS PERSISTENCIA</small>
+            <small>HR FORECAST +60 s · ML VS PERSISTENCE</small>
             <h4>${esc(forecastStr)}${esc(persistStr)}</h4>
             <p>${esc(forecastDetail)}</p>
         </div>
 
         <div class="onboard-card" ${sevStyle(I.co2Sensitivity.slope !== null ? 0 : null)}>
-            <small>SENSIBILIDAD CO₂ Y PROYECCIONES (ETA / REFUGIO)</small>
+            <small>CO₂ SENSITIVITY AND PROJECTIONS (ETA / SHELTER)</small>
             <p>${esc(sensText)}</p>
             <p>${esc(etaText)}</p>
             <p>${esc(radProjText)}</p>
@@ -497,33 +497,33 @@ function htmlOnboardAndReportBlock() {
 
         ${extHtml}
 
-        <div class="module-section-title"><span>INFORME DE EPISODIO SBAR</span><span>${I.privacy.shareBehavioral ? "CON CONDUCTUAL" : "SOLO A BORDO"}</span></div>
+        <div class="module-section-title"><span>SBAR EPISODE REPORT</span><span>${I.privacy.shareBehavioral ? "WITH BEHAVIORAL" : "ON-BOARD ONLY"}</span></div>
         <div class="sbar-actions">
-            <button type="button" class="hw-btn" id="btn-view-report">${ui.reportLoading ? "CARGANDO..." : (ui.reportOpen ? "ACTUALIZAR VISTA SBAR" : "CARGAR VISTA SBAR")}</button>
-            <button type="button" class="hw-btn" id="btn-download-report">DESCARGAR SBAR (.MD)</button>
+            <button type="button" class="hw-btn" id="btn-view-report">${ui.reportLoading ? "LOADING..." : (ui.reportOpen ? "REFRESH SBAR VIEW" : "LOAD SBAR VIEW")}</button>
+            <button type="button" class="hw-btn" id="btn-download-report">DOWNLOAD SBAR (.MD)</button>
         </div>
         ${ui.reportError ? `<p class="module-note" style="color:var(--amber-glow)">${esc(ui.reportError)}</p>` : ""}
         ${reportPreview}`;
 }
 
-/* ---------- MONITOREO ---------- */
+/* ---------- MONITORING ---------- */
 function htmlMonitoring() {
     const groups = [
-        ["SIGNOS VITALES", [
-            ["hr", "FRECUENCIA CARDÍACA", "BPM", () => isNum(state.hr) ? r0(state.hr) : "--"],
-            ["bp", "PRESIÓN ARTERIAL", "mmHg", () => (isNum(state.sys) && isNum(state.dia)) ? `${r0(state.sys)}/${r0(state.dia)}` : "--/--"],
-            ["spo2", "SATURACIÓN SpO₂", "%", () => isNum(state.spo2) ? r1(state.spo2).toFixed(1) : "--"],
-            ["temp", "TEMPERATURA CORPORAL", "°C", () => isNum(state.temp) ? r1(state.temp).toFixed(1) : "--"]
+        ["VITAL SIGNS", [
+            ["hr", "HEART RATE", "BPM", () => isNum(state.hr) ? r0(state.hr) : "--"],
+            ["bp", "BLOOD PRESSURE", "mmHg", () => (isNum(state.sys) && isNum(state.dia)) ? `${r0(state.sys)}/${r0(state.dia)}` : "--/--"],
+            ["spo2", "SpO₂ SATURATION", "%", () => isNum(state.spo2) ? r1(state.spo2).toFixed(1) : "--"],
+            ["temp", "BODY TEMPERATURE", "°C", () => isNum(state.temp) ? r1(state.temp).toFixed(1) : "--"]
         ]],
-        ["RESPIRACIÓN Y ENTORNO", [
-            ["rr", "FRECUENCIA RESPIRATORIA", "rpm", () => isNum(state.rr) ? r0(state.rr) : "--"],
-            ["co2", "ppCO₂ AMBIENTE", "mmHg", () => isNum(state.co2) ? r1(state.co2).toFixed(1) : "--"],
-            ["dose", "TASA DE DOSIS", "µSv/h", () => isNum(state.dose) ? r0(state.dose) : "--"]
+        ["BREATHING AND ENVIRONMENT", [
+            ["rr", "RESPIRATORY RATE", "br/min", () => isNum(state.rr) ? r0(state.rr) : "--"],
+            ["co2", "AMBIENT ppCO₂", "mmHg", () => isNum(state.co2) ? r1(state.co2).toFixed(1) : "--"],
+            ["dose", "DOSE RATE", "µSv/h", () => isNum(state.dose) ? r0(state.dose) : "--"]
         ]],
-        ["RECUPERACIÓN", [
-            ["hyd", "HIDRATACIÓN", "%", () => isNum(state.hyd) ? r0(state.hyd) : "--"],
-            ["fat", "FATIGA ACUMULADA", "/100", () => isNum(state.fat) ? r0(state.fat) : "--"],
-            ["cm", "CONTRAMEDIDAS", "%", () => isNum(state.cm) ? r0(state.cm) : "--"]
+        ["RECOVERY", [
+            ["hyd", "HYDRATION", "%", () => isNum(state.hyd) ? r0(state.hyd) : "--"],
+            ["fat", "ACCUMULATED FATIGUE", "/100", () => isNum(state.fat) ? r0(state.fat) : "--"],
+            ["cm", "COUNTERMEASURES", "%", () => isNum(state.cm) ? r0(state.cm) : "--"]
         ]]
     ];
 
@@ -532,7 +532,7 @@ function htmlMonitoring() {
 
     const body = state.ready
         ? groups.map(([title, rows]) => `
-            <div class="module-section-title"><span>${title}</span><span>TELEMETRÍA</span></div>
+            <div class="module-section-title"><span>${title}</span><span>TELEMETRY</span></div>
             <div class="metric-list">
                 ${rows.map(([k, label, unit, val]) => {
                     const sev = D[k];
@@ -540,23 +540,23 @@ function htmlMonitoring() {
                         <div class="metric-line" ${sevStyle(sev)}>
                             <div class="ml-label">
                                 <b>${label}</b>
-                                <small>${sevLabel(sev)} · LECTURA #${state.measurementId ?? "--"}</small>
+                                <small>${sevLabel(sev)} · READING #${state.measurementId ?? "--"}</small>
                             </div>
                             <div class="ml-value">${segVal(val(), unit)}</div>
                         </div>`;
                 }).join("")}
             </div>`).join("")
-        : emptyPanel("Todavía no hay telemetría en vivo. Los indicadores mostrarán valores al llegar la primera muestra.");
+        : emptyPanel("There is no live telemetry yet. The indicators will show values once the first sample arrives.");
 
-    return moduleHead("01 / MONITOREO", "Monitoreo en tiempo real",
-        `<span class="badge-status" ${sevStyle(worst)}>${state.ready ? sevLabel(worst) : "SIN DATOS"}</span>`) +
-        `<p class="module-intro">Indicadores fisiológicos y ambientales del tripulante. Los canales sin lectura muestran "--" y ${SEV_MISSING} sin sustituirse por cero.</p>` +
+    return moduleHead("01 / MONITORING", "Real-time monitoring",
+        `<span class="badge-status" ${sevStyle(worst)}>${state.ready ? sevLabel(worst) : "NO DATA"}</span>`) +
+        `<p class="module-intro">Physiological and environmental indicators of the crew member. Channels with no reading show "--" and ${SEV_MISSING} without being replaced by zero.</p>` +
         body +
         htmlOnboardAndReportBlock() +
-        `<p class="module-note">* Origen: ${esc(state.source || "--")} · ${esc(fmtDateTime(state.timestamp))}.</p>`;
+        `<p class="module-note">* Source: ${esc(state.source || "--")} · ${esc(fmtDateTime(state.timestamp))}.</p>`;
 }
 
-/* ---------- ALERTAS Y BITÁCORA ---------- */
+/* ---------- ALERTS AND JOURNAL ---------- */
 function htmlAlerts() {
     const derived = Object.keys(METRIC_INFO)
         .filter(k => isNum(D[k]) && D[k] > 0)
@@ -574,12 +574,12 @@ function htmlAlerts() {
                     <small>${SEV_LABEL[D[k]]} — ${METRIC_INFO[k].label}</small>
                     <h4>${METRIC_INFO[k].fmt()}</h4>
                     <p>${esc(METRIC_INFO[k].cause())}</p>
-                    <p><b>Acción sugerida:</b> ${esc(METRIC_INFO[k].action())}</p>
+                    <p><b>Suggested action:</b> ${esc(METRIC_INFO[k].action())}</p>
                 </div>`).join("")
             : (missingCount === Object.keys(METRIC_INFO).length
-                ? emptyPanel("Todas las señales están en SIN SEÑAL (--). No se emiten falsas alarmas ni se evalúan como nominales.")
-                : `<div class="alert-card" ${sevStyle(0)}><small>INFORMACIÓN</small><h4>SIN ALERTAS EN CANALES ACTIVOS</h4><p>${missingCount ? `${missingCount} canales sin lectura (--). ` : ""}Los canales activos están dentro del rango de demostración.</p></div>`))
-        : emptyPanel("Sin telemetría: no se pueden evaluar alertas.");
+                ? emptyPanel("All signals are at NO SIGNAL (--). No false alarms are issued and none are evaluated as nominal.")
+                : `<div class="alert-card" ${sevStyle(0)}><small>INFORMATION</small><h4>NO ALERTS ON ACTIVE CHANNELS</h4><p>${missingCount ? `${missingCount} channels with no reading (--). ` : ""}Active channels are within the demonstration range.</p></div>`))
+        : emptyPanel("No telemetry: alerts cannot be evaluated.");
 
     const dbCards = dbAlerts.length
         ? dbAlerts.map(a => {
@@ -588,44 +588,44 @@ function htmlAlerts() {
                 <div class="alert-card" ${sevStyle(sev)}>
                     <small>${SEV_LABEL[sev]} — ${esc(a.metric)}${a.zone ? " · " + esc(a.zone).toUpperCase() : ""}</small>
                     <h4>${esc(sanitizeNonClinical(a.message))}</h4>
-                    <p>${esc(sanitizeNonClinical(a.suggested_action || "Sin acción sugerida registrada."))}</p>
-                    <p><b>Registrada:</b> ${esc(fmtDateTime(a.created_at))} · ${a.acknowledged ? "RECONOCIDA" : "PENDIENTE"}</p>
-                    ${a.acknowledged ? "" : `<button class="hw-btn" type="button" data-ack-alert="${a.id}">RECONOCER</button>`}
+                    <p>${esc(sanitizeNonClinical(a.suggested_action || "No suggested action recorded."))}</p>
+                    <p><b>Recorded:</b> ${esc(fmtDateTime(a.created_at))} · ${a.acknowledged ? "ACKNOWLEDGED" : "PENDING"}</p>
+                    ${a.acknowledged ? "" : `<button class="hw-btn" type="button" data-ack-alert="${a.id}">ACKNOWLEDGE</button>`}
                 </div>`;
         }).join("")
-        : emptyPanel("No hay alertas registradas por la API.");
+        : emptyPanel("There are no alerts recorded by the API.");
 
     const logItems = logs.length
-        ? logs.slice(0, 14).map(l => `<li><time>${esc(fmtDateTime(l.timestamp))}</time>${esc(l.zone)} — ${esc(l.action || "Sin acción registrada")}</li>`).join("")
-        : "<li>Sin registros en la bitácora.</li>";
+        ? logs.slice(0, 14).map(l => `<li><time>${esc(fmtDateTime(l.timestamp))}</time>${esc(l.zone)} — ${esc(l.action || "No action recorded")}</li>`).join("")
+        : "<li>No entries in the journal.</li>";
 
     const worst = derived.length
         ? Math.max(...derived.map(k => D[k]))
         : (state.ready && missingCount === Object.keys(METRIC_INFO).length ? null : 0);
 
     const ackOnboardBtn = (I.levelRaw === "watch" || I.levelRaw === "alert")
-        ? `<div style="margin-bottom:8px"><button class="hw-btn" type="button" data-ack-onboard="1">RECONOCER AVISO A BORDO (+5 PTS)</button></div>`
+        ? `<div style="margin-bottom:8px"><button class="hw-btn" type="button" data-ack-onboard="1">ACKNOWLEDGE ON-BOARD NOTICE (+5 PTS)</button></div>`
         : "";
 
-    return moduleHead("03 / ALERTAS", "Alertas y bitácora",
-        `<span class="badge-status" ${sevStyle(worst)}>${derived.length ? `${derived.length} ACTIVA${derived.length > 1 ? "S" : ""}` : (worst === null ? SEV_MISSING : "SIN ALERTAS")}</span>`) +
-        `${ui.alerts.enabled ? "" : `<div class="settings-status" ${sevStyle(1)}><span class="status-dot"></span><span>Notificaciones <b>SUSPENDIDAS</b> desde Ajustes. Las alertas se siguen evaluando y registrando.</span></div>`}
+    return moduleHead("03 / ALERTS", "Alerts and journal",
+        `<span class="badge-status" ${sevStyle(worst)}>${derived.length ? `${derived.length} ACTIVE` : (worst === null ? SEV_MISSING : "NO ALERTS")}</span>`) +
+        `${ui.alerts.enabled ? "" : `<div class="settings-status" ${sevStyle(1)}><span class="status-dot"></span><span>Notifications <b>SUSPENDED</b> from Settings. Alerts are still evaluated and recorded.</span></div>`}
         ${ackOnboardBtn}
 
-        <div class="module-section-title"><span>ALERTAS DERIVADAS DE LA TELEMETRÍA</span><span>${derived.length}</span></div>
+        <div class="module-section-title"><span>ALERTS DERIVED FROM TELEMETRY</span><span>${derived.length}</span></div>
         ${derivedCards}
 
         ${htmlOnboardAndReportBlock()}
 
-        <div class="module-section-title"><span>ALERTAS REGISTRADAS (API)</span><span>${dbAlerts.length}</span></div>
+        <div class="module-section-title"><span>RECORDED ALERTS (API)</span><span>${dbAlerts.length}</span></div>
         ${dbCards}
 
-        <div class="module-section-title"><span>BITÁCORA</span><span>GET /api/logs</span></div>
+        <div class="module-section-title"><span>JOURNAL</span><span>GET /api/logs</span></div>
         <ul class="log-list">${logItems}</ul>
-        <p class="module-note">* Sugerencias orientativas de demostración. No constituyen diagnóstico clínico.</p>`;
+        <p class="module-note">* Indicative demonstration suggestions. They do not constitute a clinical diagnosis.</p>`;
 }
 
-/* ---------- BIENESTAR ---------- */
+/* ---------- WELLBEING ---------- */
 function wellbeingModel() {
     const fatValid = isNum(state.fat);
     const hydValid = isNum(state.hyd);
@@ -635,7 +635,7 @@ function wellbeingModel() {
     const evaValid = isNum(state.evaLoad);
 
     const fat = fatValid
-        ? (state.fat > 70 ? ["ALTA", 2] : state.fat >= 40 ? ["MODERADA", 1] : ["BAJA", 0])
+        ? (state.fat > 70 ? ["HIGH", 2] : state.fat >= 40 ? ["MODERATE", 1] : ["LOW", 0])
         : [SEV_MISSING, null];
 
     const moodPenalty = ui.mood === "bad" ? 25 : ui.mood === "ok" ? 10 : 0;
@@ -648,7 +648,7 @@ function wellbeingModel() {
         : null;
     const stress = stressScore === null
         ? [SEV_MISSING, null]
-        : (stressScore < 25 ? ["BAJO", 0] : stressScore < 50 ? ["MODERADO", 1] : ["ALTO", 2]);
+        : (stressScore < 25 ? ["LOW", 0] : stressScore < 50 ? ["MODERATE", 1] : ["HIGH", 2]);
 
     const hasWellbeingSignals = fatValid || hydValid || cmValid;
     let score = null;
@@ -678,7 +678,7 @@ function wellbeingModel() {
         ? Math.round((1850 + state.cm * 4.2 - state.fat * 2.1) / 10) * 10
         : null;
 
-    const mood = { good: ["BIEN", 0], ok: ["REGULAR", 1], bad: ["MAL", 2] }[ui.mood] || ["SIN REPORTE", 0];
+    const mood = { good: ["GOOD", 0], ok: ["FAIR", 1], bad: ["POOR", 2] }[ui.mood] || ["NO REPORT", 0];
 
     return {
         fat,
@@ -700,13 +700,13 @@ function htmlReactionGame() {
     const rx = ui.rxn;
     const med = medianReactionMs(rx.times);
     const phaseText = {
-        idle: "PULSA «INICIAR TEST» PARA COMENZAR (6 INTENTOS)",
-        waiting: "ESPERA LA SEÑAL VERDE...",
-        go: "¡AHORA! PULSA AQUÍ",
-        false_start: "SALIDA EN FALSO — ESPERANDO...",
-        between: "REGISTRADO — SIGUIENTE INTENTO...",
-        done: `COMPLETADO · MEDIANA ${med ?? "--"} ms`
-    }[rx.phase] || "PULSA «INICIAR TEST»";
+        idle: "PRESS «START TEST» TO BEGIN (6 ATTEMPTS)",
+        waiting: "WAIT FOR THE GREEN SIGNAL...",
+        go: "NOW! CLICK HERE",
+        false_start: "FALSE START — WAITING...",
+        between: "RECORDED — NEXT ATTEMPT...",
+        done: `COMPLETED · MEDIAN ${med ?? "--"} ms`
+    }[rx.phase] || "PRESS «START TEST»";
 
     const padClass = {
         waiting: "is-waiting",
@@ -727,38 +727,38 @@ function htmlReactionGame() {
         const deltaStr = isNum(r.delta_ms) ? `${r.delta_ms >= 0 ? "+" : ""}${r.delta_ms} ms` : "--";
         resultHtml = `
             <div class="rxn-result" style="--c:${r.drift_detected ? "var(--amber-glow)" : "var(--green-glow)"}">
-                <b>Check-in registrado (+${r.points_awarded ?? 15} pts por participación)</b>
-                <p style="margin:4px 0 0">Mediana: <b>${r.median_ms ?? med ?? "--"} ms</b> · Línea base: ${r.baseline_ms ?? "--"} ms · Delta: ${deltaStr} · Lapsos: ${r.lapses ?? 0} · Salidas en falso: ${r.false_starts ?? 0}</p>
-                <p style="margin:4px 0 0">${esc(sanitizeNonClinical(r.interpretation || "Hipótesis orientativa (escenario simulado): seguimiento conductual registrado."))}</p>
+                <b>Check-in recorded (+${r.points_awarded ?? 15} pts for participation)</b>
+                <p style="margin:4px 0 0">Median: <b>${r.median_ms ?? med ?? "--"} ms</b> · Baseline: ${r.baseline_ms ?? "--"} ms · Delta: ${deltaStr} · Lapses: ${r.lapses ?? 0} · False starts: ${r.false_starts ?? 0}</p>
+                <p style="margin:4px 0 0">${esc(sanitizeNonClinical(r.interpretation || "Indicative hypothesis (simulated scenario): behavioral follow-up recorded."))}</p>
             </div>`;
     }
 
     return `
-        <div class="module-section-title"><span>CHECK-IN CONDUCTUAL · MINIJUEGO DE REACCIÓN</span><span>POST /api/v1/checkin</span></div>
+        <div class="module-section-title"><span>BEHAVIORAL CHECK-IN · REACTION MINI-GAME</span><span>POST /api/v1/checkin</span></div>
         <div class="rxn-panel">
-            <p style="margin:0 0 6px;font-size:11px;color:var(--muted)">Prueba breve de vigilancia psicomotora (6 intentos con espera aleatoria 1.0–3.5 s). Medición orientativa en navegador; no es diagnóstico.</p>
+            <p style="margin:0 0 6px;font-size:11px;color:var(--muted)">Short psychomotor vigilance test (6 attempts with a random wait of 1.0–3.5 s). Indicative in-browser measurement; not a diagnosis.</p>
             <div class="rxn-stats">
-                <div>INTENTO<b id="rxn-stat-trial">${rx.trial} / ${rx.totalTrials}</b></div>
-                <div>MEDIANA ACTUAL<b id="rxn-stat-med">${med !== null ? `${med} ms` : "-- ms"}</b></div>
-                <div>SALIDAS EN FALSO<b id="rxn-stat-false">${rx.falseStarts}</b></div>
-                <div>LAPSOS (&gt;500 ms)<b id="rxn-stat-lapses">${rx.lapses}</b></div>
+                <div>ATTEMPT<b id="rxn-stat-trial">${rx.trial} / ${rx.totalTrials}</b></div>
+                <div>CURRENT MEDIAN<b id="rxn-stat-med">${med !== null ? `${med} ms` : "-- ms"}</b></div>
+                <div>FALSE STARTS<b id="rxn-stat-false">${rx.falseStarts}</b></div>
+                <div>LAPSES (&gt;500 ms)<b id="rxn-stat-lapses">${rx.lapses}</b></div>
             </div>
             <button type="button" class="rxn-pad ${padClass}" id="rxn-pad" ${padDisabled}>${phaseText}</button>
             <div class="rxn-form">
                 <label class="field-row" style="border:0;padding:0">
-                    <span class="field-label">HORAS DE SUEÑO</span>
+                    <span class="field-label">HOURS OF SLEEP</span>
                     <input type="number" id="rxn-sleep" class="hw-input" min="0" max="24" step="0.5" value="${esc(rx.sleepHours)}">
                 </label>
                 <label class="field-row" style="border:0;padding:0">
-                    <span class="field-label">ÁNIMO / ALERTA (1-5)</span>
+                    <span class="field-label">MOOD / ALERTNESS (1-5)</span>
                     <select id="rxn-mood" class="hw-select">
-                        ${[1, 2, 3, 4, 5].map(v => `<option value="${v}" ${Number(rx.moodScore) === v ? "selected" : ""}>${v} - ${["Muy bajo", "Bajo", "Moderado", "Bueno", "Óptimo"][v - 1]}</option>`).join("")}
+                        ${[1, 2, 3, 4, 5].map(v => `<option value="${v}" ${Number(rx.moodScore) === v ? "selected" : ""}>${v} - ${["Very low", "Low", "Moderate", "Good", "Optimal"][v - 1]}</option>`).join("")}
                     </select>
                 </label>
             </div>
             <div class="rxn-actions">
-                <button type="button" class="hw-btn" id="rxn-start">${running ? "REINICIAR TEST" : "INICIAR TEST (6 INTENTOS)"}</button>
-                <button type="button" class="hw-btn" id="rxn-submit" ${submitDisabled}>${rx.submitting ? "ENVIANDO..." : "ENVIAR CHECK-IN"}</button>
+                <button type="button" class="hw-btn" id="rxn-start">${running ? "RESTART TEST" : "START TEST (6 ATTEMPTS)"}</button>
+                <button type="button" class="hw-btn" id="rxn-submit" ${submitDisabled}>${rx.submitting ? "SENDING..." : "SUBMIT CHECK-IN"}</button>
             </div>
             ${resultHtml}
         </div>`;
@@ -768,7 +768,7 @@ function htmlRoutinesAndPrivacy(I) {
     const c = I.coach;
     const badgesHtml = c.badges.length
         ? `<div class="badge-row">${c.badges.map(b => `<span class="badge-chip">★ ${esc(String(b).toUpperCase())}</span>`).join("")}</div>`
-        : `<p class="module-note" style="margin:4px 0">Completa rutinas o check-ins para desbloquear insignias de participación.</p>`;
+        : `<p class="module-note" style="margin:4px 0">Complete routines or check-ins to unlock participation badges.</p>`;
 
     const routinesHtml = c.routines.length
         ? `<div class="routine-list">${c.routines.map(r => {
@@ -777,40 +777,40 @@ function htmlRoutinesAndPrivacy(I) {
             return `
                 <div class="routine-item ${isDue ? "is-due" : ""}">
                     <div class="routine-copy">
-                        <b>${esc(r.title || r.id)} ${isDue ? "· PENDIENTE" : (active ? "· AL DÍA" : "· INACTIVA")}</b>
-                        <small>${esc(r.description || "")} (Completadas: ${r.completed_count ?? 0})</small>
+                        <b>${esc(r.title || r.id)} ${isDue ? "· DUE" : (active ? "· UP TO DATE" : "· INACTIVE")}</b>
+                        <small>${esc(r.description || "")} (Completed: ${r.completed_count ?? 0})</small>
                     </div>
-                    <button type="button" class="hw-btn" data-complete-routine="${esc(r.id)}" ${active ? "" : "disabled"}>COMPLETAR</button>
+                    <button type="button" class="hw-btn" data-complete-routine="${esc(r.id)}" ${active ? "" : "disabled"}>COMPLETE</button>
                 </div>`;
         }).join("")}</div>`
-        : emptyPanel("Cargando rutinas de /api/v1/routines...");
+        : emptyPanel("Loading routines from /api/v1/routines...");
 
     const share = I.privacy.shareBehavioral;
     const privacyLabel = share
-        ? "Compartir resumen en informe SBAR"
-        : "Solo a bordo (por defecto)";
+        ? "Share summary in SBAR report"
+        : "On-board only (default)";
 
     return `
-        <div class="module-section-title"><span>RUTINAS Y PARTICIPACIÓN</span><span>${c.points} PTS · RACHA ${c.streak}</span></div>
+        <div class="module-section-title"><span>ROUTINES AND PARTICIPATION</span><span>${c.points} PTS · STREAK ${c.streak}</span></div>
         <div class="coach-panel">
             <div class="coach-summary">
-                <span>PUNTOS: ${c.points}</span>
-                <span>RACHA: ${c.streak}</span>
-                <span>LÍNEA BASE RX: ${c.reactionBaselineMs !== null ? `${c.reactionBaselineMs} ms` : "CALIBRANDO"}</span>
+                <span>POINTS: ${c.points}</span>
+                <span>STREAK: ${c.streak}</span>
+                <span>RX BASELINE: ${c.reactionBaselineMs !== null ? `${c.reactionBaselineMs} ms` : "CALIBRATING"}</span>
             </div>
             <p class="module-note" style="margin:0 0 6px">${esc(c.scoringPolicy)} (${esc(c.demoTimeLabel)}).</p>
             ${badgesHtml}
             ${routinesHtml}
         </div>
 
-        <div class="module-section-title"><span>PRIVACIDAD CONDUCTUAL</span><span>POST /api/v1/privacy</span></div>
+        <div class="module-section-title"><span>BEHAVIORAL PRIVACY</span><span>POST /api/v1/privacy</span></div>
         <div class="privacy-panel">
             <label class="toggle-row">
-                <span>Compartir resumen en informe SBAR</span>
+                <span>Share summary in SBAR report</span>
                 <input type="checkbox" class="hw-switch" data-privacy-toggle="1" ${share ? "checked" : ""}>
             </label>
-            <div class="privacy-state">Estado actual: <b>${esc(privacyLabel)}</b></div>
-            <p class="module-note" style="margin:4px 0 0">Por defecto (desactivado), sueño, ánimo y tiempos de reacción permanecen solo a bordo.</p>
+            <div class="privacy-state">Current status: <b>${esc(privacyLabel)}</b></div>
+            <p class="module-note" style="margin:4px 0 0">By default (off), sleep, mood and reaction times stay on board only.</p>
         </div>`;
 }
 
@@ -819,7 +819,7 @@ function htmlWellbeing() {
     const I = extractOnboardInsights();
     const insights = backend.cache.insights || [];
 
-    const moods = [["good", "BIEN"], ["ok", "REGULAR"], ["bad", "MAL"]].map(([id, label]) =>
+    const moods = [["good", "GOOD"], ["ok", "FAIR"], ["bad", "POOR"]].map(([id, label]) =>
         `<button type="button" class="hw-btn" data-mood="${id}" aria-pressed="${ui.mood === id}">${label}</button>`).join(" ");
     const bar = (value, max) => (isNum(value) ? Math.min(100, value / max * 100).toFixed(0) : "0");
 
@@ -830,21 +830,21 @@ function htmlWellbeing() {
                 <div class="alert-card" ${sevStyle(sev)}>
                     <small>${SEV_LABEL[sev]} — ${esc(i.category).toUpperCase()}</small>
                     <h4>${esc(sanitizeNonClinical(i.description))}</h4>
-                    <p><b>Recomendación:</b> ${esc(sanitizeNonClinical(i.recommendation))}</p>
-                    <p><b>Generado:</b> ${esc(fmtDateTime(i.timestamp))}</p>
+                    <p><b>Recommendation:</b> ${esc(sanitizeNonClinical(i.recommendation))}</p>
+                    <p><b>Generated:</b> ${esc(fmtDateTime(i.timestamp))}</p>
                 </div>`;
         }).join("")
-        : emptyPanel("El motor de análisis todavía no ha publicado insights.");
+        : emptyPanel("The analysis engine has not published any insights yet.");
 
-    return moduleHead("04 / BIENESTAR", "Bienestar y descanso",
+    return moduleHead("04 / WELLBEING", "Wellbeing and rest",
         `<span class="badge-status" ${sevStyle(W.scoreSev)}>${sevLabel(W.scoreSev)}</span>`) +
-        `<p class="module-intro">Seguimiento orientativo de hábitos, check-in conductual de reacción y rutinas de participación. Las señales ausentes muestran "--" y ${SEV_MISSING}.</p>
+        `<p class="module-intro">Indicative tracking of habits, behavioral reaction check-in and participation routines. Missing signals show "--" and ${SEV_MISSING}.</p>
 
         <div class="wb-score" ${sevStyle(W.scoreSev)}>
             ${segVal(W.score !== null ? W.score : "--", "/ 100", "seg-lg")}
             <div class="wb-score-copy">
-                <strong>ÍNDICE GLOBAL DE BIENESTAR</strong>
-                <small>Estrés estimado: ${W.stress[0]} · Fatiga: ${W.fat[0]} · Día ${backend.cache.astronaut?.mission_day ?? "--"}</small>
+                <strong>OVERALL WELLBEING INDEX</strong>
+                <small>Estimated stress: ${W.stress[0]} · Fatigue: ${W.fat[0]} · Day ${backend.cache.astronaut?.mission_day ?? "--"}</small>
                 <div class="seg-bar"><div class="seg-fill" style="width:${W.score !== null ? W.score : 0}%"></div></div>
             </div>
         </div>
@@ -853,83 +853,83 @@ function htmlWellbeing() {
 
         ${htmlRoutinesAndPrivacy(I)}
 
-        <div class="module-section-title"><span>HÁBITOS Y RECUPERACIÓN</span><span>TELEMETRÍA</span></div>
+        <div class="module-section-title"><span>HABITS AND RECOVERY</span><span>TELEMETRY</span></div>
         <div class="wb-list">
 
             <article class="wb-card" ${sevStyle(W.exerciseSev)}>
                 <div class="wb-top">
                     <span class="wb-index">01</span>
-                    <div class="wb-label"><b>ACTIVIDAD FÍSICA</b><small>Tiempo de ejercicio diario</small></div>
+                    <div class="wb-label"><b>PHYSICAL ACTIVITY</b><small>Daily exercise time</small></div>
                     <div class="wb-value">${segVal(W.exercise !== null ? W.exercise : "--", "MIN")}</div>
                 </div>
                 <div class="seg-bar"><div class="seg-fill" style="width:${bar(W.exercise, 60)}%"></div></div>
-                <div class="wb-foot"><span>META: 60 MIN / DÍA</span><span>${W.exercise !== null ? `${Math.round(W.exercise / 60 * 100)}% CUMPLIDO` : SEV_MISSING}</span></div>
+                <div class="wb-foot"><span>GOAL: 60 MIN / DAY</span><span>${W.exercise !== null ? `${Math.round(W.exercise / 60 * 100)}% COMPLETED` : SEV_MISSING}</span></div>
             </article>
 
             <article class="wb-card" ${sevStyle(W.sleepSev)}>
                 <div class="wb-top">
                     <span class="wb-index">02</span>
-                    <div class="wb-label"><b>SUEÑO Y DESCANSO</b><small>Horas estimadas</small></div>
+                    <div class="wb-label"><b>SLEEP AND REST</b><small>Estimated hours</small></div>
                     <div class="wb-value">${segVal(W.sleep !== null ? W.sleep.toFixed(1) : "--", "H")}</div>
                 </div>
                 <div class="seg-bar"><div class="seg-fill" style="width:${bar(W.sleep, 9)}%"></div></div>
-                <div class="wb-foot"><span>META: 7 - 9 HORAS</span><span>${W.sleepSev === null ? SEV_MISSING : (W.sleepSev === 0 ? "DESCANSO ADECUADO" : "DESCANSO INSUFICIENTE")}</span></div>
+                <div class="wb-foot"><span>GOAL: 7 - 9 HOURS</span><span>${W.sleepSev === null ? SEV_MISSING : (W.sleepSev === 0 ? "ADEQUATE REST" : "INSUFFICIENT REST")}</span></div>
             </article>
 
             <article class="wb-card" ${sevStyle(W.hydSev)}>
                 <div class="wb-top">
                     <span class="wb-index">03</span>
-                    <div class="wb-label"><b>HIDRATACIÓN Y NUTRICIÓN</b><small>Consumo diario</small></div>
+                    <div class="wb-label"><b>HYDRATION AND NUTRITION</b><small>Daily intake</small></div>
                     <div class="wb-value">${segVal(W.water !== null ? W.water.toFixed(1) : "--", "L")}</div>
                 </div>
                 <div class="seg-bar"><div class="seg-fill" style="width:${bar(W.water, 3.4)}%"></div></div>
-                <div class="wb-foot"><span>AGUA · META 3.0 L</span><span>NUTRICIÓN: ${W.kcal !== null ? `${W.kcal.toLocaleString("es-PE")} KCAL` : "--"}</span></div>
+                <div class="wb-foot"><span>WATER · GOAL 3.0 L</span><span>NUTRITION: ${W.kcal !== null ? `${W.kcal.toLocaleString("en-US")} KCAL` : "--"}</span></div>
             </article>
 
             <article class="wb-card" ${sevStyle(W.fat[1])}>
                 <div class="wb-top">
                     <span class="wb-index">04</span>
-                    <div class="wb-label"><b>FATIGA Y RECUPERACIÓN</b><small>Nivel de fatiga reportado</small></div>
+                    <div class="wb-label"><b>FATIGUE AND RECOVERY</b><small>Reported fatigue level</small></div>
                     <div class="wb-value">${segVal(isNum(state.fat) ? r0(state.fat) : "--", "/100")}</div>
                 </div>
                 <div class="seg-bar"><div class="seg-fill" style="width:${isNum(state.fat) ? clamp(r0(state.fat), 0, 100) : 0}%"></div></div>
-                <div class="wb-foot"><span>NIVEL: ${W.fat[0]}</span><span>${isNum(state.fat) ? (state.fat > 70 ? "RECUPERACIÓN PRIORITARIA" : state.fat >= 40 ? "RECUPERACIÓN EN CURSO" : "RECUPERACIÓN ADECUADA") : SEV_MISSING}</span></div>
+                <div class="wb-foot"><span>LEVEL: ${W.fat[0]}</span><span>${isNum(state.fat) ? (state.fat > 70 ? "PRIORITY RECOVERY" : state.fat >= 40 ? "RECOVERY IN PROGRESS" : "ADEQUATE RECOVERY") : SEV_MISSING}</span></div>
             </article>
 
             <article class="wb-card" ${sevStyle(W.mood[1])}>
                 <div class="wb-top">
                     <span class="wb-index">05</span>
-                    <div class="wb-label"><b>AUTOINFORME RÁPIDO</b><small>Estado de ánimo reportado</small></div>
+                    <div class="wb-label"><b>QUICK SELF-REPORT</b><small>Reported mood</small></div>
                     <div class="wb-value"><span class="wb-mood">${W.mood[0]}</span></div>
                 </div>
-                <div class="wb-moods" role="group" aria-label="Reportar estado de ánimo">${moods}</div>
-                <div class="wb-foot"><span>ESTRÉS PERCIBIDO: ${W.stress[0]}</span><span>SOLO A BORDO</span></div>
+                <div class="wb-moods" role="group" aria-label="Report mood">${moods}</div>
+                <div class="wb-foot"><span>PERCEIVED STRESS: ${W.stress[0]}</span><span>ON-BOARD ONLY</span></div>
             </article>
 
         </div>
 
-        <div class="module-section-title"><span>ANÁLISIS ASISTIDO</span><span>GET /api/insights</span></div>
+        <div class="module-section-title"><span>ASSISTED ANALYSIS</span><span>GET /api/insights</span></div>
         ${insightCards}
 
-        <p class="module-note">* Hipótesis orientativa (escenario simulado). Puntos y rachas solo por participación; no constituye diagnóstico.</p>`;
+        <p class="module-note">* Indicative hypothesis (simulated scenario). Points and streaks are for participation only; not a diagnosis.</p>`;
 }
 
-/* ---------- PERFIL ---------- */
+/* ---------- PROFILE ---------- */
 function htmlProfile() {
     const a = backend.cache.astronaut;
 
     if (!a) {
-        return moduleHead("05 / PERFIL", "Perfil del tripulante",
-            `<span class="badge-status" ${sevStyle(1)}>SIN DATOS</span>`) +
-            emptyPanel("No hay tripulantes registrados en /api/astronauts.") +
-            `<p class="module-note">* La ficha se sirve desde la base de datos.</p>`;
+        return moduleHead("05 / PROFILE", "Crew member profile",
+            `<span class="badge-status" ${sevStyle(1)}>NO DATA</span>`) +
+            emptyPanel("There are no crew members registered in /api/astronauts.") +
+            `<p class="module-note">* The record is served from the database.</p>`;
     }
 
     const validSevs = Object.keys(METRIC_INFO).map(k => D[k]).filter(isNum);
     const anyAlert = validSevs.some(v => v > 0);
     const worst = validSevs.length ? Math.max(...validSevs) : null;
-    const medicalStatus = worst === null ? SEV_MISSING : (anyAlert ? "EN OBSERVACIÓN" : "APTO PARA EVA (SIM)");
-    const restriction = worst === null ? "SEÑALES PARCIALES / SIN LECTURA" : (anyAlert ? "REVISIÓN ORIENTATIVA REQUERIDA" : "SIN RESTRICCIONES SIMULADAS");
+    const medicalStatus = worst === null ? SEV_MISSING : (anyAlert ? "UNDER OBSERVATION" : "FIT FOR EVA (SIM)");
+    const restriction = worst === null ? "PARTIAL SIGNALS / NO READING" : (anyAlert ? "INDICATIVE REVIEW REQUIRED" : "NO SIMULATED RESTRICTIONS");
     const missionName = esc(String(a.mission || "").toUpperCase()) || "—";
     const day = String(a.mission_day ?? "—").padStart(3, "0");
 
@@ -941,7 +941,7 @@ function htmlProfile() {
 
     return `
         <div class="profile-hero">
-            <div class="profile-photo" role="img" aria-label="Fotografía simulada del tripulante">
+            <div class="profile-photo" role="img" aria-label="Simulated photograph of the crew member">
                 <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M20 25c0-8 5-14 12-14s12 6 12 14v7H20z" fill="rgba(0,255,102,.08)"/>
                     <rect x="24" y="22" width="16" height="10" rx="5" fill="rgba(0,225,255,.12)" stroke="#00e1ff" stroke-opacity=".6"/>
@@ -949,63 +949,63 @@ function htmlProfile() {
                     <path d="M25 45l7 6 7-6"/>
                     <path d="M32 12v-5M27 9h10"/>
                 </svg>
-                <span>FOTO SIM</span>
+                <span>SIM PHOTO</span>
             </div>
             <div class="profile-id">
-                <span class="module-kicker">05 / PERFIL · ${esc(a.code)}</span>
+                <span class="module-kicker">05 / PROFILE · ${esc(a.code)}</span>
                 <h3>${esc(String(a.name).toUpperCase())}</h3>
                 <p>${esc(a.role)} · ${missionName} · D${day}</p>
                 <span class="badge-status" ${sevStyle(worst)}>${medicalStatus}</span>
             </div>
         </div>
 
-        ${section("INFORMACIÓN PERSONAL", [
-            ["Código de astronauta", esc(a.code)],
-            ["Nombres y apellidos", esc(String(a.name).toUpperCase())],
-            ["Edad", `${a.age} AÑOS`],
-            ["Grupo sanguíneo", esc(a.blood_type)],
-            ["Estatura", `${a.height_cm} CM`],
-            ["Peso", `${a.weight_kg} KG`],
-            ["Identificador de tripulación", `CREW-${esc(a.code)}`]
+        ${section("PERSONAL INFORMATION", [
+            ["Astronaut code", esc(a.code)],
+            ["Full name", esc(String(a.name).toUpperCase())],
+            ["Age", `${a.age} YEARS`],
+            ["Blood type", esc(a.blood_type)],
+            ["Height", `${a.height_cm} CM`],
+            ["Weight", `${a.weight_kg} KG`],
+            ["Crew identifier", `CREW-${esc(a.code)}`]
         ])}
 
-        ${section("INFORMACIÓN DE MISIÓN", [
-            ["Nombre de misión", missionName],
-            ["Rol asignado", esc(String(a.role).toUpperCase())],
-            ["Día actual de misión", `D${day}`],
-            ["Estado de participación", "ACTIVA"]
+        ${section("MISSION INFORMATION", [
+            ["Mission name", missionName],
+            ["Assigned role", esc(String(a.role).toUpperCase())],
+            ["Current mission day", `D${day}`],
+            ["Participation status", "ACTIVE"]
         ])}
 
-        ${section("INFORMACIÓN MÉDICA", [
-            ["Estado registrado", esc(String(a.status).toUpperCase())],
-            ["Restricciones médicas", restriction],
-            ["Origen de la ficha", "GET /api/astronauts/" + a.id]
+        ${section("MEDICAL INFORMATION", [
+            ["Recorded status", esc(String(a.status).toUpperCase())],
+            ["Medical restrictions", restriction],
+            ["Record source", "GET /api/astronauts/" + a.id]
         ])}
 
-        <p class="module-note">* Ficha servida desde la base de datos. No contiene datos médicos reales.</p>`;
+        <p class="module-note">* Record served from the database. It contains no real medical data.</p>`;
 }
 
-/* ---------- AJUSTES ---------- */
+/* ---------- SETTINGS ---------- */
 const ALERT_PRIORITIES = {
-    critica: { label: "CRÍTICA", detail: "Solo alertas rojas. Reduce la carga de avisos al mínimo." },
-    alta:    { label: "ALTA",    detail: "Alertas rojas y ámbar. Recomendado durante operaciones EVA." },
-    todas:   { label: "TODAS",   detail: "Incluye avisos nominales y cambios graduales de tendencia." }
+    critica: { label: "CRITICAL", detail: "Red alerts only. Reduces the notification load to a minimum." },
+    alta:    { label: "HIGH",    detail: "Red and amber alerts. Recommended during EVA operations." },
+    todas:   { label: "ALL",   detail: "Includes nominal notices and gradual trend changes." }
 };
 const ALERT_METHODS = {
-    screen: "PANTALLA",
-    log:    "BITÁCORA",
-    haptic: "VIBRACIÓN",
-    earth:  "ENLACE TIERRA"
+    screen: "SCREEN",
+    log:    "JOURNAL",
+    haptic: "VIBRATION",
+    earth:  "EARTH LINK"
 };
 const SYNC_MODES = {
-    auto:   { label: "AUTOMÁTICA · NTP", detail: "Sincroniza el reloj de misión con la referencia de la consola." },
-    manual: { label: "MANUAL",           detail: "El reloj de misión se ajusta únicamente desde el panel local." },
-    earth:  { label: "POR ENLACE TIERRA", detail: "Toma la hora de la estación de control en cada ventana de contacto." }
+    auto:   { label: "AUTOMATIC · NTP", detail: "Syncs the mission clock with the console reference." },
+    manual: { label: "MANUAL",           detail: "The mission clock is adjusted only from the local panel." },
+    earth:  { label: "VIA EARTH LINK", detail: "Takes the time from the control station at each contact window." }
 };
 const LINK_MODES = {
-    nominal:      { label: "ENLACE NOMINAL",   short: "NOMINAL",      sev: 0, state: "ESTABLE",      band: "BANDA X",  latency: "1.2 s",  window: "3 H",      detail: "Telemetría completa y voz bidireccional con el centro de control." },
-    reducido:     { label: "ENLACE REDUCIDO",  short: "REDUCIDO",     sev: 1, state: "DEGRADADO",    band: "BANDA S",  latency: "6.5 s",  window: "45 MIN",   detail: "Solo telemetría esencial. La voz se reserva para contingencias." },
-    contingencia: { label: "CONTINGENCIA",     short: "CONTINGENCIA", sev: 2, state: "EMERGENCIA",   band: "UHF",      latency: "VARIABLE", window: "BAJO DEMANDA", detail: "Canal de emergencia con voz y telemetría mínima. Requiere confirmación del CMO." }
+    nominal:      { label: "NOMINAL LINK",   short: "NOMINAL",      sev: 0, state: "STABLE",      band: "X BAND",  latency: "1.2 s",  window: "3 H",      detail: "Full telemetry and two-way voice with the control center." },
+    reducido:     { label: "REDUCED LINK",  short: "REDUCED",     sev: 1, state: "DEGRADED",    band: "S BAND",  latency: "6.5 s",  window: "45 MIN",   detail: "Essential telemetry only. Voice is reserved for contingencies." },
+    contingencia: { label: "CONTINGENCY",     short: "CONTINGENCY", sev: 2, state: "EMERGENCY",   band: "UHF",      latency: "VARIABLE", window: "ON DEMAND", detail: "Emergency channel with voice and minimal telemetry. Requires CMO confirmation." }
 };
 
 function htmlSettings() {
@@ -1029,7 +1029,7 @@ function htmlSettings() {
 
     const priority = ALERT_PRIORITIES[ui.alerts.priority] || ALERT_PRIORITIES.alta;
     const activeMethods = Object.keys(ALERT_METHODS).filter(k => ui.alerts.methods[k]).map(k => ALERT_METHODS[k]);
-    const methodText = activeMethods.length ? activeMethods.join(" · ") : "NINGUNO";
+    const methodText = activeMethods.length ? activeMethods.join(" · ") : "NONE";
     const alertSev = ui.alerts.enabled ? 0 : 1;
     const link = LINK_MODES[ui.mission.link] || LINK_MODES.nominal;
     const sync = SYNC_MODES[ui.mission.sync] || SYNC_MODES.auto;
@@ -1037,27 +1037,27 @@ function htmlSettings() {
     const day = String(backend.cache.astronaut?.mission_day ?? 42).padStart(3, "0");
 
     const alertNote = ui.alerts.enabled
-        ? `Prioridad <b>${priority.label}</b> · Métodos: <b>${methodText}</b>.`
-        : `Notificaciones <b>SUSPENDIDAS</b>. La configuración se conserva y puede reactivarse en cualquier momento.`;
+        ? `Priority <b>${priority.label}</b> · Methods: <b>${methodText}</b>.`
+        : `Notifications <b>SUSPENDED</b>. The configuration is kept and can be re-enabled at any time.`;
     const methodNote = activeMethods.length
-        ? `Se notificará por: <b>${methodText}</b>.`
-        : `Sin métodos activos: las alertas no se mostrarán ni registrarán.`;
+        ? `You will be notified via: <b>${methodText}</b>.`
+        : `No active methods: alerts will not be shown or recorded.`;
 
-    return moduleHead("06 / AJUSTES", "Configuración del sistema",
+    return moduleHead("06 / SETTINGS", "System configuration",
         `<span class="badge-status" ${sevStyle(0)}>LOCAL</span>`) +
-        `<p class="module-intro">Ajusta el comportamiento de las alertas y los parámetros operativos de la consola. Los datos biométricos simulados se leen de la API; esta configuración es local.</p>
+        `<p class="module-intro">Adjust the alert behavior and the console's operating parameters. The simulated biometric data are read from the API; this configuration is local.</p>
 
-        <div class="module-section-title"><span>CONFIGURACIÓN DE ALERTAS</span><span>${ui.alerts.enabled ? "ACTIVAS" : "SUSPENDIDAS"}</span></div>
+        <div class="module-section-title"><span>ALERT SETTINGS</span><span>${ui.alerts.enabled ? "ACTIVE" : "SUSPENDED"}</span></div>
         <div class="settings-panel">
-            ${alertToggle("enabled", "Activar notificaciones", ui.alerts.enabled)}
-            ${alertToggle("sound", "Sonidos de alerta", ui.alerts.sound)}
-            <div class="settings-label">PRIORIDAD DE NOTIFICACIONES</div>
-            <div class="tab-row" role="group" aria-label="Prioridad de notificaciones">
+            ${alertToggle("enabled", "Enable notifications", ui.alerts.enabled)}
+            ${alertToggle("sound", "Alert sounds", ui.alerts.sound)}
+            <div class="settings-label">NOTIFICATION PRIORITY</div>
+            <div class="tab-row" role="group" aria-label="Notification priority">
                 ${Object.keys(ALERT_PRIORITIES).map(k => priorityBtn(k, ALERT_PRIORITIES[k])).join("")}
             </div>
             <p class="settings-hint">${priority.detail}</p>
-            <div class="settings-label">MÉTODOS DE NOTIFICACIÓN</div>
-            <div class="method-grid" role="group" aria-label="Métodos de notificación">
+            <div class="settings-label">NOTIFICATION METHODS</div>
+            <div class="method-grid" role="group" aria-label="Notification methods">
                 ${Object.keys(ALERT_METHODS).map(k => methodBtn(k, ALERT_METHODS[k])).join("")}
             </div>
             <p class="settings-hint">${methodNote}</p>
@@ -1067,26 +1067,26 @@ function htmlSettings() {
             </div>
         </div>
 
-        <div class="module-section-title"><span>CONFIGURACIÓN DE MISIÓN</span><span>D${day} / ${duration} DÍAS</span></div>
+        <div class="module-section-title"><span>MISSION SETTINGS</span><span>D${day} / ${duration} DAYS</span></div>
         <div class="settings-panel">
-            ${missionField("name", "NOMBRE DE MISIÓN", ui.mission.name, "text", 'autocomplete="off" spellcheck="false"')}
-            ${missionField("id", "IDENTIFICADOR DE MISIÓN", ui.mission.id, "text", 'autocomplete="off" spellcheck="false"')}
-            ${missionField("duration", "DURACIÓN PREVISTA (DÍAS)", ui.mission.duration, "number", 'min="1" max="3650" step="1"')}
+            ${missionField("name", "MISSION NAME", ui.mission.name, "text", 'autocomplete="off" spellcheck="false"')}
+            ${missionField("id", "MISSION IDENTIFIER", ui.mission.id, "text", 'autocomplete="off" spellcheck="false"')}
+            ${missionField("duration", "PLANNED DURATION (DAYS)", ui.mission.duration, "number", 'min="1" max="3650" step="1"')}
             <label class="field-row">
-                <span class="field-label">SINCRONIZACIÓN HORARIA</span>
+                <span class="field-label">TIME SYNCHRONIZATION</span>
                 <select class="hw-select" data-mission="sync">
                     ${Object.keys(SYNC_MODES).map(k => `<option value="${k}" ${ui.mission.sync === k ? "selected" : ""}>${SYNC_MODES[k].label}</option>`).join("")}
                 </select>
             </label>
             <p class="settings-hint">${sync.detail}</p>
             <div class="settings-readout">
-                <span>DÍA ACTUAL / DURACIÓN</span>
+                <span>CURRENT DAY / DURATION</span>
                 <span class="seg-readout"><span class="seg seg-sm">${day}</span><span class="seg-unit">/ <span data-duration-out>${String(duration).padStart(3, "0")}</span> D</span></span>
             </div>
         </div>
 
-        <div class="module-section-title"><span>ENLACE CON LA TIERRA</span><span>${link.state}</span></div>
-        <div class="tab-row" role="group" aria-label="Configuración del enlace con la Tierra">
+        <div class="module-section-title"><span>EARTH LINK</span><span>${link.state}</span></div>
+        <div class="tab-row" role="group" aria-label="Earth link settings">
             ${Object.keys(LINK_MODES).map(k => linkBtn(k, LINK_MODES[k])).join("")}
         </div>
         <div class="link-status" ${sevStyle(link.sev)}>
@@ -1096,29 +1096,29 @@ function htmlSettings() {
                 <span class="badge-status" ${sevStyle(link.sev)}>${link.state}</span>
             </div>
             <p>${link.detail}</p>
-            <div class="link-meta"><span>${link.band}</span><span>LATENCIA ${link.latency}</span><span>VENTANA ${link.window}</span></div>
+            <div class="link-meta"><span>${link.band}</span><span>LATENCY ${link.latency}</span><span>WINDOW ${link.window}</span></div>
         </div>
 
-        <div class="module-section-title"><span>EFECTOS DE PANTALLA</span><span>VISUAL</span></div>
-        ${fxToggle("scan", "Líneas de escaneo", ui.fx.scan)}
-        ${fxToggle("glow", "Resplandor neón", ui.fx.glow)}
-        ${fxToggle("flicker", "Parpadeo CRT", ui.fx.flicker)}
+        <div class="module-section-title"><span>SCREEN EFFECTS</span><span>VISUAL</span></div>
+        ${fxToggle("scan", "Scan lines", ui.fx.scan)}
+        ${fxToggle("glow", "Neon glow", ui.fx.glow)}
+        ${fxToggle("flicker", "CRT flicker", ui.fx.flicker)}
 
-        <div class="module-section-title"><span>SISTEMA</span><span>v1.4.0</span></div>
+        <div class="module-section-title"><span>SYSTEM</span><span>v1.4.0</span></div>
         <div class="window-data">
-            <div>VERSIÓN: <strong>v1.4.0-API</strong></div>
-            <div>ALMACENAMIENTO: <strong>SQLite · astra_health.db</strong></div>
-            <div>TELEMETRÍA: <strong>REST + WebSocket</strong></div>
-            <div>ESCENARIO ACTIVO: <strong>${esc(String(state.scenario || "SIN DATOS").toUpperCase())}</strong></div>
+            <div>VERSION: <strong>v1.4.0-API</strong></div>
+            <div>STORAGE: <strong>SQLite · astra_health.db</strong></div>
+            <div>TELEMETRY: <strong>REST + WebSocket</strong></div>
+            <div>ACTIVE SCENARIO: <strong>${esc(String(state.scenario || "NO DATA").toUpperCase())}</strong></div>
         </div>
-        <p class="module-note">* Configuración local de la consola. Los indicadores simulados provienen de la API.</p>`;
+        <p class="module-note">* Local console configuration. The simulated indicators come from the API.</p>`;
 }
 
 const MODULES = {
-    monitoring: { title: "CENTRO DE MONITOREO BIOMÉTRICO", html: htmlMonitoring, live: true },
-    history:    { title: "HISTORIAL Y LÍNEA BASE",         html: htmlHistory,    live: false },
-    alerts:     { title: "ALERTAS Y BITÁCORA",             html: htmlAlerts,     live: true },
-    wellbeing:  { title: "BIENESTAR Y DESCANSO",           html: htmlWellbeing,  live: true },
-    profile:    { title: "PERFIL DEL TRIPULANTE",          html: htmlProfile,    live: true },
-    settings:   { title: "CONFIGURACIÓN DEL SISTEMA",      html: htmlSettings,   live: false }
+    monitoring: { title: "BIOMETRIC MONITORING CENTER", html: htmlMonitoring, live: true },
+    history:    { title: "HISTORY AND BASELINE",         html: htmlHistory,    live: false },
+    alerts:     { title: "ALERTS AND JOURNAL",             html: htmlAlerts,     live: true },
+    wellbeing:  { title: "WELLBEING AND REST",           html: htmlWellbeing,  live: true },
+    profile:    { title: "CREW MEMBER PROFILE",          html: htmlProfile,    live: true },
+    settings:   { title: "SYSTEM CONFIGURATION",      html: htmlSettings,   live: false }
 };

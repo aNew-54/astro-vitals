@@ -1,19 +1,19 @@
-# WESAD · condiciones de estrés inducido en laboratorio
+# WESAD · Laboratory-Induced Stress Conditions
 
-La tabla permite estudiar diferencias entre las condiciones basal, estrés inducido y diversión del protocolo WESAD en participantes terrestres. La etiqueta describe la condición que el experimento programó durante la medición. Las tablas son para investigación y uso no comercial según las condiciones de los autores.
+The table makes it possible to study differences between the baseline, induced stress, and amusement conditions of the WESAD protocol in terrestrial participants. The label describes the condition scheduled by the experiment during the measurement. The tables are intended for research and non-commercial use, in accordance with the authors' terms.
 
-## Archivos
+## Files
 
-- [Descargar el original de los autores](https://uni-siegen.sciebo.de/s/HGdUkoNlW1Ub0Gx/download) (2,25 GB). Su ubicación local es `data/wesad/WESAD.zip`. [Manual de los autores](README_original.pdf) · [Recibo de adquisición](fuente.json).
-- [Inventario por participante](inventario.csv) y [manifiesto de variables, clases y particiones](manifest.json).
-- [Entrenamiento](ventanas_train.csv), [validación](ventanas_validation.csv) y [prueba reservada](ventanas_test.csv). Las particiones contienen nueve, tres y tres participantes, respectivamente.
+- [Download the original dataset from the authors](https://uni-siegen.sciebo.de/s/HGdUkoNlW1Ub0Gx/download) (2.25 GB). Its local location is `data/wesad/WESAD.zip`. [Authors' manual](README_original.pdf) · [Acquisition receipt](fuente.json).
+- [Participant inventory](inventario.csv) and [manifest of variables, classes, and splits](manifest.json).
+- [Training set](ventanas_train.csv), [validation set](ventanas_validation.csv), and [held-out test set](ventanas_test.csv). The splits contain nine, three, and three participants, respectively.
 
-## Preparación
+## Data Preparation
 
-Se generaron segmentos consecutivos de 30 segundos sin solapamiento, usando la muñeca sincronizada y las anotaciones del estudio a 700 Hz. Se incluyen ventanas íntegramente etiquetadas como basal (1), estrés (2) o diversión (3). Se excluyen transiciones, meditación, anotaciones fuera de esas tres condiciones y señales con muestras ausentes o no finitas.
+Consecutive 30-second non-overlapping segments were generated using the synchronized wrist data and study annotations at 700 Hz. Only windows entirely labeled as baseline (1), stress (2), or amusement (3) are included. Transitions, meditation, annotations outside these three conditions, and signals containing missing or non-finite samples are excluded.
 
-Las señales de entrada son aceleración triaxial a 32 Hz, señal óptica BVP a 64 Hz, y conductancia eléctrica de la piel y temperatura a 4 Hz. Se calculan seis variables en las escalas de los sensores publicados. Son el promedio y la desviación poblacional de la magnitud de la aceleración, la desviación del BVP, el promedio y la desviación de la conductancia, y el promedio de temperatura. `condicion` indica la condición que se intenta reconocer. Participante, partición, tiempos y condición quedan fuera de los predictores.
+The input signals are triaxial acceleration at 32 Hz, optical BVP signal at 64 Hz, and electrodermal activity and temperature at 4 Hz. Six features are calculated using the scales of the published sensor data: the mean and population standard deviation of acceleration magnitude, BVP standard deviation, the mean and standard deviation of electrodermal activity, and mean temperature. `condicion` indicates the condition to be recognized. Participant ID, data split, timestamps, and condition are excluded from the predictors.
 
-Los tiempos son segundos desde el comienzo del registro sincronizado. La asignación de participantes se reproduce ordenando sus identificadores por SHA-256 con un prefijo fijo de la fuente. Se ha usado Python 3.14 con NumPy 2.5.4 en un entorno dedicado a datos. Desde la raíz, ejecutar `.\.venv-datos\Scripts\python.exe ml\preparar_wearables.py wesad`.
+Times are expressed in seconds from the beginning of the synchronized recording. Participant assignment can be reproduced by sorting their identifiers using SHA-256 with a fixed source prefix. Python 3.14 with NumPy 2.5.4 was used in a dedicated data environment. From the project root directory, run `.\\.venv-datos\Scripts\python.exe ml\preparar_wearables.py wesad`.
 
-**Atribución.** Schmidt, P., Reiss, A., Duerichen, R., Marberger, C. y Van Laerhoven, K. (2018). *Introducing WESAD, a Multimodal Dataset for Wearable Stress and Affect Detection*. ICMI 2018. Las tablas derivadas conservan la atribución y el alcance científico no comercial de la fuente. [Condiciones originales](https://ubi29.informatik.uni-siegen.de/usi/data_wesad.html) · [Publicación](https://doi.org/10.1145/3242969.3242985)
+**Attribution.** Schmidt, P., Reiss, A., Duerichen, R., Marberger, C., and Van Laerhoven, K. (2018). *Introducing WESAD, a Multimodal Dataset for Wearable Stress and Affect Detection*. ICMI 2018. The derived tables retain the attribution and non-commercial scientific scope of the source. [Original terms and conditions](https://ubi29.informatik.uni-siegen.de/usi/data_wesad.html) · [Publication](https://doi.org/10.1145/3242969.3242985)

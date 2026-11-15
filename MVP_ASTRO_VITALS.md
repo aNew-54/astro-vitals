@@ -1,115 +1,115 @@
-ASTRO-VITALS — MVP y estrategia de presentación
+ASTRO-VITALS — MVP and presentation strategy
 ===============================================
 
-Alcance revisado el 3 de noviembre de 2026 para el equipo de Cajamarca, Perú. Sustituye como guía de alcance a la exploración inicial de Órbita. El equipo reúne conocimientos de software, datos, diseño y electrónica. Quedan pendientes el número de integrantes, las horas disponibles y la revisión de los mensajes por un mentor de salud.
+Scope reviewed on November 3, 2026 for the Cajamarca, Peru team. It replaces the initial Órbita exploration as the scope guide. The team brings together knowledge of software, data, design and electronics. The number of members, the available hours and the review of the messages by a health mentor are still pending.
 
-La [versión 0.1](prototype/README.md) implementa la pasarela, el servicio a bordo y la consola del astronauta. El MVP previsto añade modelos Random Forest, almacenamiento SQLite y un nodo Tierra con vista web. El [contrato de datos](CONTRATO_DE_DATOS.md) define las entradas, salidas y fuentes por tarea. La [arquitectura](ARQUITECTURA_TECNICA.md) define cómo integrarlas.
+[Version 0.1](prototype/README.md) implements the gateway, the on-board service and the astronaut console. The planned MVP adds Random Forest models, SQLite storage and an Earth node with a web view. The [data contract](CONTRATO_DE_DATOS.md) defines the inputs, outputs and sources per task. The [architecture](ARQUITECTURA_TECNICA.md) defines how to integrate them.
 
-**Concepto acordado.** Un asistente de monitoreo para astronautas que reúne biometría, actividad y contexto ambiental; genera hipótesis diagnósticas orientativas en escenarios de demostración; explica su evidencia y mantiene un registro compartible con Tierra durante retrasos o interrupciones de comunicación. Incluye predicción experimental y un escenario de tormenta solar.
+**Agreed concept.** A monitoring assistant for astronauts that brings together biometrics, activity and environmental context; generates indicative diagnostic hypotheses in demonstration scenarios; explains its evidence; and keeps a record shareable with Earth during communication delays or interruptions. It includes experimental prediction and a solar storm scenario.
 
-La meta del MVP es demostrar esa experiencia integrada. Las hipótesis y proyecciones producidas con escenarios sintéticos se presentan como resultados de simulación. El equipo revisará el caso con los recursos anunciados para el 13 de noviembre de 2026.
+The MVP's goal is to demonstrate that integrated experience. Hypotheses and projections produced with synthetic scenarios are presented as simulation results. The team will review the case with the resources announced for November 13, 2026.
 
-**Premios que orientan el diseño.** Las categorías y descripciones de esta tabla proceden de las tres imágenes de Space Apps Cajamarca compartidas por el usuario. La prioridad es una recomendación de planificación, no una probabilidad de ganar ni una confirmación de elegibilidad, ponderaciones o mecánica de selección local/global.
+**Prizes that guide the design.** The categories and descriptions in this table come from the three Space Apps Cajamarca images shared by the user. The priority is a planning recommendation, not a probability of winning nor a confirmation of eligibility, weightings or local/global selection mechanics.
 
-| Categoría | Prioridad propuesta | Qué tendría que demostrar ASTRO-VITALS |
+| Category | Proposed priority | What ASTRO-VITALS would have to demonstrate |
 | --- | --- | --- |
-| Best Use of Technology | Principal | Integración funcional de señales, inferencia local, explicación y sincronización con comunicación interrumpida |
-| Best Use of Storytelling | Secundaria | Una historia comprensible desde nave y Tierra que muestre cómo se utiliza un dato abierto real |
-| Best Use of Data | Condicionada a los recursos disponibles | Un uso sustantivo, trazable y útil de datos NASA en el procesamiento o interpretación; conservar procedencia y transformaciones |
-| Galactic Impact | Potencial complementario | Problema relevante, usuario definido y ruta plausible de evaluación/adopción; separar beneficios potenciales de los demostrados |
-| Best Use of Science | Potencial complementario | Hipótesis explícitas, comparación con referencias, experimentos reproducibles y límites bien descritos |
-| Most Inspirational | Complementaria a la narrativa | Conectar con la experiencia humana de recibir apoyo cuando la comunicación es limitada |
-| Local Impact | Exploración futura | Investigar con actores locales si el funcionamiento sin conexión resuelve una necesidad real en Cajamarca |
-| Best Mission Concept | Afinidad parcial con el alcance actual | Explicar dónde opera el sistema, sus recursos, usuarios y restricciones de misión |
-| Art & Technology | Afinidad secundaria | Una contribución creativa sustantiva que mejore la experiencia; una estética espacial por sí sola no es la propuesta |
-| Global Community | Afinidad menor por ahora | Una conexión real entre comunidades; las dos vistas nave–Tierra por sí solas no demuestran esa dimensión |
+| Best Use of Technology | Primary | Functional integration of signals, local inference, explanation and synchronization with interrupted communication |
+| Best Use of Storytelling | Secondary | A story understandable from both spacecraft and Earth that shows how a real open data point is used |
+| Best Use of Data | Conditional on available resources | A substantive, traceable and useful use of NASA data in processing or interpretation; keep provenance and transformations |
+| Galactic Impact | Potential complement | Relevant problem, defined user and plausible evaluation/adoption path; separate potential benefits from demonstrated ones |
+| Best Use of Science | Potential complement | Explicit hypotheses, comparison with references, reproducible experiments and well-described limits |
+| Most Inspirational | Complementary to the narrative | Connect with the human experience of receiving support when communication is limited |
+| Local Impact | Future exploration | Investigate with local actors whether offline operation solves a real need in Cajamarca |
+| Best Mission Concept | Partial affinity with the current scope | Explain where the system operates, its resources, users and mission constraints |
+| Art & Technology | Secondary affinity | A substantive creative contribution that improves the experience; a space aesthetic alone is not the proposal |
+| Global Community | Minor affinity for now | A real connection between communities; the two spacecraft–Earth views alone do not demonstrate that dimension |
 
-La estrategia es construir una sola solución coherente. Tecnología y narrativa se refuerzan con las mismas funciones; no requieren crear productos adicionales para cada premio. El rigor de los datos y las mediciones se mantiene como criterio transversal.
+The strategy is to build a single coherent solution. Technology and narrative reinforce each other with the same functions; they do not require creating additional products for each prize. Rigor in the data and measurements is kept as a cross-cutting criterion.
 
-**Promesa para presentar.** «ASTRO-VITALS ayuda a una tripulación a interpretar señales de salud y del entorno cuando Tierra recibe información tarde. Nuestro prototipo integra datos, genera hipótesis orientativas, explica las alertas y conserva los episodios aun sin conexión».
+**Pitch promise.** "ASTRO-VITALS helps a crew interpret health and environmental signals when Earth receives information late. Our prototype integrates data, generates indicative hypotheses, explains the alerts and keeps episodes even without a connection."
 
-**Alcance funcional.**
+**Functional scope.**
 
-| Módulo | Entrega mínima | Evidencia observable |
+| Module | Minimum deliverable | Observable evidence |
 | --- | --- | --- |
-| Vista astronauta | Pulso, respiración, actividad, calidad de señal y estado de comunicación | Datos se actualizan con tiempos, unidades y disponibilidad |
-| Evaluación orientativa | Patrón simulado con evidencia, alternativas e información faltante. El astronauta puede registrar esfuerzo, malestar u observaciones. | El episodio indica qué cambió, durante cuánto tiempo y qué señal requiere revisión |
-| Predicción experimental | FC a 60 s a partir del historial de FC y FR | Estimación identificada por método e instante. Error en bpm frente a referencias simples en registros reservados |
-| Contexto de cabina | Canal de CO₂ simulado con origen identificado | Se puede comparar temporalmente con biometría sin afirmar causalidad aprendida inexistente |
-| Tormenta solar | Evento histórico DONKI y dosímetro local simulado en canales separados | La alerta por exposición se fundamenta en lecturas locales simuladas |
-| Vista Tierra e historial | Episodios recibidos, mediciones originales, explicación, tiempos y cola de entrega | Tras un corte, se recupera el registro sin duplicados ni confundir datos antiguos con actuales |
-| Control de demostración | Reproducción a velocidad real, pausa y selección de escenarios reproducibles | El motor analiza únicamente la información disponible al final de la ventana |
+| Astronaut view | Pulse, breathing, activity, signal quality and communication status | Data update with times, units and availability |
+| Indicative assessment | Simulated pattern with evidence, alternatives and missing information. The astronaut can record effort, discomfort or observations. | The episode indicates what changed, for how long and which signal requires review |
+| Experimental prediction | HR at 60 s from the HR and RR history | Estimate identified by method and instant. Error in bpm against simple references on held-out records |
+| Cabin context | Simulated CO₂ channel with identified origin | Can be compared in time with biometrics without claiming a nonexistent learned causality |
+| Solar storm | Historical DONKI event and simulated local dosimeter in separate channels | The exposure alert is grounded in simulated local readings |
+| Earth view and history | Episodes received, original measurements, explanation, times and delivery queue | After an outage, the record is recovered without duplicates or confusing old data with current data |
+| Demo control | Real-speed replay, pause and selection of reproducible scenarios | The engine analyzes only the information available at the end of the window |
 
-Se usa un perfil ficticio, una TUI para el astronauta y una web para Tierra, conectadas a sus respectivos nodos. El flujo de hipótesis, revisión e historial es común a los escenarios. La simulación de comunicación representa un enlace con demora e interrupciones; no se presenta como una implementación real de la DSN.
+A fictional profile is used, with a TUI for the astronaut and a web app for Earth, connected to their respective nodes. The hypothesis, review and history flow is common to the scenarios. The communication simulation represents a link with delay and interruptions; it is not presented as a real DSN implementation.
 
-**Datos, simulación y modelo.** La fusión de la demo reúne señales compatibles dentro de un escenario explícito. Registros reales pueden servir de base, indicando qué se modificó. Unir arbitrariamente personas terrestres con radiación de otra misión no produce ejemplos clínicos observados.
+**Data, simulation and model.** The demo's fusion brings together compatible signals within an explicit scenario. Real records may serve as a base, indicating what was modified. Arbitrarily joining land-based people with radiation from another mission does not produce observed clinical examples.
 
-El generador ya produjo las sesiones con las cuatro clases de patrón definidas en el contrato y las etiquetas por ventana para entrenamiento y evaluación. Si faltan entradas o el clasificador se abstiene, la interfaz prevista comunicará el motivo. [Conjunto de fusión](data/fusion_simulada/README.md)
+The generator has already produced the sessions with the four pattern classes defined in the contract and the per-window labels for training and evaluation. If inputs are missing or the classifier abstains, the planned interface will communicate the reason. [Fusion dataset](data/fusion_simulada/README.md)
 
-Una implementación inicial puede usar un clasificador pequeño con variables de tendencia y contexto. Las reglas revisan calidad, persistencia y límites configurados; el clasificador reconoce patrones; plantillas explicativas presentan observaciones y alternativas. Solo se muestran atribuciones calculadas realmente. Un porcentaje de clasificación sintética no se presenta como probabilidad de enfermedad.
+An initial implementation can use a small classifier with trend and context variables. Rules check quality, persistence and configured limits; the classifier recognizes patterns; explanatory templates present observations and alternatives. Only attributions that are actually computed are shown. A synthetic classification percentage is not presented as a probability of disease.
 
-En el clasificador, separar perfiles ficticios y semillas antes de generar ventanas. Reservar variantes de ruido, intensidad y pérdida de datos para evaluación. En el pronóstico, reservar personas o registros completos de BIDMC y comparar con mantener la última FC o extrapolar una tendencia.
+For the classifier, separate fictional profiles and seeds before generating windows. Reserve noise, intensity and data-loss variants for evaluation. For the forecast, reserve complete BIDMC people or records and compare with keeping the last HR or extrapolating a trend.
 
-La única variable que se pronostica es la FC a 60 s. Si se incluye una proyección ambiental a seis horas, se calculará por separado con una tasa de exposición supuesta y se mostrará ese supuesto.
+The only variable that is forecast is HR at 60 s. If a six-hour environmental projection is included, it will be computed separately with an assumed exposure rate and that assumption will be shown.
 
-**Escenario solar de bajo alcance.**
+**Low-scope solar scenario.**
 
-1. Cargar el evento histórico SEP de DONKI ya guardado. Mantener la fecha original separada del reloj de reproducción. [Evento seleccionado](data/donki/evento.json)
-2. Mostrar el evento como contexto recibido desde una fuente externa. La aplicación conoce cuándo se recibió y cuánto tiempo ha transcurrido; no depende de una consulta en vivo para seguir funcionando.
-3. Reproducir una serie independiente de dosímetro simulado, diferenciando tasa de dosis de dosis acumulada y conservando unidades consistentes. No derivar dosis personal directamente del evento DONKI.
-4. Procesar las lecturas mediante el motor común de reglas y guardar un episodio con la evidencia que activó el aviso. Un evento solar remoto por sí solo no activa una conclusión médica.
-5. Permitir «simular traslado al refugio»: cambiar la tasa según un supuesto explícito del escenario. La dosis acumulada no disminuye; puede aumentar más lentamente.
-6. Si se muestra una proyección, indicar que depende de la tasa y duración supuestas. No se modelan propagación de partículas, blindaje real ni daño biológico para esta demo.
+1. Load the already stored historical DONKI SEP event. Keep the original date separate from the replay clock. [Selected event](data/donki/evento.json)
+2. Show the event as context received from an external source. The application knows when it was received and how much time has elapsed; it does not depend on a live query to keep working.
+3. Replay an independent simulated dosimeter series, distinguishing dose rate from accumulated dose and keeping consistent units. Do not derive personal dose directly from the DONKI event.
+4. Process the readings through the common rules engine and store an episode with the evidence that triggered the alert. A remote solar event alone does not trigger a medical conclusion.
+5. Allow "simulate move to shelter": change the rate according to an explicit scenario assumption. The accumulated dose does not decrease; it may increase more slowly.
+6. If a projection is shown, state that it depends on the assumed rate and duration. Particle propagation, real shielding and biological damage are not modeled for this demo.
 
-DONKI documenta eventos y análisis de clima espacial, incluidos SEP, y ofrece acceso programático. Su información se proporciona para investigación y prototipos. Fuente: [NASA CCMC — DONKI](https://ccmc.gsfc.nasa.gov/tools/DONKI/).
+DONKI documents space weather events and analyses, including SEPs, and offers programmatic access. Its information is provided for research and prototypes. Source: [NASA CCMC — DONKI](https://ccmc.gsfc.nasa.gov/tools/DONKI/).
 
-**Escenarios a preparar.**
+**Scenarios to prepare.**
 
-| Escenario | Comportamiento esperado del prototipo |
+| Scenario | Expected prototype behavior |
 | --- | --- |
-| Actividad con evolución fisiológica esperada | Reconocer el contexto y mostrar tendencias sin disparar una alerta solo por el nombre del escenario |
-| Desviación fisiológica sostenida con cambio ambiental simulado | Presentar una hipótesis orientativa, sus observaciones, alternativas y revisión ilustrativa |
-| Evento solar histórico con dosimetría simulada | Diferenciar contexto remoto y medición local; explicar la alerta ambiental y registrar la acción simulada |
-| Variante transversal: señal ausente o contradictoria | Indicar qué falta y limitar las conclusiones de ese canal sin borrar alertas respaldadas por otros |
+| Activity with expected physiological evolution | Recognize the context and show trends without triggering an alert just because of the scenario's name |
+| Sustained physiological deviation with simulated environmental change | Present an indicative hypothesis, its observations, alternatives and illustrative review |
+| Historical solar event with simulated dosimetry | Distinguish remote context from local measurement; explain the environmental alert and record the simulated action |
+| Cross-cutting variant: missing or contradictory signal | Indicate what is missing and limit the conclusions of that channel without erasing alerts backed by other channels |
 
-Las alteraciones de CO₂ y dosimetría se presentan en episodios separados. No se atribuyen cambios instantáneos de pulso a radiación ni se escenifican varias emergencias simultáneas para aumentar el dramatismo.
+CO₂ and dosimetry alterations are presented in separate episodes. Instantaneous pulse changes are not attributed to radiation, and multiple simultaneous emergencies are not staged to increase drama.
 
-**Pruebas que sostienen la candidatura tecnológica.**
+**Tests that support the technology candidacy.**
 
-| Prueba | Evidencia que conservar | Límite de interpretación |
+| Test | Evidence to keep | Limit of interpretation |
 | --- | --- | --- |
-| Desconexión | Inferencia y registro continúan con todos los recursos necesarios en local | Demuestra autonomía del prototipo en la prueba realizada |
-| Reconexión | Comparación de episodios emitidos y recibidos, orden, identificadores y ausencia de duplicados | Demuestra la lógica de cola del simulador de enlace |
-| Variantes reservadas | Matriz de resultados, falsas alertas por hora simulada y demora de detección | Describe rendimiento sobre escenarios sintéticos |
-| Sensor defectuoso | Mensajes de datos insuficientes y conservación de otras alertas válidas | Describe manejo de fallos previstos |
-| Pronóstico, si se entrena | Error en unidades de la señal frente a una referencia simple | No prueba anticipación de enfermedad |
-| Comprensión | Prueba breve con alguien externo: identificar cambio, fuente, antigüedad y siguiente paso | Evalúa claridad de uso, no seguridad clínica |
+| Disconnection | Inference and recording continue with all necessary resources locally | Demonstrates the prototype's autonomy in the test performed |
+| Reconnection | Comparison of episodes issued and received, order, identifiers and absence of duplicates | Demonstrates the link simulator's queue logic |
+| Held-out variants | Results matrix, false alerts per simulated hour and detection delay | Describes performance on synthetic scenarios |
+| Faulty sensor | Insufficient-data messages and preservation of other valid alerts | Describes handling of anticipated failures |
+| Forecast, if trained | Error in the signal's units against a simple reference | Does not prove anticipation of illness |
+| Comprehension | Short test with an outsider: identify change, source, age and next step | Evaluates clarity of use, not clinical safety |
 
-No se prometen porcentajes de precisión ni tiempos de inferencia antes de medir. La ficha de resultados incluye entorno de ejecución, escenario, referencia usada y limitaciones.
+No accuracy percentages or inference times are promised before measuring. The results sheet includes execution environment, scenario, reference used and limitations.
 
-**Narrativa de demo propuesta.** El ensayo dura unos tres minutos, ajustables al tiempo que confirme Cajamarca. Una misma astronauta ficticia conecta dos escenas breves. A velocidad real, se puede cargar una ventana de historia previa identificada para que el modelo tenga contexto al comenzar. La pantalla conserva la fecha del evento histórico.
+**Proposed demo narrative.** The rehearsal lasts about three minutes, adjustable to the time Cajamarca confirms. A single fictional astronaut connects two short scenes. At real speed, an identified prior history window can be loaded so that the model has context at the start. The screen keeps the date of the historical event.
 
-| Tiempo aproximado | Acción | Qué se comunica |
+| Approximate time | Action | What is communicated |
 | --- | --- | --- |
-| 0:00–0:20 | Presentar a la astronauta y mostrar la información que tiene Tierra | Necesidad concreta y antigüedad de la información |
-| 0:20–1:10 | Reproducir el episodio fisiológico y abrir la hipótesis orientativa | El motor usa señales, actividad y evidencia para interpretar el escenario |
-| 1:10–1:30 | Interrumpir el enlace y registrar una revisión a bordo | La autonomía resuelve una restricción observable |
-| 1:30–2:20 | Cambiar explícitamente al escenario solar, abrir el evento NASA y reproducir el dosímetro | El dato abierto aporta contexto; la exposición local está identificada como simulada |
-| 2:20–2:40 | Simular el refugio y mostrar la proyección de exposición | Decisión del escenario y efecto bajo supuestos visibles |
-| 2:40–3:00 | Reconectar y mostrar el episodio recibido en Tierra y una métrica medida | Registro trazable y evidencia del funcionamiento |
+| 0:00–0:20 | Introduce the astronaut and show the information Earth has | Concrete need and age of the information |
+| 0:20–1:10 | Replay the physiological episode and open the indicative hypothesis | The engine uses signals, activity and evidence to interpret the scenario |
+| 1:10–1:30 | Interrupt the link and record an on-board review | Autonomy solves an observable constraint |
+| 1:30–2:20 | Explicitly switch to the solar scenario, open the NASA event and replay the dosimeter | The open data provides context; local exposure is identified as simulated |
+| 2:20–2:40 | Simulate the shelter and show the exposure projection | Scenario decision and effect under visible assumptions |
+| 2:40–3:00 | Reconnect and show the episode received on Earth and one measured metric | Traceable record and evidence of operation |
 
-Para Storytelling, el vínculo con los datos abiertos debe verse: evento elegido, observación disponible, cómo entra en la historia y qué puede o no inferirse de él. La narrativa evita resultados médicos inventados, como afirmar que se evitó una muerte. El desenlace demostrable es que la tripulación interpretó la información, registró su revisión y conservó continuidad durante el corte.
+For Storytelling, the link to open data must be visible: chosen event, available observation, how it enters the story and what can or cannot be inferred from it. The narrative avoids invented medical outcomes, such as claiming a death was averted. The demonstrable outcome is that the crew interpreted the information, recorded their review and kept continuity during the outage.
 
-**Best Use of Data.** El 13 de noviembre se revisará si un recurso oficial contribuye a una comparación, estimación o interpretación concreta. Se documentarán su origen, condiciones de acceso, variables, transformaciones, función y límites.
+**Best Use of Data.** On November 13 it will be reviewed whether an official resource contributes to a concrete comparison, estimation or interpretation. Its origin, access conditions, variables, transformations, function and limits will be documented.
 
-Los ejemplos de pronóstico están preparados con BIDMC y separados por participante. PPG-DaLiA, MMASH y WESAD tienen tablas locales para posibles extensiones de actividad, sueño y estrés. [Resultados de preparación](data/bidmc/README.md) · [Fuentes y uso por tarea](DATOS_ALTERNATIVOS.md)
+The forecast examples are prepared with BIDMC and split by participant. PPG-DaLiA, MMASH and WESAD have local tables for possible extensions on activity, sleep and stress. [Preparation results](data/bidmc/README.md) · [Sources and use per task](DATOS_ALTERNATIVOS.md)
 
-NASA-STD-3001 puede fundamentar reglas específicas si se identifica el requisito, revisión, unidades, exposición y contexto aplicables. La referencia no valida las hipótesis del modelo ni sustituye su evaluación. [NASA — Human Spaceflight Standards](https://www.nasa.gov/ochmo/human-spaceflight-and-aviation-standards/).
+NASA-STD-3001 can ground specific rules if the applicable requirement, review, units, exposure and context are identified. The reference neither validates the model's hypotheses nor replaces their evaluation. [NASA — Human Spaceflight Standards](https://www.nasa.gov/ochmo/human-spaceflight-and-aviation-standards/).
 
-**Impacto y conexión con Cajamarca.** Como hipótesis de transferencia futura, el procesamiento local y el envío diferido podrían ser útiles en situaciones terrestres de conectividad limitada. Para aspirar a Local Impact habría que conversar con personal o instituciones locales y describir una necesidad comprobada, condiciones de uso y evaluación. Esta hipótesis no implica que ya exista un piloto, validación o beneficio sanitario. El MVP conserva el contexto espacial; no añade un segundo producto terrestre.
+**Impact and connection with Cajamarca.** As a hypothesis for future transfer, local processing and deferred sending could be useful in land-based situations with limited connectivity. To aspire to Local Impact, one would have to talk with local staff or institutions and describe a verified need, conditions of use and evaluation. This hypothesis does not imply that a pilot, validation or health benefit already exists. The MVP keeps the space context; it does not add a second land-based product.
 
-**Organización y recortes.** Repartir funciones combinables: interfaz/narrativa, datos/modelo, simulador/integración y evaluación/fuentes. La revisión de un mentor sanitario se centra en los términos y la secuencia ilustrativa; no se presenta como validación clínica. Antes del evento se estudian fuentes y herramientas y se confirma con la organización el alcance permitido de preparación.
+**Organization and cuts.** Distribute combinable roles: interface/narrative, data/model, simulator/integration and evaluation/sources. The review by a health mentor focuses on the terms and the illustrative sequence; it is not presented as clinical validation. Before the event, sources and tools are studied and the permitted scope of preparation is confirmed with the organization.
 
-Durante la construcción, distribuir aproximadamente 15% para caso y datos, 35% para el recorrido completo, 20% para modelo y evaluación, 15% para integración y pruebas y 15% para ensayo y entrega. A mitad del tiempo debe funcionar un episodio completo en las dos vistas. Si el tiempo se reduce, priorizar hipótesis orientativa explicada, episodio solar mínimo, continuidad local y sincronización; reducir integraciones en vivo, vistas adicionales y complejidad del modelo.
+During the build, distribute approximately 15% to case and data, 35% to the complete walkthrough, 20% to model and evaluation, 15% to integration and testing and 15% to rehearsal and delivery. At the halfway point a complete episode must work in both views. If time shrinks, prioritize the explained indicative hypothesis, a minimal solar episode, local continuity and synchronization; reduce live integrations, additional views and model complexity.
 
-**Entregables revisables.** Aplicación ejecutable, demo breve, instrucciones reproducibles, esquema del flujo de datos, fuentes/licencias, ficha de evaluación, supuestos del simulador y explicación de qué parte es dato histórico, sensor simulado o estimación. La selección de premios orienta estas evidencias y no exige modificar el producto para cubrir todas las categorías.
+**Reviewable deliverables.** Executable application, short demo, reproducible instructions, data flow diagram, sources/licenses, evaluation sheet, simulator assumptions and an explanation of which part is historical data, simulated sensor or estimate. The prize selection guides this evidence and does not require modifying the product to cover all categories.

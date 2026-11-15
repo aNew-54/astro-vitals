@@ -582,8 +582,26 @@
 
         const worst = worstZone(Z);
         const id = autoMode ? (worst ? worst.id : null) : selectedZone;
-        zoneNodes.forEach(n => n.classList.toggle("is-selected", n.dataset.zone === id));
+        const manual = Boolean(!autoMode && id);
+        zoneNodes.forEach(n => {
+            const on = n.dataset.zone === id;
+            n.classList.toggle("is-selected", on);
+            n.setAttribute("aria-pressed", String(manual && on));
+        });
         labelNodes.forEach(n => n.classList.toggle("is-selected", n.dataset.zone === id));
+        $("#body-svg").classList.toggle("has-selection", manual);
+        $("#zone-reset").hidden = !manual;
+
+        const stageZone = $("#stage-zone");
+        if (stageZone) {
+            stageZone.dataset.status = id ? sevStatusKey(Z[id].sev) : "ok";
+            stageZone.textContent = !id
+                ? "VISTA GENERAL"
+                : autoMode
+                    ? `AUTO · ${ZONES[id].name}`
+                    : `${ZONES[id].code} · ${ZONES[id].name}`;
+        }
+
         $("#zone-auto").setAttribute("aria-pressed", String(autoMode));
         renderReadout(id ? Z[id] : null, Z);
     }
@@ -648,6 +666,11 @@
         selectZone(n.dataset.zone);
     });
     $("#zone-auto").addEventListener("click", () => { autoMode = true; renderBody(); });
+    $("#zone-reset").addEventListener("click", () => {
+        autoMode = true;
+        renderBody();
+        $("#zone-auto").focus({ preventScroll: true });
+    });
 
     /* Único listener de la bitácora: envía a la API y relee desde la BD */
     let logTimer = null;
@@ -938,7 +961,11 @@
     moduleButtons.forEach(b => b.addEventListener("click", () => openModule(b.dataset.module, b)));
     closeBtn.addEventListener("click", closeDrawer);
     document.addEventListener("keydown", e => {
-        if (e.key === "Escape" && workspace.classList.contains("drawer-open")) closeDrawer();
+        if (e.key !== "Escape") return;
+        if (workspace.classList.contains("drawer-open")) { closeDrawer(); return; }
+        const tag = (e.target && e.target.tagName || "").toLowerCase();
+        if (/^(input|textarea|select)$/.test(tag)) return;
+        if (!autoMode) { autoMode = true; renderBody(); }
     });
 
     const controlPanel = $("#control-panel");

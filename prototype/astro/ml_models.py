@@ -18,8 +18,8 @@ _PARENT_MODELS_ROOT = Path(__file__).resolve().parents[3] / "ASTRO-VITALS-AI-Mod
 DEFAULT_MODELS_ROOT = _REPO_MODELS_ROOT if _REPO_MODELS_ROOT.is_dir() else _PARENT_MODELS_ROOT
 FORECAST_MODEL_VERSION = "heart_rate_forecast/colab-v1"
 PATTERN_MODEL_VERSION = "physiological_patterns/colab-v1"
-PERSISTENCE_METHOD = "Persistencia a 60 s: conservar el último pulso válido"
-HYPOTHESIS_PREFIX = "Hipótesis orientativa (escenario simulado)"
+PERSISTENCE_METHOD = "60 s persistence: keep the last valid pulse"
+HYPOTHESIS_PREFIX = "Orientative hypothesis (simulated scenario)"
 STALE_LIMIT_S = 5.0
 DEFAULT_PATTERN_THRESHOLD = 0.6
 
@@ -44,7 +44,7 @@ def _parse_timestamp(value: datetime | str) -> datetime:
     elif isinstance(value, str):
         ts = datetime.fromisoformat(value.replace("Z", "+00:00"))
     else:
-        raise TypeError(f"Tipo de marca temporal no soportado: {type(value)!r}")
+        raise TypeError(f"Unsupported timestamp type: {type(value)!r}")
     if ts.tzinfo is None:
         return ts.replace(tzinfo=timezone.utc)
     return ts
@@ -77,7 +77,7 @@ def _normalize_samples(
         elif isinstance(now, int) and not isinstance(now, bool):
             t = now
         else:
-            raise TypeError("En modo dict[int, dict], 'now' debe ser int o None.")
+            raise TypeError("In dict[int, dict] mode, 'now' must be int or None.")
         samples_by_sec: dict[int, dict[str, float | None]] = {}
         for sec, row in samples.items():
             if not isinstance(sec, int) or isinstance(sec, bool) or sec > t:
@@ -92,7 +92,7 @@ def _normalize_samples(
         return samples_by_sec, t, None
 
     if isinstance(samples, (str, bytes)):
-        raise TypeError("'samples' debe ser dict[int, dict] o una secuencia de telemetría.")
+        raise TypeError("'samples' must be dict[int, dict] or a telemetry sequence.")
 
     items = list(samples)
     if not items:
@@ -224,20 +224,20 @@ class ModelRunner:
     ACTIVITY_CODES = {"rest": 0, "exercise": 1, "recovery": 2}
     PATTERN_HYPOTHESES = {
         "baseline_expected": (
-            f"{HYPOTHESIS_PREFIX}: señales compatibles con reposo estable "
-            "respecto a la línea base personal."
+            f"{HYPOTHESIS_PREFIX}: signals compatible with stable rest "
+            "relative to the personal baseline."
         ),
         "activity_expected": (
-            f"{HYPOTHESIS_PREFIX}: respuesta fisiológica compatible con la "
-            "actividad declarada."
+            f"{HYPOTHESIS_PREFIX}: physiological response compatible with the "
+            "declared activity."
         ),
         "persistent_recovery_deviation": (
-            f"{HYPOTHESIS_PREFIX}: desviación persistente durante la recuperación "
-            "respecto a la línea base personal."
+            f"{HYPOTHESIS_PREFIX}: persistent deviation during recovery "
+            "relative to the personal baseline."
         ),
         "combined_cabin_physiology_pattern": (
-            f"{HYPOTHESIS_PREFIX}: patrón combinado de cambio en CO₂ de cabina "
-            "y respuesta fisiológica."
+            f"{HYPOTHESIS_PREFIX}: combined pattern of cabin CO₂ change "
+            "and physiological response."
         ),
     }
 
@@ -269,7 +269,7 @@ class ModelRunner:
         metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
         bundle = joblib.load(bundle_path)
         if not isinstance(bundle, Mapping) or "model" not in bundle:
-            raise ValueError(f"Artefacto inválido en {bundle_path}")
+            raise ValueError(f"Invalid artifact at {bundle_path}")
         return bundle, manifest, metrics
 
     def _load_forecast(self) -> None:
@@ -278,12 +278,12 @@ class ModelRunner:
             bundle, manifest, metrics = self._read_artifact_triplet(model_dir)
             features = manifest.get("feature_order") or bundle.get("features")
             if not features:
-                raise ValueError("Falta feature_order en heart_rate_forecast.")
+                raise ValueError("Missing feature_order in heart_rate_forecast.")
             radius = bundle.get("interval_radius")
             if radius is None:
                 radius = metrics.get("empirical_interval", {}).get("validation_absolute_error_q90_bpm")
             if radius is None:
-                raise ValueError("Falta interval_radius en heart_rate_forecast.")
+                raise ValueError("Missing interval_radius in heart_rate_forecast.")
             self._forecast_model = bundle["model"]
             self._forecast_features = [str(name) for name in features]
             self._forecast_radius = float(radius)
@@ -300,7 +300,7 @@ class ModelRunner:
             bundle, manifest, metrics = self._read_artifact_triplet(model_dir)
             features = manifest.get("feature_order") or bundle.get("features")
             if not features:
-                raise ValueError("Falta feature_order en physiological_patterns.")
+                raise ValueError("Missing feature_order in physiological_patterns.")
             threshold = metrics.get("uncertainty", {}).get("selected_threshold")
             if threshold is None:
                 threshold = bundle.get("threshold")
@@ -323,7 +323,7 @@ class ModelRunner:
         persistence_hr: float | None,
     ) -> dict[str, Any]:
         radius = round(self._forecast_radius, 2) if self._forecast_radius is not None else None
-        method = PERSISTENCE_METHOD if persistence_hr is not None else "Sin pronóstico disponible"
+        method = PERSISTENCE_METHOD if persistence_hr is not None else "No forecast available"
         return {
             "available": False,
             "status": status,
@@ -401,14 +401,14 @@ class ModelRunner:
             return self._pattern_abstain(
                 "no_evaluable",
                 "modelo_no_disponible",
-                f"{HYPOTHESIS_PREFIX}: modelo de patrones no disponible.",
+                f"{HYPOTHESIS_PREFIX}: pattern model not available.",
             )
 
         if activity not in self.ACTIVITY_CODES:
             return self._pattern_abstain(
                 "no_evaluable",
                 "actividad_desconocida",
-                f"{HYPOTHESIS_PREFIX}: patrón no evaluable porque falta la actividad conocida.",
+                f"{HYPOTHESIS_PREFIX}: pattern not evaluable because the known activity is missing.",
             )
 
         if (
@@ -419,7 +419,7 @@ class ModelRunner:
             return self._pattern_abstain(
                 "calibrando",
                 "sin_linea_base",
-                f"{HYPOTHESIS_PREFIX}: calibrando línea base personal.",
+                f"{HYPOTHESIS_PREFIX}: calibrating personal baseline.",
             )
 
         features, reason = extract_window_features(samples, now=now, channels=("hr", "rr", "co2"))
@@ -447,7 +447,7 @@ class ModelRunner:
             return self._pattern_abstain(
                 "no_evaluable",
                 "confianza_insuficiente",
-                f"{HYPOTHESIS_PREFIX}: abstención por confianza insuficiente.",
+                f"{HYPOTHESIS_PREFIX}: abstention due to insufficient confidence.",
                 score=round(max_prob, 4),
             )
 
@@ -464,7 +464,7 @@ class ModelRunner:
             },
             "hypothesis": self.PATTERN_HYPOTHESES.get(
                 pred_label,
-                f"{HYPOTHESIS_PREFIX}: patrón clasificado ({pred_label}).",
+                f"{HYPOTHESIS_PREFIX}: classified pattern ({pred_label}).",
             ),
             "model_version": self._pattern_version,
         }
