@@ -12,64 +12,29 @@
     const MAX_VISIBLE = 4;
     const AUTO_DISMISS = { 1: 6500, 2: 9500 };   // ms según severidad
     const RATE_LIMIT_MS = 8000;                   // evita repetir la misma alerta
+    const SOUND_GAP_MS = 4000;                     // agrupa ráfagas de alertas
 
     const lastNotified = {};
     let lastSoundAt = 0;
-    let stack = null;
+    //let stack = null;
 
     /* ---------- SONIDO DESDE ARCHIVO ---------- */
-    // Ruta relativa a index.html: funciona tanto en "/" como en "/ui/".
-    const ALERT_SOUND_SRC = new URL("sounds/sound_alert.mp3", document.baseURI).href;
+    const ALERT_SOUND_SRC = "web/sounds/sound_alert.mp3";  // cambia el nombre si el tuyo es otro
     const ALERT_VOLUME = 0.8;                     // de 0 a 1
     const ALERT_REPEATS = 2;                      // cuántas veces suena
-    const SOUND_GAP_MS = 250;                     // evita duplicar el sonido en una misma ráfaga
 
     const alertAudio = new Audio(ALERT_SOUND_SRC);
     alertAudio.preload = "auto";
     alertAudio.volume = ALERT_VOLUME;
-    alertAudio.load();
 
     let repeatsLeft = 0;
     alertAudio.addEventListener("ended", () => {
         if (repeatsLeft > 0) {
             repeatsLeft--;
             alertAudio.currentTime = 0;
-            try { alertAudio.play().catch(() => fallbackBeep()); } catch (_) { fallbackBeep(); }
+            alertAudio.play().catch(() => {});
         }
     });
-    alertAudio.addEventListener("error", () => {
-        console.warn("No se pudo cargar el audio de alerta:", ALERT_SOUND_SRC);
-    });
-
-    /* ---------- RESPALDO: pitido sintetizado ---------- */
-    // Si el MP3 no carga (ruta/servidor) o el navegador bloquea la reproducción,
-    // generamos un pitido con Web Audio para que la alerta siempre sea audible.
-    let audioCtx = null;
-    function getAudioCtx() {
-        const Ctx = window.AudioContext || window.webkitAudioContext;
-        if (!Ctx) return null;
-        if (!audioCtx) audioCtx = new Ctx();
-        if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
-        return audioCtx;
-    }
-
-    function fallbackBeep(sev) {
-        const ctx = getAudioCtx();
-        if (!ctx) return;
-        const t0 = ctx.currentTime;
-        const freq = sev >= 2 ? 880 : 660;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "square";
-        osc.frequency.setValueAtTime(freq, t0);
-        osc.frequency.setValueAtTime(freq * 1.5, t0 + 0.12);
-        gain.gain.setValueAtTime(0.0001, t0);
-        gain.gain.exponentialRampToValueAtTime(0.12, t0 + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.32);
-        osc.connect(gain).connect(ctx.destination);
-        osc.start(t0);
-        osc.stop(t0 + 0.34);
-    }
 
     /* ---------- 1. CONTENEDOR ---------- */
     function getStack() {
@@ -85,39 +50,24 @@
     function unlockAudio() {
         if (audioUnlocked) return;
         audioUnlocked = true;
-        getAudioCtx();               // crea/reanuda el contexto dentro del gesto del usuario
         alertAudio.muted = true;
-        let p;
-        try { p = alertAudio.play(); } catch (_) { p = null; }
-        if (!p || typeof p.then !== "function") {
-            alertAudio.muted = false;
-            return;
-        }
-        p.then(() => { alertAudio.pause(); alertAudio.currentTime = 0; alertAudio.muted = false; })
+        alertAudio.play()
+            .then(() => { alertAudio.pause(); alertAudio.currentTime = 0; alertAudio.muted = false; })
             .catch(() => { audioUnlocked = false; alertAudio.muted = false; });
     }
     document.addEventListener("pointerdown", unlockAudio, { passive: true });
-    document.addEventListener("keydown", unlockAudio);
+    //document.addEventListener("keydown", unlockAudio);
 
     function playAlertSound(sev) {
         if (!ui.alerts.sound) return;
         const now = performance.now();
         if (now - lastSoundAt < SOUND_GAP_MS) return;
-        lastSoundAt = now;
 
-        repeatsLeft = Math.max(0, ALERT_REPEATS - 1);
-        try { alertAudio.currentTime = 0; } catch (_) { /* aún sin metadatos */ }
-        let p;
-        try { p = alertAudio.play(); } catch (_) { p = null; }
-        if (!p || typeof p.then !== "function") {
-            fallbackBeep(sev);
-            return;
-        }
-        p.catch(err => {
-            console.warn("Audio bloqueado o no encontrado, usando pitido de respaldo:", err);
-            audioUnlocked = false;   // se reintenta en la próxima interacción
-            fallbackBeep(sev);
-        });
+        repeatsLeft = ALERT_REPEATS - 1;
+        alertAudio.currentTime = 0;
+        alertAudio.play()
+            .then(() => { lastSoundAt = now; })
+            .catch(err => console.warn("Audio bloqueado o no encontrado:", err));
     }
 
     /* ---------- 3. AVISO FLOTANTE ---------- */

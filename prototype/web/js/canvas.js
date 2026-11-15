@@ -1,14 +1,14 @@
 /* =========================================================
    ASTRA HEALTH · CANVAS
-   ECG con barrido continuo (el periodo del latido depende de la FC)
-   y analizador de actividad segmentado estilo Winamp.
-   Todo es simulación; no procesa señal real.
+   ECG with continuous sweep (the beat period depends on HR)
+   and a segmented Winamp-style activity analyzer.
+   Everything is simulation; it does not process a real signal.
    ========================================================= */
 "use strict";
 
 const REDUCED_MOTION = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/* Ajusta la resolución del canvas a su tamaño CSS. Devuelve false si está oculto. */
+/* Fits the canvas resolution to its CSS size. Returns false if it is hidden. */
 function fitCanvas(canvas, st) {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = canvas.clientWidth, h = canvas.clientHeight;
@@ -21,7 +21,7 @@ function fitCanvas(canvas, st) {
     return true;
 }
 
-/* Un latido sintético: ondas P, Q, R, S y T como gaussianas. p en [0,1). */
+/* A synthetic heartbeat: P, Q, R, S and T waves as Gaussians. p in [0,1). */
 function ecgWave(p) {
     const g = (c, w, a) => a * Math.exp(-((p - c) * (p - c)) / (2 * w * w));
     return g(0.16, 0.025, 0.12) + g(0.265, 0.008, -0.12) + g(0.285, 0.011, 1) +
@@ -31,7 +31,7 @@ function ecgWave(p) {
 function createEcg(canvas) {
     const st = { w: 0, h: 0, dpr: 1, reset: true, buf: null, phase: 0, acc: 0, wander: 0 };
     const ctx = canvas.getContext("2d");
-    const SPEED = REDUCED_MOTION ? 60 : 120; // px/s de barrido
+    const SPEED = REDUCED_MOTION ? 60 : 120; // px/s sweep
 
     return function frame(dt, p) {
         if (!fitCanvas(canvas, st)) return;
@@ -39,7 +39,7 @@ function createEcg(canvas) {
         if (st.reset || !st.buf || st.buf.length !== W) {
             const old = st.buf;
             st.buf = new Float32Array(W);
-            if (old) {                               // conserva el trazo ya dibujado al cambiar el ancho
+            if (old) {                               // keeps the trace already drawn when the width changes
                 const k = Math.min(old.length, W);
                 st.buf.set(old.subarray(old.length - k), W - k);
             }
@@ -81,7 +81,7 @@ function createEcg(canvas) {
         }
         ctx.stroke();
 
-        // punto brillante en la cabeza del trazo
+        // bright dot at the head of the trace
         const hy = H * 0.66 - st.buf[W - 1] * H * 0.52;
         ctx.fillStyle = "#ffffff";
         ctx.shadowBlur = 10;
@@ -98,7 +98,7 @@ function createRadioSpectrum(canvas) {
     const peaks = new Float32Array(BINS);
     const targets = new Float32Array(BINS);
     const ctx = canvas.getContext("2d");
-    const REFRESH = REDUCED_MOTION ? 1.2 : 0.12;   // s entre actualizaciones del espectro
+    const REFRESH = REDUCED_MOTION ? 1.2 : 0.12;   // s between spectrum updates
 
     return function frame(dt, p) {
         if (!fitCanvas(canvas, st)) return;
@@ -110,7 +110,7 @@ function createRadioSpectrum(canvas) {
         if (st.t >= REFRESH) {
             st.t = 0;
             st.carrier = link === 2 ? 9 : link === 1 ? 13 : 17;
-            st.burst = 0.35 + Math.random() * 0.65;   // tráfico de la llamada
+            st.burst = 0.35 + Math.random() * 0.65;   // call traffic
 
             for (let i = 0; i < BINS; i++) {
                 const d = i - st.carrier;
@@ -135,7 +135,7 @@ function createRadioSpectrum(canvas) {
         const step = SEG_H + SEG_GAP;
         const segs = Math.max(1, Math.floor(H / step));
 
-        // Línea de portadora del enlace.
+        // Link carrier line.
         const cx = st.carrier * (barW + GAP) + barW / 2;
         ctx.save();
         ctx.globalAlpha = 0.35;
@@ -148,7 +148,7 @@ function createRadioSpectrum(canvas) {
         ctx.stroke();
         ctx.restore();
 
-        // Barras segmentadas estilo analizador; el pico central es la portadora.
+        // Analyzer-style segmented bars; the central peak is the carrier.
         for (let i = 0; i < BINS; i++) {
             const x = i * (barW + GAP);
             const lit = Math.round(heights[i] * segs);
@@ -165,7 +165,7 @@ function createRadioSpectrum(canvas) {
             }
         }
 
-        // Etiqueta de frecuencia de portadora.
+        // Carrier frequency label.
         ctx.fillStyle = color;
         ctx.globalAlpha = 0.8;
         ctx.font = "8px 'Share Tech Mono', monospace";
@@ -176,7 +176,7 @@ function createRadioSpectrum(canvas) {
 
 function clamp01(v) { return Math.max(0, Math.min(1, v)); }
 
-/* Bucle único. getParams() -> { running, hr, color, noise, level, link } */
+/* Single loop. getParams() -> { running, hr, color, noise, level, link } */
 function startCanvases(ecgCanvas, radioCanvas, getParams) {
     const ecg = ecgCanvas ? createEcg(ecgCanvas) : null;
     const radio = radioCanvas ? createRadioSpectrum(radioCanvas) : null;

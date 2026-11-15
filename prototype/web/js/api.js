@@ -1,12 +1,12 @@
 /* =========================================================
    ASTRA HEALTH · API
-   Única puerta de entrada de datos: REST (carga inicial e
-   historial) + WebSocket (actualizaciones de telemetría).
-   No genera valores: la fuente es SQLite a través de FastAPI.
+   Single data entry point: REST (initial load and
+   history) + WebSocket (telemetry updates).
+   It generates no values: the source is SQLite through FastAPI.
    ========================================================= */
 "use strict";
 
-// Dirección dinámica del backend FastAPI derivada del host actual
+// Dynamic FastAPI backend address derived from the current host
 const ORIGIN = (typeof window !== "undefined" && window.location && window.location.origin && window.location.origin !== "null")
     ? window.location.origin
     : "http://localhost:8000";
@@ -20,17 +20,17 @@ const backend = {
     reconnectTimer: null,
     onTelemetry: null,
 
-    // Tripulante activo (la consola muestra una sola cabina)
+    // Active crew member (the console shows a single cabin)
     astronautId: null,
 
-    // Última medición aplicada (evita re-renderizar la misma fila)
+    // Last measurement applied (avoids re-rendering the same row)
     lastAppliedId: null,
 
-    // Caché de la API para que los módulos rendericen de forma síncrona
+    // API cache so the modules render synchronously
     cache: {
         astronaut: null,
         latest: null,
-        history: [],    // orden ascendente por fecha
+        history: [],    // ascending order by date
         alerts: [],
         logs: [],
         insights: [],
@@ -41,7 +41,7 @@ const backend = {
         privacy: { share_behavioral: false }
     },
 
-    // Petición REST reutilizable sobre baseUrl
+    // Reusable REST request over baseUrl
     async _requestBase(baseUrl, endpoint, options = {}) {
         const { headers, ...rest } = options;
 
@@ -54,7 +54,7 @@ const backend = {
         });
 
         if (!response.ok) {
-            let detail = `Error HTTP ${response.status}`;
+            let detail = `HTTP error ${response.status}`;
 
             try {
                 const errorData = await response.json();
@@ -86,7 +86,7 @@ const backend = {
         return this._requestBase(V1_URL, endpoint, options);
     },
 
-    // Estado visual del enlace
+    // Visual link status
     setStatus(text, color) {
         const statusEl = document.querySelector("#connection-status");
 
@@ -96,7 +96,7 @@ const backend = {
         }
     },
 
-    /* ---------- 1. WebSocket de telemetría ---------- */
+    /* ---------- 1. Telemetry WebSocket ---------- */
     connectTelemetry() {
         if (
             this.socket &&
@@ -115,27 +115,27 @@ const backend = {
 
         socket.onopen = () => {
             this.isConnected = true;
-            console.log("Conectado a la telemetría de ASTRA Health");
-            this.setStatus("EN LÍNEA", "#00ff00");
+            console.log("Connected to ASTRA Health telemetry");
+            this.setStatus("ONLINE", "#00ff00");
         };
 
         socket.onmessage = (event) => {
             try {
                 this.handleMessage(JSON.parse(event.data));
             } catch (error) {
-                console.error("Error procesando telemetría:", error);
+                console.error("Error processing telemetry:", error);
             }
         };
 
         socket.onerror = (error) => {
-            console.error("Error en WebSocket:", error);
+            console.error("WebSocket error:", error);
         };
 
         socket.onclose = () => {
             if (this.socket !== socket) return;
 
             this.isConnected = false;
-            this.setStatus("DESCONECTADO - REINTENTANDO...", "#ff0000");
+            this.setStatus("DISCONNECTED - RETRYING...", "#ff0000");
 
             this.reconnectTimer = setTimeout(() => {
                 this.connectTelemetry();
@@ -145,22 +145,22 @@ const backend = {
 
     handleMessage(message) {
         if (!message || message.type === "no_data") {
-            this.setStatus("SIN TELEMETRÍA EN LA BD", "#ffb000");
+            this.setStatus("NO TELEMETRY IN THE DB", "#ffb000");
             return;
         }
 
         if (this.applyMeasurement(message)) {
-            this.setStatus("EN LÍNEA", "#00ff00");
+            this.setStatus("ONLINE", "#00ff00");
             if (typeof this.onTelemetry === "function") {
                 this.onTelemetry(message);
             }
         }
     },
 
-    /* ---------- 2. Normalización del contrato ---------- */
-    // El WebSocket usa nombres cortos (hr, sys...) y la REST usa los
-    // nombres de la tabla (heart_rate_bpm, systolic_bp...) o del contrato v1.
-    // Preserva null/undefined sin convertir nunca a 0.
+    /* ---------- 2. Contract normalization ---------- */
+    // The WebSocket uses short names (hr, sys...) and REST uses the
+    // table names (heart_rate_bpm, systolic_bp...) or the v1 contract.
+    // Preserves null/undefined without ever converting to 0.
     normalize(raw) {
         if (!raw) return null;
 
@@ -195,10 +195,10 @@ const backend = {
         };
     },
 
-    /* Escribe una medición en el estado global. Devuelve true si cambió. */
+    /* Writes a measurement into the global state. Returns true if it changed. */
     applyMeasurement(raw) {
         if (typeof state === "undefined") {
-            console.error("El estado global todavía no está disponible.");
+            console.error("The global state is not available yet.");
             return false;
         }
 
@@ -231,7 +231,7 @@ const backend = {
         state.dose = m.dose;
         state.ready = true;
 
-        // Si la telemetría es de otro tripulante, refrescar el perfil.
+        // If the telemetry belongs to another crew member, refresh the profile.
         if (
             m.astronautId !== null &&
             this.cache.astronaut &&
@@ -243,7 +243,7 @@ const backend = {
         return true;
     },
 
-    /* ---------- 3. Astronautas ---------- */
+    /* ---------- 3. Astronauts ---------- */
     getAstronauts() {
         return this.request("/astronauts/");
     },
@@ -278,7 +278,7 @@ const backend = {
         return this.cache.astronaut;
     },
 
-    /* ---------- 4. Mediciones ---------- */
+    /* ---------- 4. Measurements ---------- */
     getMeasurements(params = {}) {
         const query = new URLSearchParams(params).toString();
 
@@ -302,12 +302,12 @@ const backend = {
         const data = await this.getLatestMeasurements();
         const list = (Array.isArray(data) ? data : [data]).filter(Boolean);
 
-        // Prioriza la fila del tripulante activo; si aún no hay uno,
-        // usa la primera medición disponible.
+        // Prioritizes the active crew member's row; if there is none yet,
+        // uses the first available measurement.
         const chosen = list.find(row => row.astronaut_id === this.astronautId) || list[0];
 
         if (chosen) this.applyMeasurement(chosen);
-        if (!this.isConnected) this.setStatus("EN LÍNEA (REST)", "#ffb000");
+        if (!this.isConnected) this.setStatus("ONLINE (REST)", "#ffb000");
 
         return chosen || null;
     },
@@ -334,7 +334,7 @@ const backend = {
         return items;
     },
 
-    /* ---------- 5. Alertas ---------- */
+    /* ---------- 5. Alerts ---------- */
     getAlerts(params = {}) {
         const query = new URLSearchParams(params).toString();
 
@@ -362,7 +362,7 @@ const backend = {
         return this.cache.alerts;
     },
 
-    /* ---------- 6. Bitácora ---------- */
+    /* ---------- 6. Journal ---------- */
     getLogs(params = {}) {
         const query = new URLSearchParams(params).toString();
 
@@ -391,7 +391,7 @@ const backend = {
                 body: JSON.stringify({
                     astronaut_id: this.astronautId ?? 1,
                     zone: zoneData.zone,
-                    action: zoneData.action || "Escaneo rutinario sin acciones",
+                    action: zoneData.action || "Routine scan with no actions",
                     metrics: {
                         hr: state.hr,
                         spo2: state.spo2,
@@ -401,15 +401,15 @@ const backend = {
                 })
             });
 
-            console.log("Bitácora guardada:", result);
+            console.log("Journal saved:", result);
 
-            // La bitácora visible se relee desde la API.
+            // The visible journal is re-read from the API.
             await this.loadLogs().catch(() => {});
 
             return result;
 
         } catch (error) {
-            console.error("Error guardando bitácora:", error);
+            console.error("Error saving journal:", error);
             return null;
         }
     },
@@ -430,7 +430,7 @@ const backend = {
         return this.cache.insights;
     },
 
-    /* ---------- 8. Control de pasarela y API a bordo v1 ---------- */
+    /* ---------- 8. Gateway control and on-board API v1 ---------- */
     async getControl() {
         const data = await this.request("/control");
         this.cache.control = data || null;
@@ -453,7 +453,7 @@ const backend = {
     async getOnboardState() {
         const data = await this.v1Request("/state");
         this.cache.onboard = data || null;
-        if (!this.isConnected && data) this.setStatus("EN LÍNEA (REST)", "#ffb000");
+        if (!this.isConnected && data) this.setStatus("ONLINE (REST)", "#ffb000");
         if (data && data.privacy !== undefined && data.privacy !== null) {
             if (typeof data.privacy === "boolean") {
                 this.cache.privacy = { share_behavioral: data.privacy };
@@ -521,10 +521,10 @@ const backend = {
         });
     },
 
-    /* ---------- 9. Carga inicial y refresco ---------- */
+    /* ---------- 9. Initial load and refresh ---------- */
     async bootstrap() {
-        // Un endpoint caído no debe impedir cargar el resto: si el
-        // backend arranca después del frontend, `refresh()` reintenta.
+        // A failing endpoint must not prevent loading the rest: if the
+        // backend starts after the frontend, `refresh()` retries.
         await this.loadAstronaut().catch(() => null);
 
         await Promise.allSettled([
@@ -554,7 +554,7 @@ const backend = {
             this.getRoutines()
         ];
 
-        // Si la primera carga falló (backend apagado), se reintenta el perfil.
+        // If the first load failed (backend off), the profile is retried.
         if (!this.cache.astronaut) {
             tasks.push(this.loadAstronaut().catch(() => null));
         }
