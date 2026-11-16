@@ -24,7 +24,7 @@ async def wait_for(client, predicate, timeout=12):
         if predicate(state):
             return state
         await asyncio.sleep(0.25)
-    raise AssertionError("No se alcanzó el estado esperado dentro del tiempo límite.")
+    raise AssertionError("The expected state was not reached within the timeout period.")
 
 
 async def main():
@@ -65,9 +65,8 @@ async def main():
             app.save_screenshot("consola-compacta.svg", path=str(OUT))
             await pilot.press("1")
             await pilot.pause(1)
-    print("OK: TUI, escenarios por API, BIDMC, pérdida de señal, antigüedad, reconocimiento y dosis/refugio.")
-    print(f"Capturas: {OUT}")
-
+    print("OK: TUI, API scenarios, BIDMC, signal loss, data age, recognition, and dose/shelter.")
+    print(f"Screenshots: {OUT}")
 
 if __name__ == "__main__":
     asyncio.run(main())

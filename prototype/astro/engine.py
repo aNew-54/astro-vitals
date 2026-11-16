@@ -1,4 +1,4 @@
-"""Motor de reglas, calibración personal, sensibilidad al CO₂, proyecciones y modelos ML."""
+"""Rules engine, personal calibration, CO₂ sensitivity, projections, and ML models."""
 
 from __future__ import annotations
 
@@ -24,8 +24,8 @@ from .ml_models import HYPOTHESIS_PREFIX, ModelRunner
 from .profiles import get_profile
 from .report import build_episode_report
 
-METHOD = "Reglas de demostración v0.1 · sin modelo entrenado"
-FORECAST_METHOD = "Persistencia a 60 s: conservar el último pulso válido"
+METHOD = "Demo rules v0.1 — no trained model"
+FORECAST_METHOD = "60 s persistence: keep the last valid pulse"
 RULES_VERSION = "0.2.0"
 
 
@@ -78,7 +78,7 @@ def compute_co2_sensitivity(
     rr_alert: float = 23.0,
     window_s: float = 300.0,
 ) -> dict[str, Any]:
-    """Estima la sensibilidad respiratoria personal al CO₂ mediante OLS en ventana de hasta 5 min."""
+    """Estimate personal respiratory sensitivity to CO₂ via OLS over a window up to 5 min."""
     raw_items = list(samples)
     if not raw_items:
         return {
@@ -89,10 +89,10 @@ def compute_co2_sensitivity(
             "personal_threshold_mmhg": None,
             "sample_count": 0,
             "co2_range": None,
-            "reason": "Sin muestras disponibles para estimar sensibilidad al CO₂.",
+            "reason": "No samples available to estimate CO₂ sensitivity.",
         }
 
-    # Deduplicar por marca temporal cuando esté disponible, preservando orden cronológico.
+    # Deduplicate by timestamp when available, preserving chronological order.
     has_timestamps = any(_parse_ts(_get_field(item, "measured_at")) is not None for item in raw_items)
     if has_timestamps:
         by_ts: dict[datetime, Any] = {}
@@ -131,8 +131,8 @@ def compute_co2_sensitivity(
             "sample_count": len(valid_pairs),
             "co2_range": co2_range,
             "reason": (
-                f"Datos insuficientes para sensibilidad al CO₂ "
-                f"({len(valid_pairs)}/24 muestras válidas sin ejercicio en 5 min)."
+                f"Insufficient data for CO₂ sensitivity "
+                f"({len(valid_pairs)}/24 valid non-exercise samples in 5 min)."
             ),
         }
 
@@ -149,8 +149,8 @@ def compute_co2_sensitivity(
             "sample_count": len(valid_pairs),
             "co2_range": round(co2_range, 4),
             "reason": (
-                f"Variación de CO₂ insuficiente ({co2_range:.2f} < 0.40 mmHg) "
-                "para calibrar sensibilidad."
+                f"Insufficient CO₂ variation ({co2_range:.2f} < 0.40 mmHg) "
+                "to calibrate sensitivity."
             ),
         }
 
@@ -169,7 +169,7 @@ def compute_co2_sensitivity(
             "personal_threshold_mmhg": None,
             "sample_count": len(valid_pairs),
             "co2_range": round(co2_range, 4),
-            "reason": "Sin varianza suficiente en CO₂ para ajustar regresión.",
+            "reason": "Insufficient CO₂ variance to fit regression.",
         }
 
     slope = ss_xy / ss_xx
@@ -185,8 +185,8 @@ def compute_co2_sensitivity(
             "sample_count": len(valid_pairs),
             "co2_range": round(co2_range, 4),
             "reason": (
-                f"Ajuste lineal insuficiente para sensibilidad al CO₂ "
-                f"(r²={r2:.2f}; requiere pendiente > 0 y r² ≥ 0.60)."
+                f"Insufficient linear fit for CO₂ sensitivity "
+                f"(r²={r2:.2f}; requires slope > 0 and r² ≥ 0.60)."
             ),
         }
 
@@ -203,8 +203,8 @@ def compute_co2_sensitivity(
         "co2_range": round(co2_range, 4),
         "reason": None,
         "assumption": (
-            "Regresión lineal OLS en ventana de hasta 5 min sin ejercicio "
-            "(indicador orientativo, no diagnóstico)."
+            "Linear OLS regression over a window up to 5 min without exercise "
+            "(orientative indicator, not diagnostic)."
         ),
     }
 
@@ -236,7 +236,7 @@ class Engine:
         self._ack_revision: int | None = None
 
         self.baseline: dict[str, Any] = {
-            "status": "calibrando",
+            "status": "calibrating",
             "hr": None,
             "rr": None,
             "hr_mad": None,
@@ -302,8 +302,8 @@ class Engine:
 
         self._baseline_rest_samples.append(sample)
         count = len(self._baseline_rest_samples)
-        window_s = get_param("baseline_window_s")
-        # Calcular duración cubierta en reposo evitando falsos positivos ante huecos largos.
+        window_s = get_param("reaction_baseline_rest_s")
+        # Compute covered rest duration while avoiding false positives for long gaps.
         covered_s = 0.0
         for prev, curr in zip(self._baseline_rest_samples, self._baseline_rest_samples[1:]):
             gap = (curr.measured_at - prev.measured_at).total_seconds()
@@ -333,15 +333,15 @@ class Engine:
         hr_mad: float | None = None,
         rr_mad: float | None = None,
     ) -> dict[str, Any]:
-        """Fija explícitamente la línea base personal y la bloquea para el episodio."""
+        """Explicitly set the personal baseline and lock it for the episode."""
         if not _is_finite_number(hr) or not (0 < float(hr) <= 300):
-            raise ValueError("La frecuencia cardíaca base debe ser finita y estar en (0, 300].")
+            raise ValueError("Baseline heart rate must be finite and in (0, 300].")
         if not _is_finite_number(rr) or not (0 < float(rr) <= 100):
-            raise ValueError("La frecuencia respiratoria base debe ser finita y estar en (0, 100].")
+            raise ValueError("Baseline respiratory rate must be finite and in (0, 100].")
         if hr_mad is not None and (not _is_finite_number(hr_mad) or float(hr_mad) < 0):
-            raise ValueError("hr_mad debe ser finito y >= 0.")
+            raise ValueError("hr_mad must be finite and >= 0.")
         if rr_mad is not None and (not _is_finite_number(rr_mad) or float(rr_mad) < 0):
-            raise ValueError("rr_mad debe ser finito y >= 0.")
+            raise ValueError("rr_mad must be finite and >= 0.")
 
         with self._lock:
             self.baseline = {
@@ -401,14 +401,14 @@ class Engine:
     ) -> dict[str, Any]:
         profile = environment_profile or get_profile("station")
         thresholds = profile["thresholds"]
-        stale_seconds = get_param("stale_seconds")
+        stale_seconds = get_param("freshness_s")
 
         result: dict[str, Any] = {
             "level": "unknown",
-            "title": "Esperando telemetría",
-            "hypothesis": f"{HYPOTHESIS_PREFIX}: esperando telemetría inicial.",
-            "evidence": ["La API está lista; todavía no hay mediciones."],
-            "next_step": "Iniciar el simulador o la reproducción BIDMC.",
+            "title": "Waiting for telemetry",
+            "hypothesis": f"{HYPOTHESIS_PREFIX}: waiting for initial telemetry.",
+            "evidence": ["The API is ready; no measurements have been received yet."],
+            "next_step": "Start the simulator or BIDMC replay.",
             "method": METHOD,
             "forecast_hr": None,
             "forecast_method": FORECAST_METHOD,
@@ -419,16 +419,16 @@ class Engine:
         age = max(0.0, (now - sample.measured_at).total_seconds())
         if age > stale_seconds:
             result.update(
-                title="Telemetría desactualizada",
+                title="Stale telemetry",
                 hypothesis=(
-                    f"{HYPOTHESIS_PREFIX}: telemetría desactualizada; "
-                    "no se emite evaluación actual."
+                    f"{HYPOTHESIS_PREFIX}: stale telemetry; "
+                    "no current assessment is issued."
                 ),
                 evidence=[
-                    f"Última medición hace {age:.0f} s; el límite de demo es {stale_seconds:g} s."
+                    f"Last measurement was {age:.0f} s ago; the demo limit is {stale_seconds:g} s."
                 ],
                 next_step=(
-                    "Revisar conexión con la pasarela. No interpretar el último valor como actual."
+                    "Check gateway connection. Do not interpret the last value as current."
                 ),
             )
             return result
@@ -449,31 +449,31 @@ class Engine:
         if sample.hr is None or sample.rr is None:
             absent = ", ".join(
                 name
-                for name, value in (("pulso", sample.hr), ("respiración", sample.rr))
+                for name, value in (("pulse", sample.hr), ("respiration", sample.rr))
                 if value is None
             )
             result.update(
-                title="Evaluación fisiológica incompleta",
+                title="Incomplete physiological assessment",
                 hypothesis=(
-                    f"{HYPOTHESIS_PREFIX}: evaluación fisiológica incompleta "
-                    f"por ausencia de {absent}."
+                    f"{HYPOTHESIS_PREFIX}: incomplete physiological assessment "
+                    f"due to missing {absent}."
                 ),
-                evidence=[f"Sin lectura de {absent}; no se reemplaza por cero."],
-                next_step="Revisar señal y conexión del sensor.",
+                evidence=[f"No reading for {absent}; not replaced with zero."],
+                next_step="Check sensor signal and connection.",
             )
         elif sample.source == "bidmc":
             result.update(
-                title="Registro real · contexto limitado",
+                title="Real record · limited context",
                 hypothesis=(
-                    f"{HYPOTHESIS_PREFIX}: reproducción de registro clínico terrestre BIDMC "
-                    "con contexto ambiental y de actividad ausente."
+                    f"{HYPOTHESIS_PREFIX}: replay of terrestrial clinical BIDMC record "
+                    "with missing environmental and activity context."
                 ),
                 evidence=[
-                    f"Pulso {sample.hr:.0f} bpm · respiración {sample.rr:.0f}/min.",
-                    "BIDMC: registro clínico terrestre, sin CO₂, dosímetro ni actividad conocida.",
-                    "Reproducción histórica; no se asigna una hipótesis espacial.",
+                    f"Pulse {sample.hr:.0f} bpm · respiration {sample.rr:.0f}/min.",
+                    "BIDMC: terrestrial clinical record without CO₂, dosimeter, or known activity.",
+                    "Historical replay; no spatial hypothesis is assigned.",
                 ],
-                next_step="Explorar las señales reales; agregar contexto antes de interpretar.",
+                next_step="Explore the real signals; add context before interpreting.",
             )
         elif (
             sample.co2 is not None
@@ -482,77 +482,77 @@ class Engine:
         ):
             result.update(
                 level="alert",
-                title="Hipótesis: cambio respiratorio y ambiental",
+                title="Hypothesis: respiratory and environmental change",
                 hypothesis=(
-                    f"{HYPOTHESIS_PREFIX}: coincidencia de CO₂ elevado y "
-                    "aumento respiratorio en cabina."
+                    f"{HYPOTHESIS_PREFIX}: coincidence of elevated CO₂ and "
+                    "increased respiration in the cabin."
                 ),
                 evidence=[
-                    f"CO₂ {sample.co2:.2f} mmHg y respiración {sample.rr:.0f}/min.",
-                    "Coinciden dos cambios del escenario; no demuestra causalidad.",
+                    f"CO₂ {sample.co2:.2f} mmHg and respiration {sample.rr:.0f}/min.",
+                    "Two scenario changes coincide; this does not demonstrate causality.",
                     (
-                        f"Límites del entorno ({profile['name']}): "
-                        f"CO₂ ≥ {thresholds['co2_alert']:g} mmHg y "
-                        f"respiración ≥ {thresholds['rr_alert']:g}/min."
+                        f"Environment limits ({profile['name']}): "
+                        f"CO₂ ≥ {thresholds['co2_alert']:g} mmHg and "
+                        f"respiration ≥ {thresholds['rr_alert']:g}/min."
                     ),
                 ],
-                next_step="Verificar sensores y contexto de cabina; registrar la observación.",
+                next_step="Verify sensors and cabin context; log the observation.",
             )
         elif activity == "exercise":
             result.update(
                 level="normal",
-                title="Patrón compatible con actividad simulada",
+                title="Pattern compatible with simulated activity",
                 hypothesis=(
-                    f"{HYPOTHESIS_PREFIX}: respuesta fisiológica compatible "
-                    "con actividad física declarada."
+                    f"{HYPOTHESIS_PREFIX}: physiological response compatible "
+                    "with declared physical activity."
                 ),
                 evidence=[
-                    f"Actividad declarada: ejercicio · pulso {sample.hr:.0f} bpm.",
-                    "El contexto de actividad explica la interpretación de esta regla de demo.",
+                    f"Declared activity: exercise · pulse {sample.hr:.0f} bpm.",
+                    "The activity context explains this demo-rule interpretation.",
                 ],
-                next_step="Observar la tendencia al cambiar a recuperación.",
+                next_step="Observe the trend when switching to recovery.",
             )
         elif activity == "unknown":
             result.update(
-                title="Actividad desconocida",
+                title="Unknown activity",
                 hypothesis=(
-                    f"{HYPOTHESIS_PREFIX}: falta contexto de actividad para "
-                    "interpretar las señales fisiológicas."
+                    f"{HYPOTHESIS_PREFIX}: activity context is missing to "
+                    "interpret physiological signals."
                 ),
-                evidence=["Hay señales fisiológicas, pero falta el contexto de actividad."],
-                next_step="Confirmar la actividad antes de interpretar el pulso.",
+                evidence=["Physiological signals are present, but activity context is missing."],
+                next_step="Confirm activity before interpreting pulse.",
             )
         elif sample.hr >= float(thresholds["hr_watch"]):
             result.update(
                 level="watch",
-                title="Hipótesis: recuperación o pulso fuera del patrón de demo",
+                title="Hypothesis: recovery or pulse outside demo pattern",
                 hypothesis=(
-                    f"{HYPOTHESIS_PREFIX}: pulso elevado respecto al umbral de demo "
-                    "sin ejercicio declarado."
+                    f"{HYPOTHESIS_PREFIX}: elevated pulse relative to demo threshold "
+                    "without declared exercise."
                 ),
                 evidence=[
-                    f"Pulso {sample.hr:.0f} bpm sin actividad de ejercicio declarada.",
+                    f"Pulse {sample.hr:.0f} bpm without declared exercise activity.",
                     (
-                        f"El umbral del entorno es {thresholds['hr_watch']:g} bpm; "
-                        "no es una referencia personal."
+                        f"Environment threshold is {thresholds['hr_watch']:g} bpm; "
+                        "this is not a personal reference."
                     ),
-                    "Alternativas: cambio de actividad, variación individual o señal incorrecta.",
+                    "Alternatives: activity change, individual variation, or incorrect signal.",
                 ],
-                next_step="Confirmar actividad y calidad; observar si el pulso disminuye.",
+                next_step="Confirm activity and quality; observe whether pulse decreases.",
             )
         else:
             result.update(
                 level="normal",
-                title="Sin cambios señalados por las reglas de demo",
+                title="No changes flagged by demo rules",
                 hypothesis=(
-                    f"{HYPOTHESIS_PREFIX}: señales dentro de los rangos de demostración "
-                    "para el contexto actual."
+                    f"{HYPOTHESIS_PREFIX}: signals within demo ranges "
+                    "for the current context."
                 ),
                 evidence=[
-                    f"Pulso {sample.hr:.0f} bpm · respiración {sample.rr:.0f}/min.",
-                    "Esta comprobación no equivale a una evaluación completa de salud.",
+                    f"Pulse {sample.hr:.0f} bpm · respiration {sample.rr:.0f}/min.",
+                    "This check is not equivalent to a complete health assessment.",
                 ],
-                next_step="Continuar observando las señales y su contexto.",
+                next_step="Continue observing signals and their context.",
             )
             if (
                 baseline
@@ -564,19 +564,19 @@ class Engine:
             ):
                 result.update(
                     level="watch",
-                    title="Hipótesis: pulso sostenido sobre línea base personal",
+                    title="Hypothesis: pulse sustained above personal baseline",
                     hypothesis=(
-                        f"{HYPOTHESIS_PREFIX}: pulso sostenido por encima de la línea base "
-                        "personal fuera de ejercicio."
+                        f"{HYPOTHESIS_PREFIX}: pulse sustained above personal baseline "
+                        "outside of exercise."
                     ),
                     evidence=[
                         (
-                            f"Pulso {sample.hr:.0f} bpm (> línea base {float(baseline['hr']):.0f} + 25 bpm) "
-                            f"sostenido durante {sustained_baseline_s:.0f} s."
+                            f"Pulse {sample.hr:.0f} bpm (> baseline {float(baseline['hr']):.0f} + 25 bpm) "
+                            f"sustained for {sustained_baseline_s:.0f} s."
                         ),
-                        "Alternativas: recuperación prolongada, cambio de actividad o ruido del sensor.",
+                        "Alternatives: prolonged recovery, activity change, or sensor noise.",
                     ],
-                    next_step="Confirmar actividad y observar si el pulso regresa hacia la línea base.",
+                    next_step="Confirm activity and observe whether pulse returns toward baseline.",
                 )
 
         if (
@@ -591,49 +591,49 @@ class Engine:
             donki_source = external_event.get("source") or "NASA CCMC DONKI"
             sep_id = external_event.get("sep_id") or "SEP"
             hist_note = external_event.get("historical_note") or (
-                "Contexto histórico externo de referencia; no constituye dosimetría personal."
+                "External historical reference context; it does not constitute personal dosimetry."
             )
             result["level"] = "watch"
-            result["title"] = "Evento solar en observación"
+            result["title"] = "Solar event under observation"
             result["hypothesis"] = (
-                f"{HYPOTHESIS_PREFIX}: evento solar externo en observación (contexto NASA DONKI)."
+                f"{HYPOTHESIS_PREFIX}: external solar event under observation (NASA DONKI context)."
             )
             result["evidence"] = [
                 *result["evidence"],
-                f"Contexto externo {donki_source} ({sep_id}): fase watch.",
+                f"External context {donki_source} ({sep_id}): watch phase.",
                 hist_note,
             ]
             result["next_step"] = (
                 external_event.get("next_step")
-                or "Revisar lista de verificación de refugio antes de la llegada estimada."
+                or "Review shelter checklist before estimated arrival."
             )
 
-        # La tasa ambiental se interpreta por separado de las señales fisiológicas.
+        # Environmental rate is interpreted separately from physiological signals.
         if sample.dose_rate is not None and sample.dose_rate >= float(thresholds["dose_rate_alert"]):
             physiology = result["title"]
             rad_evidence = [
                 (
-                    f"Dosímetro simulado: {sample.dose_rate:.1f} μSv/h; "
-                    f"umbral del entorno ({profile['name']}): {thresholds['dose_rate_alert']:g} μSv/h."
+                    f"Simulated dosimeter: {sample.dose_rate:.1f} μSv/h; "
+                    f"environment threshold ({profile['name']}): {thresholds['dose_rate_alert']:g} μSv/h."
                 ),
-                f"Evaluación fisiológica separada: {physiology}.",
-                "La tasa no permite diagnosticar una lesión ni confirma un evento solar real.",
+                f"Separate physiological assessment: {physiology}.",
+                "The rate cannot diagnose injury or confirm a real solar event.",
             ]
             if external_event:
                 rad_evidence.append(
-                    f"Contexto externo {external_event.get('source', 'NASA DONKI')} "
-                    f"(fase {external_event.get('phase', 'activa')}): "
+                    f"External context {external_event.get('source', 'NASA DONKI')} "
+                    f"(phase {external_event.get('phase', 'active')}): "
                     f"{external_event.get('historical_note', '')}".strip()
                 )
             result.update(
                 level="alert",
-                title="Radiación simulada · revisar exposición",
+                title="Simulated radiation · review exposure",
                 hypothesis=(
-                    f"{HYPOTHESIS_PREFIX}: tasa de radiación simulada por encima del umbral; "
-                    "revisar exposición y refugio."
+                    f"{HYPOTHESIS_PREFIX}: simulated radiation rate above threshold; "
+                    "review exposure and shelter."
                 ),
                 evidence=rad_evidence,
-                next_step="Probar el refugio del simulador y observar la tasa y el acumulado.",
+                next_step="Test the simulator shelter and observe rate and accumulated dose.",
             )
 
         if (
@@ -706,7 +706,7 @@ class Engine:
         return assessment
 
     def compute_co2_sensitivity(self, samples: Iterable[Any] | None = None) -> dict[str, Any]:
-        """Calcula sensibilidad personal al CO₂ usando historial reciente o muestras dadas."""
+        """Compute personal CO₂ sensitivity using recent history or provided samples."""
         with self._lock:
             rr_alert = float(self.environment_profile["thresholds"]["rr_alert"])
             if samples is None:
@@ -721,10 +721,10 @@ class Engine:
         return compute_co2_sensitivity(target_samples, rr_alert=rr_alert)
 
     def compute_projections(self, now: datetime | None = None) -> dict[str, Any]:
-        """Calcula proyecciones de CO₂ (promedio 1 h + ETA) y dosis a 1 h con/sin refugio."""
+        """Compute CO₂ projections (1 h average + ETA) and 1 h dose with/without shelter."""
         current = _normalize_now(now)
         with self._lock:
-            stale_seconds = get_param("stale_seconds")
+            stale_seconds = get_param("freshness_s")
             shelter_factor = get_param("shelter_factor")
             co2_alert = float(self.environment_profile["thresholds"]["co2_alert"])
             nasa_1h_ref = get_param("co2_nasa_1h")
@@ -738,7 +738,7 @@ class Engine:
             )
             dose_total = float(self.dose_total)
 
-        # Promedio móvil 60 min y cobertura
+        # 60 min moving average and coverage
         cutoff_1h = current - timedelta(seconds=3600)
         co2_1h = [
             item
@@ -754,8 +754,8 @@ class Engine:
         coverage_pct = round(min(100.0, (len(buckets_1h) / 720.0) * 100.0), 2)
         moving_avg_1h = round(statistics.fmean([float(item.co2) for item in co2_1h]), 3) if co2_1h else None
 
-        # Tendencia lineal en últimos 120 s de CO₂
-        assumption = "Tendencia lineal constante en los últimos 120 s (no es predicción médica)"
+        # Linear trend over last 120 s of CO₂
+        assumption = "Constant linear trend over the last 120 s (not a medical prediction)"
         slope_s: float | None = None
         r2_co2: float | None = None
         eta_s: float | None = None
@@ -763,9 +763,9 @@ class Engine:
         co2_reason: str | None = None
 
         if not is_fresh or latest is None:
-            co2_reason = "datos_antiguos" if latest is not None else "sin_datos"
+            co2_reason = "stale_data" if latest is not None else "no_data"
         elif latest.co2 is None:
-            co2_reason = "sin_lectura_co2"
+            co2_reason = "no_co2_reading"
         else:
             cutoff_120 = latest.measured_at - timedelta(seconds=120)
             co2_120 = [
@@ -776,7 +776,7 @@ class Engine:
                 and item.co2 is not None
             ]
             if len(co2_120) < 5:
-                co2_reason = "cobertura_insuficiente_120s"
+                co2_reason = "insufficient_coverage_120s"
             else:
                 t0 = co2_120[0].measured_at
                 times = [(item.measured_at - t0).total_seconds() for item in co2_120]
@@ -788,7 +788,7 @@ class Engine:
                 ss_yy = sum((y - y_mean) ** 2 for y in values)
 
                 if ss_tt <= 0:
-                    co2_reason = "cobertura_insuficiente_120s"
+                    co2_reason = "insufficient_coverage_120s"
                 else:
                     slope_val = ss_ty / ss_tt
                     r2_val = (
@@ -799,9 +799,9 @@ class Engine:
                     slope_s = round(slope_val, 6)
                     r2_co2 = round(r2_val, 4)
                     if slope_val <= 0:
-                        co2_reason = "tendencia_no_ascendente"
+                        co2_reason = "non_rising_trend"
                     elif r2_val < 0.6:
-                        co2_reason = "baja_correlacion_lineal"
+                        co2_reason = "low_linear_correlation"
                     elif float(latest.co2) >= co2_alert:
                         eta_s = 0.0
                         eta_minutes = 0.0
@@ -835,7 +835,7 @@ class Engine:
             rate = None
             projected_without_shelter = None
             projected_with_shelter = None
-            rad_reason = "datos_antiguos" if (latest is not None and not is_fresh) else "sin_lectura_dosimetria"
+            rad_reason = "stale_data" if (latest is not None and not is_fresh) else "no_dosimetry_reading"
 
         radiation_proj = {
             "horizon_hours": 1.0,
@@ -854,7 +854,7 @@ class Engine:
         if not self.history:
             return []
         sample = self.history[-1]
-        stale_seconds = get_param("stale_seconds")
+        stale_seconds = get_param("freshness_s")
         age = max(0.0, (now - sample.measured_at).total_seconds())
         if age > stale_seconds:
             return []
@@ -863,7 +863,7 @@ class Engine:
             return []
 
         options = []
-        for value, label in (("rest", "Reposo"), ("exercise", "Ejercicio")):
+        for value, label in (("rest", "Rest"), ("exercise", "Exercise")):
             hypothetical = self._assessment_for(
                 sample.model_copy(update={"activity": value}),
                 now,
@@ -886,7 +886,7 @@ class Engine:
         return [
             {
                 "id": "activity_context",
-                "prompt": "¿Cuál es la actividad actual?",
+                "prompt": "What is the current activity?",
                 "options": options,
             }
         ]
@@ -897,13 +897,13 @@ class Engine:
         with self._lock:
             if sample.sample_id in self._seen:
                 if self._seen[sample.sample_id] != payload:
-                    raise ConflictError("sample_id ya existe con otro contenido.")
+                    raise ConflictError("sample_id already exists with different content.")
                 return {"accepted": True, "duplicate": True}
             if (sample.measured_at - current).total_seconds() > 5:
-                raise ValueError("La medición está más de 5 s en el futuro.")
+                raise ValueError("Measurement is more than 5 s in the future.")
             previous = self.history[-1] if self.history else None
             if previous and sample.measured_at <= previous.measured_at:
-                raise ConflictError("La medición no es posterior a la última aceptada.")
+                raise ConflictError("Measurement is not after the last accepted one.")
 
             if sample.dose_rate is None:
                 self.dose_complete = False
@@ -964,7 +964,7 @@ class Engine:
             return {"accepted": True, "duplicate": False}
 
     def set_environment(self, env_id: str) -> dict[str, Any]:
-        """Actualiza el perfil de entorno simulado activo y sus umbrales."""
+        """Update the active simulated environment profile and its thresholds."""
         profile = get_profile(env_id)
         with self._lock:
             self.environment_profile = profile
@@ -976,17 +976,17 @@ class Engine:
         decl: ActivityDeclaration | Mapping[str, Any],
         now: datetime | None = None,
     ) -> dict[str, Any]:
-        """Registra una declaración manual de actividad del tripulante."""
+        """Record a manual crew activity declaration."""
         parsed = decl if isinstance(decl, ActivityDeclaration) else ActivityDeclaration(**decl)
         current = _normalize_now(now)
-        started_at = parsed.started_at or current
+        started_at = getattr(parsed, "started_at", None) or current
         with self._lock:
             latest = self.history[-1] if self.history else None
             self.activity_declaration = {
                 "activity": parsed.activity,
-                "started_at": started_at.isoformat(),
+                "started_at": started_at.isoformat() if hasattr(started_at, "isoformat") else str(started_at),
                 "declared_at": current.isoformat(),
-                "note": parsed.note,
+                "note": getattr(parsed, "note", None),
             }
             if latest is not None and latest.activity != "unknown":
                 self._activity_override_source_activity = latest.activity
@@ -994,7 +994,7 @@ class Engine:
                 self._activity_override_source_activity = None
 
             self._activity_phase = parsed.activity
-            self._activity_phase_started_at = started_at
+            self._activity_phase_started_at = started_at if isinstance(started_at, datetime) else current
             self._activity_phase_source = latest.source if latest is not None else None
             return copy.deepcopy(self.activity_declaration)
 
@@ -1003,7 +1003,7 @@ class Engine:
         req: ContextEventRequest | Mapping[str, Any] | None,
         now: datetime | None = None,
     ) -> dict[str, Any]:
-        """Activa o limpia el evento solar externo (contexto NASA DONKI)."""
+        """Activate or clear the external solar event (NASA DONKI context)."""
         if req is None:
             parsed = ContextEventRequest(kind="clear")
         elif isinstance(req, ContextEventRequest):
@@ -1011,7 +1011,7 @@ class Engine:
         elif isinstance(req, Mapping) and "sep_id" in req and "phase" in req:
             parsed = ContextEventRequest(
                 kind=str(req.get("kind", "solar")),
-                phase=str(req["phase"]),
+                phase=str(req.get("phase", "watch")),
                 shelter=bool(req.get("shelter", False)),
             )
         else:
@@ -1029,13 +1029,16 @@ class Engine:
                     "shelter_active": False,
                 }
 
+            shelter_requested = bool(getattr(parsed, "shelter", False))
+            if isinstance(req, Mapping):
+                shelter_requested = bool(req.get("shelter", shelter_requested))
             ctx = get_solar_context(
-                phase=parsed.phase,
-                shelter=parsed.shelter,
+                phase=parsed.phase or "watch",
+                shelter=shelter_requested,
                 shelter_factor=get_param("shelter_factor"),
             )
             self.coach.activate_solar_checklist(True)
-            self.shelter_active = bool(parsed.shelter)
+            self.shelter_active = shelter_requested
             self.external_event = {
                 **ctx,
                 "kind": "solar",
@@ -1053,7 +1056,7 @@ class Engine:
             }
 
     def set_privacy(self, share_behavioral: bool) -> dict[str, bool]:
-        """Actualiza la preferencia de privacidad conductual para informes SBAR."""
+        """Update behavioral privacy preference for SBAR reports."""
         with self._lock:
             self.share_behavioral = bool(share_behavioral)
             return {"share_behavioral": self.share_behavioral}
@@ -1063,7 +1066,7 @@ class Engine:
         req: CheckInRequest | Mapping[str, Any],
         now: datetime | None = None,
     ) -> dict[str, Any]:
-        """Registra un check-in conductual asociando el último CO₂ disponible (si no es null)."""
+        """Record a behavioral check-in, attaching the latest available CO₂ (if not null)."""
         parsed = req if isinstance(req, CheckInRequest) else CheckInRequest(**req)
         with self._lock:
             latest = self.history[-1] if self.history else None
@@ -1080,14 +1083,14 @@ class Engine:
             )
 
     def complete_routine(self, routine_id: str, now: datetime | None = None) -> dict[str, Any]:
-        """Marca una rutina como completada en el Coach de participación."""
+        """Mark a routine as completed in the participation Coach."""
         with self._lock:
             return self.coach.complete_routine(routine_id, now=now)
 
     def trends(self, window_s: int = 3600, now: datetime | None = None) -> dict[str, Any]:
-        """Devuelve resumen y serie de tendencias en la ventana solicitada (sin rellenar faltantes con 0)."""
+        """Return trend summary and series for the requested window (without filling missing with 0)."""
         if window_s <= 0:
-            raise ValueError("window_s debe ser mayor que 0.")
+            raise ValueError("window_s must be greater than 0.")
         current = _normalize_now(now)
         cutoff = current - timedelta(seconds=window_s)
         with self._lock:
@@ -1152,7 +1155,7 @@ class Engine:
 
     def state(self, now: datetime | None = None) -> dict[str, Any]:
         current = _normalize_now(now)
-        stale_seconds = get_param("stale_seconds")
+        stale_seconds = get_param("freshness_s")
         with self._lock:
             latest = self.history[-1] if self.history else None
             age = max(0.0, (current - latest.measured_at).total_seconds()) if latest else None
@@ -1201,7 +1204,7 @@ class Engine:
         share_behavioral: bool | None = None,
         now: datetime | None = None,
     ) -> dict[str, Any]:
-        """Genera el informe SBAR del episodio respetando el filtro de privacidad."""
+        """Generate the SBAR episode report respecting the privacy filter."""
         return build_episode_report(self.state(now), share_behavioral=share_behavioral)
 
     def acknowledge(self, now: datetime | None = None) -> dict[str, Any]:
@@ -1209,18 +1212,18 @@ class Engine:
         with self._lock:
             assessment = self._assessment(current)
             if assessment["level"] not in {"watch", "alert"}:
-                raise ConflictError("No hay una alerta vigente que reconocer.")
+                raise ConflictError("There is no active alert to acknowledge.")
             if self._ack_revision == self._revision:
                 return {
                     "accepted": True,
                     "duplicate": True,
-                    "detail": "Ya reconocida; condición sin resolver.",
+                    "detail": "Already acknowledged; condition still unresolved.",
                 }
             self._ack_revision = self._revision
-            self._event("Alerta reconocida por el usuario; la condición continúa activa.", current)
+            self._event("Alert acknowledged by user; condition remains active.", current)
             self.coach.record_ack(now=current)
             return {
                 "accepted": True,
                 "duplicate": False,
-                "detail": "Reconocida; la condición continúa activa.",
+                "detail": "Acknowledged; condition remains active.",
             }

@@ -1,4 +1,4 @@
-"""Persistencia SQLite pura (stdlib) para ASTRO-VITALS, preservando NULL estrictos."""
+"""Pure SQLite persistence (stdlib) for ASTRO-VITALS, preserving strict NULL values."""
 
 from __future__ import annotations
 
@@ -12,9 +12,9 @@ import sqlite3
 import threading
 from typing import Any, Iterator, Mapping
 
-NON_CLINICAL_PREFIX = "Hipótesis orientativa (escenario simulado)"
+NON_CLINICAL_PREFIX = "Guidance hypothesis (simulated scenario)"
 _IA_PREDICTION_RE = re.compile(r"\[IA\s*PREDICTION\]\s*:?\s*", re.IGNORECASE)
-_HYPOTHESIS_RE = re.compile(r"^hip[óo]tesis\s*:\s*", re.IGNORECASE)
+_HYPOTHESIS_RE = re.compile(r"^(guidance\s+hypothesis|hypothesis)\s*:\s*", re.IGNORECASE)
 
 _DEFAULT_ASTRONAUT = {
     "id": 1,
@@ -61,11 +61,11 @@ _WS_FIELD_MAP: tuple[tuple[str, str, str], ...] = (
 
 
 class DuplicateRecordError(ValueError):
-    """Error lanzado al intentar crear un registro con clave única duplicada."""
+    """Raised when attempting to create a record with a duplicate unique key."""
 
 
 def utc_now_iso() -> str:
-    """Retorna la marca de tiempo UTC actual en formato ISO 8601."""
+    """Return the current UTC timestamp in ISO 8601 format."""
     return datetime.now(timezone.utc).isoformat()
 
 
@@ -80,7 +80,7 @@ def _normalize_timestamp(value: Any) -> str:
 
 
 def _to_float_or_none(value: Any) -> float | None:
-    """Convierte a float finito preservando None/vacíos como NULL (nunca 0)."""
+    """Convert to finite float while preserving None/empty values as NULL (never 0)."""
     if value is None or isinstance(value, bool):
         return None
     if isinstance(value, str):
@@ -106,7 +106,7 @@ def _pick_float(payload: Mapping[str, Any], *keys: str) -> float | None:
 
 
 def sanitize_non_clinical(text: str | None, *, force_prefix: bool = False) -> str:
-    """Elimina '[IA PREDICTION]' y aplica encabezado orientativo no clínico."""
+    """Remove '[IA PREDICTION]' and apply a non-clinical orientative header."""
     raw = str(text or "").strip()
     had_ia_tag = bool(_IA_PREDICTION_RE.search(raw))
     cleaned = re.sub(r"\s{2,}", " ", _IA_PREDICTION_RE.sub("", raw)).strip()
@@ -125,11 +125,11 @@ def _infer_alert_metric_and_zone(
 ) -> tuple[str, str]:
     lowered = title.lower()
     dose = _pick_float(sample, "dose_rate", "dose", "radiation_usvh")
-    if "radiación" in lowered or "dosis" in lowered or (dose is not None and dose >= 40.0):
+    if "radiation" in lowered or "dose" in lowered or (dose is not None and dose >= 40.0):
         return "dose_rate", "environment"
-    if "co2" in lowered or "co₂" in lowered or "respiratorio" in lowered:
+    if "co2" in lowered or "co₂" in lowered or "respiratory" in lowered:
         return "co2", "cabin"
-    if "pulso" in lowered or "frecuencia cardíaca" in lowered:
+    if "pulse" in lowered or "heart rate" in lowered:
         return "hr", "cardiovascular"
     metric = str(assessment.get("metric") or "telemetry")
     zone = str(assessment.get("zone") or "cabin")
@@ -137,7 +137,7 @@ def _infer_alert_metric_and_zone(
 
 
 class Storage:
-    """Almacenamiento SQLite seguro entre hilos para telemetría, alertas, bitácora e insights."""
+    """Thread-safe SQLite storage for telemetry, alerts, logs, and insights."""
 
     def __init__(self, db_path: str | Path = ":memory:") -> None:
         self.db_path = str(db_path)
@@ -159,7 +159,7 @@ class Storage:
         self._init_schema()
 
     def close(self) -> None:
-        """Cierra la conexión en memoria si existe."""
+        """Close the in-memory connection if present."""
         with self._lock:
             if self._memory_conn is not None:
                 self._memory_conn.close()
@@ -170,7 +170,7 @@ class Storage:
         with self._lock:
             if self._is_memory:
                 if self._memory_conn is None:
-                    raise RuntimeError("La conexión SQLite en memoria ya fue cerrada.")
+                    raise RuntimeError("The in-memory SQLite connection is already closed.")
                 conn = self._memory_conn
                 close_after = False
             else:
@@ -315,13 +315,13 @@ class Storage:
     # ---------- Astronauts ----------
 
     def get_astronauts(self) -> list[dict[str, Any]]:
-        """Lista todos los tripulantes ordenados por ID."""
+        """List all crew members ordered by ID."""
         with self._connect() as conn:
             rows = conn.execute("SELECT * FROM astronauts ORDER BY id ASC").fetchall()
             return [dict(row) for row in rows]
 
     def get_astronaut(self, astronaut_id: int) -> dict[str, Any] | None:
-        """Retorna un tripulante por ID o None si no existe."""
+        """Return a crew member by ID, or None if not found."""
         with self._connect() as conn:
             row = conn.execute(
                 "SELECT * FROM astronauts WHERE id = ?",
@@ -330,13 +330,13 @@ class Storage:
             return self._row_to_dict(row)
 
     def create_astronaut(self, payload: Mapping[str, Any]) -> dict[str, Any]:
-        """Inserta un nuevo tripulante; lanza DuplicateRecordError si el código ya existe."""
+        """Insert a new crew member; raises DuplicateRecordError if the code already exists."""
         code = str(payload.get("code") or "").strip()
         name = str(payload.get("name") or "").strip()
         role = str(payload.get("role") or "").strip()
         mission = str(payload.get("mission") or "").strip()
         if not code or not name or not role or not mission:
-            raise ValueError("code, name, role y mission son obligatorios.")
+            raise ValueError("code, name, role, and mission are required.")
 
         mission_day = int(payload.get("mission_day") if payload.get("mission_day") is not None else 1)
         age = int(payload["age"]) if payload.get("age") is not None else None
@@ -357,7 +357,7 @@ class Storage:
                     (code, name, role, mission, mission_day, age, blood_type, height_cm, weight_kg, status),
                 )
             except sqlite3.IntegrityError as exc:
-                raise DuplicateRecordError(f"El código de tripulante '{code}' ya existe.") from exc
+                raise DuplicateRecordError(f"Crew member code '{code}' already exists.") from exc
 
             row = conn.execute(
                 "SELECT * FROM astronauts WHERE id = ?",
@@ -434,14 +434,14 @@ class Storage:
         return dict(row)
 
     def create_measurement(self, payload: Mapping[str, Any]) -> dict[str, Any]:
-        """Persiste una medición aceptando nombres largos o cortos sin convertir NULL en 0."""
+        """Persist a measurement accepting long or short names without converting NULL to 0."""
         with self._connect() as conn:
             return self._insert_measurement_in_tx(conn, payload)
 
     def list_measurements(
         self, astronaut_id: int | None = None, limit: int = 500
     ) -> list[dict[str, Any]]:
-        """Lista mediciones recientes (NULL preservado), opcionalmente filtradas por tripulante."""
+        """List recent measurements (NULL preserved), optionally filtered by crew member."""
         with self._connect() as conn:
             if astronaut_id is not None:
                 rows = conn.execute(
@@ -458,7 +458,7 @@ class Storage:
     def get_latest_measurement(
         self, astronaut_id: int | None = None
     ) -> dict[str, Any] | None:
-        """Retorna la medición más reciente o None si no hay registros."""
+        """Return the most recent measurement, or None if no records exist."""
         with self._connect() as conn:
             if astronaut_id is not None:
                 row = conn.execute(
@@ -472,7 +472,7 @@ class Storage:
             return self._row_to_dict(row)
 
     def get_latest_measurements(self) -> list[dict[str, Any]]:
-        """Retorna la medición más reciente de cada tripulante."""
+        """Return the most recent measurement for each crew member."""
         with self._connect() as conn:
             rows = conn.execute(
                 """
@@ -489,7 +489,7 @@ class Storage:
             return [dict(row) for row in rows]
 
     def get_measurement(self, measurement_id: int) -> dict[str, Any] | None:
-        """Retorna una medición por ID o None si no existe."""
+        """Return a measurement by ID, or None if not found."""
         with self._connect() as conn:
             row = conn.execute(
                 "SELECT * FROM measurements WHERE id = ?",
@@ -504,7 +504,7 @@ class Storage:
         scenario: str | None = None,
         astronaut_id: int = 1,
     ) -> dict[str, Any]:
-        """Guarda telemetría del Engine de forma idempotente y deriva alerta/insight si aplica."""
+        """Store Engine telemetry idempotently and derive alert/insight when applicable."""
         raw = sample.model_dump(mode="json") if hasattr(sample, "model_dump") else dict(sample)
         sample_id_raw = raw.get("sample_id")
         sample_id = str(sample_id_raw).strip() if sample_id_raw is not None and str(sample_id_raw).strip() else None
@@ -532,11 +532,11 @@ class Storage:
                     raw_title = str(
                         assessment.get("hypothesis")
                         or assessment.get("title")
-                        or "Cambio observado en telemetría"
+                        or "Observed change in telemetry"
                     )
                     message = sanitize_non_clinical(raw_title, force_prefix=True)
                     suggested_action = sanitize_non_clinical(
-                        str(assessment.get("next_step") or "Revisar señales y contexto operativo.")
+                        str(assessment.get("next_step") or "Review signals and operational context.")
                     )
                     metric, zone = _infer_alert_metric_and_zone(raw_title, raw, assessment)
 
@@ -607,7 +607,7 @@ class Storage:
         severity: str | None = None,
         acknowledged: bool | None = None,
     ) -> list[dict[str, Any]]:
-        """Lista alertas con filtros opcionales."""
+        """List alerts with optional filters."""
         clauses: list[str] = []
         params: list[Any] = []
         if astronaut_id is not None:
@@ -627,13 +627,13 @@ class Storage:
             return [self._row_to_alert(row) for row in rows]
 
     def create_alert(self, payload: Mapping[str, Any]) -> dict[str, Any]:
-        """Crea una alerta sanitizando cualquier texto clínico o '[IA PREDICTION]'."""
+        """Create an alert while sanitizing any clinical text or '[IA PREDICTION]'."""
         astronaut_id = int(payload.get("astronaut_id") or 1)
         measurement_id = payload.get("measurement_id")
         severity = str(payload.get("severity") or "warning").strip().lower()
         metric = str(payload.get("metric") or "general").strip()
         zone = str(payload["zone"]).strip() if payload.get("zone") is not None else None
-        message = sanitize_non_clinical(payload.get("message") or "Aviso de telemetría")
+        message = sanitize_non_clinical(payload.get("message") or "Telemetry notice")
         raw_action = payload.get("suggested_action")
         suggested_action = sanitize_non_clinical(raw_action) if raw_action is not None else None
         acknowledged = 1 if payload.get("acknowledged") else 0
@@ -666,7 +666,7 @@ class Storage:
             return self._row_to_alert(row)
 
     def acknowledge_alert(self, alert_id: int) -> dict[str, Any] | None:
-        """Marca una alerta como reconocida; retorna None si no existe."""
+        """Mark an alert as acknowledged; returns None if it does not exist."""
         with self._connect() as conn:
             cursor = conn.execute(
                 "UPDATE alerts SET acknowledged = 1 WHERE id = ?",
@@ -685,7 +685,7 @@ class Storage:
     def list_logs(
         self, astronaut_id: int | None = None, limit: int = 50
     ) -> list[dict[str, Any]]:
-        """Lista entradas de bitácora ordenadas de la más reciente a la más antigua."""
+        """List log entries from newest to oldest."""
         with self._connect() as conn:
             if astronaut_id is not None:
                 rows = conn.execute(
@@ -700,10 +700,10 @@ class Storage:
             return [self._row_to_log(row) for row in rows]
 
     def create_log(self, payload: Mapping[str, Any]) -> dict[str, Any]:
-        """Crea un registro en la bitácora."""
+        """Create a log entry."""
         astronaut_id = int(payload.get("astronaut_id") or 1)
         zone = str(payload.get("zone") or "general").strip()
-        action = str(payload.get("action") or "Escaneo rutinario sin acciones").strip()
+        action = str(payload.get("action") or "Routine scan with no actions").strip()
         timestamp = _normalize_timestamp(payload.get("timestamp"))
 
         raw_metrics_json = payload.get("metrics_json")
@@ -736,7 +736,7 @@ class Storage:
     # ---------- Insights ----------
 
     def get_insights(self, limit: int = 50) -> list[dict[str, Any]]:
-        """Lista los insights más recientes."""
+        """List the most recent insights."""
         with self._connect() as conn:
             rows = conn.execute(
                 "SELECT * FROM insights ORDER BY id DESC LIMIT ?",
@@ -745,13 +745,13 @@ class Storage:
             return [dict(row) for row in rows]
 
     def create_insight(self, payload: Mapping[str, Any]) -> dict[str, Any]:
-        """Crea un insight no clínico y, si risk_level == 'critical', crea su alerta asociada."""
+        """Create a non-clinical insight and, if risk_level == 'critical', its associated alert."""
         astronaut_id = int(payload.get("astronaut_id") or 1)
         risk_level = str(payload.get("risk_level") or "info").strip().lower()
         category = str(payload.get("category") or "telemetry").strip()
         is_critical = risk_level == "critical"
         description = sanitize_non_clinical(
-            payload.get("description") or "Observación de escenario simulado",
+            payload.get("description") or "Simulated scenario observation",
             force_prefix=is_critical,
         )
         recommendation = sanitize_non_clinical(payload.get("recommendation") or "")
@@ -774,7 +774,7 @@ class Storage:
 
             if is_critical:
                 alert_message = sanitize_non_clinical(description, force_prefix=True)
-                alert_action = recommendation or "Revisar telemetría y contexto operativo."
+                alert_action = recommendation or "Review telemetry and operational context."
                 conn.execute(
                     """
                     INSERT INTO alerts (
@@ -799,7 +799,7 @@ class Storage:
 
     @staticmethod
     def to_ws_payload(measurement: Mapping[str, Any]) -> dict[str, Any]:
-        """Convierte una fila de measurements al contrato corto de WS /telemetry preservando None."""
+        """Convert a measurements row to the short WS /telemetry contract while preserving None."""
         payload: dict[str, Any] = {
             "type": "telemetry",
             "astronaut_id": measurement.get("astronaut_id"),

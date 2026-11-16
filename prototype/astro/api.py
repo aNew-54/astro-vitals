@@ -1,4 +1,4 @@
-"""API de la nave para la pasarela, puente web SQLite y TUI."""
+"""Onboard API for the gateway, SQLite web bridge, and TUI."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ def create_app(
     gateway: Gateway | None = None,
     gateway_url: str | None = None,
 ) -> FastAPI:
-    api = FastAPI(title="ASTRO-VITALS · prototipo", version="0.2.0")
+    api = FastAPI(title="ASTRO-VITALS · prototype", version="0.2.0")
     db_path = os.getenv("ASTRO_DB_PATH", ":memory:")
     api.state.engine = engine or Engine()
     api.state.storage = storage if storage is not None else Storage(db_path)
@@ -97,7 +97,7 @@ def create_app(
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         except ValueError as exc:
             detail = str(exc)
-            code = 404 if "desconocida" in detail.lower() else 422
+            code = 404 if "unknown" in detail.lower() or "desconocida" in detail.lower() else 422
             raise HTTPException(status_code=code, detail=detail) from exc
 
     @api.post("/api/v1/checkin")
@@ -149,7 +149,7 @@ def create_app(
             api.state.storage.create_log(
                 {
                     "zone": "console",
-                    "action": "Alerta reconocida por la tripulación (/api/v1/ack)",
+                    "action": "Alert acknowledged by crew (/api/v1/ack)",
                 }
             )
         return result

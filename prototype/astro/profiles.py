@@ -1,4 +1,4 @@
-"""Perfiles de entorno simulado para ajustar umbrales y tasas en ASTRO-VITALS."""
+"""Simulated environment profiles for tuning thresholds and rates in ASTRO-VITALS."""
 
 from __future__ import annotations
 
@@ -8,8 +8,8 @@ from typing import Any
 PROFILES: dict[str, dict[str, Any]] = {
     "transit": {
         "id": "transit",
-        "name": "Tránsito espacial",
-        "description": "Módulo presurizado en trayecto de espacio profundo fuera de la magnetosfera.",
+        "name": "Deep-space transit",
+        "description": "Pressurized module on a deep-space trajectory outside the magnetosphere.",
         "origin": "demo",
         "rest_targets": {
             "hr": 73.0,
@@ -25,12 +25,12 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
         "co2_ramp_rate_mmhg_min": 0.8,
         "radiation_multiplier": 2.0,
-        "help_text": "Hipótesis orientativa (escenario simulado): en tránsito profundo la exposición ambiental de base es mayor que en estación; vigilar tasa de dosis y ventilación del módulo.",
+        "help_text": "Guidance hypothesis (simulated scenario): in deep-space transit the baseline environmental exposure is higher than in station; monitor dose rate and module ventilation.",
     },
     "station": {
         "id": "station",
-        "name": "Estación orbital",
-        "description": "Hábitat orbital de referencia con volumen amplio de cabina y protección geomagnética parcial.",
+        "name": "Orbital station",
+        "description": "Reference orbital habitat with larger cabin volume and partial geomagnetic protection.",
         "origin": "demo",
         "rest_targets": {
             "hr": 72.0,
@@ -46,12 +46,12 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
         "co2_ramp_rate_mmhg_min": 0.6,
         "radiation_multiplier": 1.0,
-        "help_text": "Hipótesis orientativa (escenario simulado): perfil base de estación orbital; comprobar actividad declarada, depuradores de CO₂ y cobertura del dosímetro simulado.",
+        "help_text": "Guidance hypothesis (simulated scenario): baseline orbital-station profile; verify declared activity, CO₂ scrubbers, and simulated dosimeter coverage.",
     },
     "rover": {
         "id": "rover",
-        "name": "Rover presurizado",
-        "description": "Vehículo de exploración de cabina compacta con menor volumen de aire y mayor dinámica térmica.",
+        "name": "Pressurized rover",
+        "description": "Exploration vehicle with compact cabin volume and higher thermal dynamics.",
         "origin": "demo",
         "rest_targets": {
             "hr": 74.0,
@@ -67,12 +67,12 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
         "co2_ramp_rate_mmhg_min": 1.2,
         "radiation_multiplier": 1.4,
-        "help_text": "Hipótesis orientativa (escenario simulado): cabina reducida donde el CO₂ asciende con mayor rapidez que en estación; revisar depuración y pausas de actividad.",
+        "help_text": "Guidance hypothesis (simulated scenario): reduced cabin volume where CO₂ rises faster than in station; review scrubbing and activity breaks.",
     },
     "base": {
         "id": "base",
-        "name": "Base superficial",
-        "description": "Hábitat de superficie planetaria o lunar con gran volumen interior y exposición ambiental elevada en superficie.",
+        "name": "Surface base",
+        "description": "Planetary or lunar surface habitat with large interior volume and elevated surface environmental exposure.",
         "origin": "demo",
         "rest_targets": {
             "hr": 71.0,
@@ -88,18 +88,18 @@ PROFILES: dict[str, dict[str, Any]] = {
         },
         "co2_ramp_rate_mmhg_min": 0.45,
         "radiation_multiplier": 1.5,
-        "help_text": "Hipótesis orientativa (escenario simulado): entorno de base con umbral estricto para tasa de dosis ambiental; priorizar verificación de refugio simulado ante picos solares.",
+        "help_text": "Guidance hypothesis (simulated scenario): base environment with a strict threshold for environmental dose rate; prioritize simulated shelter checks during solar spikes.",
     },
 }
 
 
 def get_profile(profile_id: str = "station") -> dict[str, Any]:
-    """Retorna una copia del perfil solicitado o lanza ValueError si no existe."""
+    """Return a copy of the requested profile or raise ValueError if it does not exist."""
     if profile_id not in PROFILES:
-        raise ValueError(f"Perfil de entorno desconocido: {profile_id!r}")
+        raise ValueError(f"Unknown environment profile: {profile_id!r}")
     return copy.deepcopy(PROFILES[profile_id])
 
 
 def list_profiles() -> list[dict[str, Any]]:
-    """Retorna todos los perfiles de entorno disponibles en el prototipo."""
+    """Return all available environment profiles in the prototype."""
     return [copy.deepcopy(profile) for profile in PROFILES.values()]

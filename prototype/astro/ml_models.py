@@ -19,7 +19,7 @@ DEFAULT_MODELS_ROOT = _REPO_MODELS_ROOT if _REPO_MODELS_ROOT.is_dir() else _PARE
 FORECAST_MODEL_VERSION = "heart_rate_forecast/colab-v1"
 PATTERN_MODEL_VERSION = "physiological_patterns/colab-v1"
 PERSISTENCE_METHOD = "60 s persistence: keep the last valid pulse"
-HYPOTHESIS_PREFIX = "Orientative hypothesis (simulated scenario)"
+HYPOTHESIS_PREFIX = "Guidance hypothesis (simulated scenario)"
 STALE_LIMIT_S = 5.0
 DEFAULT_PATTERN_THRESHOLD = 0.6
 
@@ -67,11 +67,11 @@ def _normalize_samples(
     channels: tuple[str, ...],
 ) -> tuple[dict[int, dict[str, float | None]] | None, int | None, str | None]:
     if samples is None:
-        return None, None, "sin_datos"
+        return None, None, "no_data"
 
     if isinstance(samples, Mapping):
         if not samples:
-            return None, None, "sin_datos"
+            return None, None, "no_data"
         if now is None:
             t = max(samples)
         elif isinstance(now, int) and not isinstance(now, bool):
@@ -88,7 +88,7 @@ def _normalize_samples(
                 for val in (_get_field(row, ch),)
             }
         if not samples_by_sec:
-            return None, None, "sin_datos"
+            return None, None, "no_data"
         return samples_by_sec, t, None
 
     if isinstance(samples, (str, bytes)):
@@ -96,13 +96,13 @@ def _normalize_samples(
 
     items = list(samples)
     if not items:
-        return None, None, "sin_datos"
+        return None, None, "no_data"
 
     block = _contiguous_source_block(items)
     latest_ts = _parse_timestamp(_get_field(block[-1], "measured_at"))
     now_ts = latest_ts if now is None else _parse_timestamp(now)
     if (now_ts - latest_ts).total_seconds() > STALE_LIMIT_S:
-        return None, None, "datos_antiguos"
+        return None, None, "stale_data"
 
     by_sec_meta: dict[int, tuple[datetime, int, dict[str, float | None]]] = {}
     for idx, item in enumerate(block):
@@ -121,7 +121,7 @@ def _normalize_samples(
         sec: payload for sec, (_, _, payload) in by_sec_meta.items() if sec <= 0
     }
     if not samples_by_sec:
-        return None, None, "sin_datos"
+        return None, None, "no_data"
     return samples_by_sec, 0, None
 
 
@@ -133,7 +133,7 @@ def extract_window_features(
     """Compute causal 30 s and 120 s window features matching preparar_bidmc.features_at."""
     samples_by_sec, t, norm_error = _normalize_samples(samples, now, channels)
     if norm_error is not None or samples_by_sec is None or t is None:
-        return None, norm_error or "sin_datos"
+        return None, norm_error or "no_data"
 
     relevant_secs = sorted(samples_by_sec)
     window_secs = [sec for sec in relevant_secs if sec >= t - 119]
@@ -141,10 +141,10 @@ def extract_window_features(
 
     for signal in channels:
         if all(samples_by_sec[sec].get(signal) is None for sec in check_secs):
-            return None, f"falta_{signal}"
+            return None, f"missing_{signal}"
 
     if t - relevant_secs[0] < 119:
-        return None, "calibrando"
+        return None, "calibrating"
 
     features: dict[str, float] = {}
     for signal in channels:
@@ -156,8 +156,8 @@ def extract_window_features(
             ]
             if len(points) < math.ceil(0.8 * width) or t - points[-1][0] > STALE_LIMIT_S:
                 if width == 120 and len(relevant_secs) < 96:
-                    return None, "calibrando"
-                return None, "cobertura_insuficiente"
+                    return None, "calibrating"
+                return None, "insufficient_coverage"
 
             times, values = zip(*points)
             center_t = fmean(times)
@@ -211,11 +211,11 @@ def _persistence_hr(
 
 
 def _map_window_status(reason: str | None) -> str:
-    if reason == "datos_antiguos":
-        return "datos_antiguos"
-    if reason == "calibrando":
-        return "calibrando"
-    return "no_evaluable"
+    if reason == "stale_data":
+        return "stale_data"
+    if reason == "calibrating":
+        return "calibrating"
+    return "not_evaluable"
 
 
 class ModelRunner:
@@ -345,7 +345,7 @@ class ModelRunner:
         """Predict +60 s heart rate when the 120 s window is valid, else fall back to persistence."""
         persistence_hr = _persistence_hr(samples, now)
         if self._forecast_model is None:
-            return self._forecast_unavailable("no_evaluable", "modelo_no_disponible", persistence_hr)
+            return self._forecast_unavailable("not_evaluable", "model_not_available", persistence_hr)
 
         features, reason = extract_window_features(samples, now=now, channels=("hr", "rr"))
         if features is None:
@@ -399,15 +399,15 @@ class ModelRunner:
         """Classify the 120 s physiological/cabin pattern or abstain cleanly with reason."""
         if self._pattern_model is None:
             return self._pattern_abstain(
-                "no_evaluable",
-                "modelo_no_disponible",
+                "not_evaluable",
+                "model_not_available",
                 f"{HYPOTHESIS_PREFIX}: pattern model not available.",
             )
 
         if activity not in self.ACTIVITY_CODES:
             return self._pattern_abstain(
-                "no_evaluable",
-                "actividad_desconocida",
+                "not_evaluable",
+                "unknown_activity",
                 f"{HYPOTHESIS_PREFIX}: pattern not evaluable because the known activity is missing.",
             )
 
@@ -417,8 +417,8 @@ class ModelRunner:
             or not _is_valid_number(baseline.get("rr"))
         ):
             return self._pattern_abstain(
-                "calibrando",
-                "sin_linea_base",
+                "calibrating",
+                "no_baseline",
                 f"{HYPOTHESIS_PREFIX}: calibrating personal baseline.",
             )
 
@@ -445,8 +445,8 @@ class ModelRunner:
 
         if max_prob < self._pattern_threshold:
             return self._pattern_abstain(
-                "no_evaluable",
-                "confianza_insuficiente",
+                "not_evaluable",
+                "insufficient_confidence",
                 f"{HYPOTHESIS_PREFIX}: abstention due to insufficient confidence.",
                 score=round(max_prob, 4),
             )

@@ -1,1 +1,1 @@
-"""ASTRO-VITALS: prototipo local de telemetría e interpretación."""
+"""ASTRO-VITALS: local telemetry and interpretation prototype."""

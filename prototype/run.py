@@ -1,4 +1,5 @@
-"""Lanza la demo local de ASTRO-VITALS (API, pasarela, consola web o TUI)."""
+
+"""Launch the local ASTRO-VITALS demo (API, gateway, web console, or TUI)."""
 
 from __future__ import annotations
 
@@ -31,7 +32,7 @@ def _replay_file(client: httpx.Client, onboard_url: str, gateway_url: str, repla
     if not records:
         return 0
 
-    # Pausar la pasarela simulada para no mezclar marcas temporales durante la reproducción.
+    # Pause the simulated gateway to avoid mixing timestamps during playback.
     client.post(f"{gateway_url}/control", json={"paused": True}).raise_for_status()
 
     timestamps = [datetime.fromisoformat(rec["measured_at"]) for rec in records]
@@ -51,34 +52,34 @@ def _replay_file(client: httpx.Client, onboard_url: str, gateway_url: str, repla
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="ASTRO-VITALS — prototipo local")
+    parser = argparse.ArgumentParser(description="ASTRO-VITALS — local prototype")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument(
         "--services-only",
         action="store_true",
-        help="Mantener API y pasarela sin abrir interfaz interactiva",
+        help="Keep the API and gateway running without opening the interactive interface",
     )
     mode.add_argument(
         "--web",
         action="store_true",
-        help="Servir la consola web en http://127.0.0.1:<onboard-port>/",
+        help="Serve the web console at http://127.0.0.1:<onboard-port>/",
     )
     mode.add_argument(
         "--tui",
         action="store_true",
-        help="Abrir la TUI de terminal (modo por defecto)",
+        help="Open the terminal TUI (default mode)",
     )
     parser.add_argument(
         "--environment",
         choices=("transit", "station", "rover", "base"),
         default="station",
-        help="Perfil inicial de entorno simulado",
+        help="Initial simulated environment profile",
     )
     parser.add_argument(
         "--replay",
         type=Path,
         default=None,
-        help="Archivo CSV/TSV/JSON/JSONL a convertir y reproducir al iniciar",
+        help="CSV/TSV/JSON/JSONL file to convert and replay at startup",
     )
     parser.add_argument("--onboard-port", type=int, default=8000)
     parser.add_argument("--gateway-port", type=int, default=8002)
@@ -89,16 +90,16 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.onboard_port == args.gateway_port:
-        parser.error("La API y la pasarela necesitan puertos diferentes.")
+        parser.error("The API and gateway must use different ports.")
     for port in (args.onboard_port, args.gateway_port):
         if not 1024 <= port <= 65535:
-            parser.error("El puerto debe estar entre 1024 y 65535.")
+            parser.error("The port must be between 1024 and 65535.")
         if port_is_busy(port):
-            print(f"El puerto {port} está ocupado. Cierra la demo anterior o elige otros puertos.")
+            print(f"Port {port} is already in use. Close the previous demo or choose different ports.")
             return 1
 
     if args.replay is not None and not args.replay.exists():
-        print(f"No existe el archivo para --replay: {args.replay}", file=sys.stderr)
+        print(f"The file specified for --replay does not exist: {args.replay}", file=sys.stderr)
         return 1
 
     env = os.environ.copy()
@@ -142,7 +143,7 @@ def main(argv: list[str] | None = None) -> int:
         with httpx.Client(timeout=2.0, trust_env=False) as client:
             while time.monotonic() < deadline:
                 if any(process.poll() is not None for process in processes):
-                    raise RuntimeError(f"Un servicio no pudo iniciar. Revisa {logs}")
+                    raise RuntimeError(f"A service failed to start. Check {logs}")
                 try:
                     for url in (env["ONBOARD_URL"], env["GATEWAY_URL"]):
                         client.get(url + "/health").raise_for_status()
@@ -150,7 +151,7 @@ def main(argv: list[str] | None = None) -> int:
                 except httpx.HTTPError:
                     time.sleep(0.2)
             else:
-                raise RuntimeError(f"No se pudo conectar con los servicios. Revisa {logs}")
+                raise RuntimeError(f"Could not connect to the services. Check {logs}")
 
             if args.environment:
                 client.post(
@@ -160,12 +161,12 @@ def main(argv: list[str] | None = None) -> int:
 
             if args.replay is not None:
                 sent = _replay_file(client, env["ONBOARD_URL"], env["GATEWAY_URL"], args.replay)
-                print(f"Replay cargado: {sent} registros desde {args.replay}", flush=True)
+                print(f"Replay loaded: {sent} records from {args.replay}", flush=True)
 
         if args.web:
             web_url = f"{env['ONBOARD_URL']}/"
             print(
-                f"Consola web {web_url} | API {env['ONBOARD_URL']} | Pasarela {env['GATEWAY_URL']} | Ctrl+C para detener",
+                f"Web console {web_url} | API {env['ONBOARD_URL']} | Gateway {env['GATEWAY_URL']} | Press Ctrl+C to stop",
                 flush=True,
             )
             try:
@@ -174,16 +175,16 @@ def main(argv: list[str] | None = None) -> int:
                 pass
             while all(process.poll() is None for process in processes):
                 time.sleep(0.5)
-            raise RuntimeError("Un servicio se detuvo; revisa los logs.")
+            raise RuntimeError("A service stopped; check the logs.")
 
         if args.services_only:
             print(
-                f"API {env['ONBOARD_URL']} | Pasarela {env['GATEWAY_URL']} | Ctrl+C para detener",
+                f"API {env['ONBOARD_URL']} | Gateway {env['GATEWAY_URL']} | Press Ctrl+C to stop",
                 flush=True,
             )
             while all(process.poll() is None for process in processes):
                 time.sleep(0.5)
-            raise RuntimeError("Un servicio se detuvo; revisa los logs.")
+            raise RuntimeError("A service stopped; check the logs.")
 
         from astro.tui import AstroVitalsApp
 

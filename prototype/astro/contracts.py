@@ -1,4 +1,4 @@
-"""Contrato de telemetría y peticiones de control/contexto; unidades fijas para esta demostración."""
+"""Telemetry and control/context request contract; fixed units for this demo."""
 
 import math
 from typing import Literal
@@ -32,7 +32,7 @@ class Telemetry(BaseModel):
     @model_validator(mode="after")
     def preserve_real_data_provenance(self):
         if self.source == "bidmc" and (self.co2 is not None or self.dose_rate is not None):
-            raise ValueError("BIDMC no contiene CO₂ ni dosimetría: deben ser null.")
+            raise ValueError("BIDMC does not contain CO₂ or dosimetry: they must be null.")
         return self
 
     @model_validator(mode="after")
@@ -41,10 +41,10 @@ class Telemetry(BaseModel):
             return self
         for key, value in self.extras.items():
             if not isinstance(key, str) or not key.strip():
-                raise ValueError("Las claves de 'extras' deben ser cadenas no vacías.")
+                raise ValueError("Keys in 'extras' must be non-empty strings.")
             if isinstance(value, (int, float)) and not isinstance(value, bool):
                 if not math.isfinite(value):
-                    raise ValueError(f"Valor no finito en extras[{key!r}].")
+                    raise ValueError(f"Non-finite value in extras[{key!r}].")
         return self
 
 
@@ -62,7 +62,7 @@ class CheckInRequest(BaseModel):
     def validate_reaction_ms(self):
         for value in self.reaction_ms:
             if not math.isfinite(value) or value <= 0:
-                raise ValueError("Todos los valores de reaction_ms deben ser finitos y mayores que 0.")
+                raise ValueError("All reaction_ms values must be finite and greater than 0.")
         return self
 
 

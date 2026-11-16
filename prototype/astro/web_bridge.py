@@ -1,4 +1,4 @@
-"""Puente REST + WebSocket entre SQLite, Engine, Gateway y la consola web."""
+"""REST + WebSocket bridge between SQLite, Engine, Gateway, and the web console."""
 
 from __future__ import annotations
 
@@ -93,7 +93,7 @@ class LogCreate(BaseModel):
 
     astronaut_id: int = 1
     zone: str = "general"
-    action: str = "Escaneo rutinario sin acciones"
+    action: str = "Routine scan with no actions"
     metrics: dict[str, Any] | list[Any] | None = None
     metrics_json: str | None = None
     timestamp: str | None = None
@@ -158,7 +158,7 @@ def _apply_inprocess_gateway_update(
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
 
-    # Stubs de pruebas: intentar ControlUpdate y si rechaza campos/valores, pasar objeto/dict.
+    # Test stubs: try ControlUpdate and if it rejects fields/values, pass an object/dict.
     try:
         change_obj: Any = ControlUpdate(**fields)
     except ValidationError:
@@ -227,7 +227,7 @@ def create_web_router(
     *,
     ws_poll_interval: float = 0.5,
 ) -> APIRouter:
-    """Crea el APIRouter con endpoints REST /api/* y WebSocket /telemetry."""
+    """Create the APIRouter with REST /api/* endpoints and /telemetry WebSocket."""
     db = storage if storage is not None else Storage(os.getenv("ASTRO_DB_PATH", ":memory:"))
     resolved_gateway_url = (gateway_url or os.getenv("GATEWAY_URL", "")).strip().rstrip("/") or None
     control_lock = RLock()
@@ -281,7 +281,7 @@ def create_web_router(
     def get_astronaut(astronaut_id: int) -> dict[str, Any]:
         astronaut = db.get_astronaut(astronaut_id)
         if astronaut is None:
-            raise HTTPException(status_code=404, detail="Tripulante no encontrado.")
+            raise HTTPException(status_code=404, detail="Crew member not found.")
         return astronaut
 
     @router.post("/api/astronauts/", status_code=status.HTTP_201_CREATED)
@@ -312,7 +312,7 @@ def create_web_router(
     @router.post("/api/measurements/", status_code=status.HTTP_201_CREATED)
     def create_measurement(body: MeasurementCreate) -> dict[str, Any]:
         if db.get_astronaut(body.astronaut_id) is None:
-            raise HTTPException(status_code=404, detail="Tripulante no encontrado.")
+            raise HTTPException(status_code=404, detail="Crew member not found.")
         return db.create_measurement(body.model_dump())
 
     # ---------- Alerts ----------
@@ -337,7 +337,7 @@ def create_web_router(
     def acknowledge_alert(alert_id: int) -> dict[str, Any]:
         updated = db.acknowledge_alert(alert_id)
         if updated is None:
-            raise HTTPException(status_code=404, detail="Alerta no encontrada.")
+            raise HTTPException(status_code=404, detail="Alert not found.")
         return updated
 
     # ---------- Logs ----------
@@ -379,9 +379,9 @@ def create_web_router(
                     response = await client.get(f"{resolved_gateway_url}/control")
                 if 200 <= response.status_code < 300:
                     return _merge_control_meta(response.json())
-                return _fallback_control(error=f"Pasarela HTTP {response.status_code}")
+                return _fallback_control(error=f"Gateway HTTP {response.status_code}")
             except httpx.HTTPError:
-                return _fallback_control(error="Pasarela sin respuesta; usando estado local.")
+                return _fallback_control(error="Gateway not responding; using local state.")
 
         return _fallback_control()
 
@@ -390,7 +390,7 @@ def create_web_router(
         if body.environment is not None:
             env_name = body.environment.strip()
             if not env_name:
-                raise HTTPException(status_code=422, detail="environment no puede estar vacío.")
+                raise HTTPException(status_code=422, detail="environment cannot be empty.")
             if engine is not None and hasattr(engine, "set_environment"):
                 try:
                     engine.set_environment(env_name)
@@ -443,7 +443,7 @@ def create_web_router(
                 elif response.status_code == 422:
                     raise HTTPException(status_code=422, detail=response.text)
                 else:
-                    gw_data = _fallback_control(error=f"Pasarela HTTP {response.status_code}")
+                    gw_data = _fallback_control(error=f"Gateway HTTP {response.status_code}")
             except httpx.HTTPError:
                 with control_lock:
                     if body.scenario is not None:
@@ -456,7 +456,7 @@ def create_web_router(
                         control_meta["shelter"] = (
                             body.shelter if control_meta["scenario"] in {"solar", "solar_event"} else False
                         )
-                gw_data = _fallback_control(error="Pasarela sin respuesta; usando estado local.")
+                gw_data = _fallback_control(error="Gateway not responding; using local state.")
         else:
             with control_lock:
                 if body.scenario is not None:

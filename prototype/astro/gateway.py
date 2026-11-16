@@ -38,48 +38,30 @@ SolarPhase = Literal["watch", "arrival", "peak", "decay"]
 BIDMC_PATH = Path(__file__).resolve().parents[1] / "data" / "bidmc_01_Numerics.csv"
 TARGETS = {
     "rest": (72.0, 14.0, 2.0, 0.5),
-    "exercise": (118.0, 25.0, 2.0, 0.5),
-    "cabin": (105.0, 28.0, 5.0, 0.5),
-    "solar": (74.0, 15.0, 2.0, 80.0),
+    "exercise": (118.0, 25.0, 2.4, 0.6),
+    "cabin": (86.0, 19.0, 4.8, 0.6),
+    "co2_ramp": (72.0, 14.0, 2.0, 0.5),
+    "solar": (74.0, 15.0, 2.0, 85.0),
+    "solar_event": (74.0, 15.0, 2.0, 1.2),
     "signal_loss": (72.0, 14.0, 2.0, 0.5),
+    "bidmc": (72.0, 14.0, 2.0, 0.5),
 }
 
 
-def _number(value: str | None) -> float | None:
-    if value is None or not value.strip():
-        return None
-    number = float(value)
-    return number if math.isfinite(number) else None
+def _int_env(name: str, default: int) -> int:
+    try:
+        return int(os.getenv(name, str(default)))
+    except ValueError:
+        return default
 
 
-def load_bidmc(path: Path) -> list[dict[str, float | None]]:
-    """Read numeric parameters; preserve missingness and original relative time."""
-    with path.open(encoding="utf-8-sig", newline="") as handle:
-        reader = csv.DictReader(handle, skipinitialspace=True)
-        if reader.fieldnames is None:
-            raise ValueError("El archivo BIDMC está vacío.")
-        reader.fieldnames = [field.strip() for field in reader.fieldnames]
-        if not {"Time [s]", "HR", "RESP"}.issubset(reader.fieldnames):
-            raise ValueError("El CSV necesita Time [s], HR y RESP.")
-        samples = []
-        previous = -1.0
-        for row in reader:
-            original_time = _number(row["Time [s]"])
-            if original_time is None or original_time < 0 or original_time <= previous:
-                raise ValueError("El tiempo de BIDMC debe ser finito y creciente.")
-            samples.append({
-                "original_time_s": original_time,
-                "hr": _number(row["HR"]),
-                "rr": _number(row["RESP"]),
-            })
-            previous = original_time
-    if not samples:
-        raise ValueError("El archivo BIDMC no contiene muestras.")
-    return samples
+def _clamp(value: float, low: float, high: float) -> float:
+    return max(low, min(high, value))
 
 
 class ControlUpdate(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+
     scenario: Scenario | None = None
     paused: bool | None = None
     shelter: bool | None = None
@@ -88,184 +70,192 @@ class ControlUpdate(BaseModel):
 
 
 class Gateway:
-    def __init__(self, onboard_url: str | None = None, bidmc_path: Path = BIDMC_PATH):
-        self.onboard_url = (onboard_url or os.getenv("ONBOARD_URL", "http://127.0.0.1:8000")).rstrip("/")
-        self.bidmc_path = bidmc_path
-        self.scenario: Scenario = "rest"
-        self.environment: EnvironmentId = "station"
+    def __init__(
+        self,
+        onboard_url: str | None = None,
+        seed: int | None = None,
+        scenario: Scenario = "rest",
+        bidmc_path: Path | None = None,
+    ):
+        self.onboard_url = (onboard_url or os.getenv("ONBOARD_URL", "http://127.0.0.1:8001")).rstrip("/")
+        self.seed = seed if seed is not None else _int_env("ASTRO_SEED", 7)
+        self.rng = random.Random(self.seed)
+        self.bidmc_path = bidmc_path or BIDMC_PATH
+        self.scenario: Scenario = scenario
         self.paused = False
         self.shelter = False
-        self._manual_solar_phase: SolarPhase | None = None
+        self.environment: str = "station"
+        self._scenario_started_at = time.monotonic()
+        self._solar_context: dict | None = None
         self.sent_count = 0
         self.error: str | None = None
-        self.started_at = time.monotonic()
-        self._scenario_steps = 0
-        self._values = list(TARGETS["rest"])
-        self._random = random.Random(42)
-        self._aux_random = random.Random(1042)
-        self._rows: list[dict[str, float | None]] = []
-        self._index = 0
         self._epoch = 0
+        self._index = 0
         self._pending: tuple[dict, int] | None = None
+        self.hr = TARGETS[self.scenario][0]
+        self.rr = TARGETS[self.scenario][1]
+        self.co2 = TARGETS[self.scenario][2]
+        self.dose_rate = TARGETS[self.scenario][3]
+        self._rows: list[dict[str, str]] = []
 
-    def _current_solar_phase(self) -> SolarPhase | None:
-        if self.scenario != "solar_event":
-            return None
-        if self._manual_solar_phase is not None:
-            return self._manual_solar_phase
-        return donki.phase_at_elapsed(max(0.0, time.monotonic() - self.started_at))  # type: ignore[return-value]
+    def _load_rows(self) -> None:
+        if self._rows or not self.bidmc_path.exists():
+            return
+        with self.bidmc_path.open("r", encoding="utf-8-sig", newline="") as handle:
+            self._rows = list(csv.DictReader(handle))
+
+    def _base_rate(self) -> float:
+        if self.scenario in {"solar", "solar_event"} and self.shelter:
+            return self.dose_rate * get_param("shelter_factor")
+        return self.dose_rate
 
     def control(self) -> dict:
-        return {
+        payload = {
             "scenario": self.scenario,
-            "environment": self.environment,
             "paused": self.paused,
             "shelter": self.shelter,
-            "solar_phase": self._current_solar_phase(),
+            "environment": self.environment,
             "sent_count": self.sent_count,
             "source": "bidmc" if self.scenario == "bidmc" else "simulated",
-            "remaining_samples": max(0, len(self._rows) - self._index) if self.scenario == "bidmc" else None,
+            "remaining_samples": None,
             "error": self.error,
         }
+        if self.scenario == "bidmc":
+            payload["remaining_samples"] = max(0, len(self._rows) - self._index)
+        if self.scenario in {"solar", "solar_event"} and self._solar_context is not None:
+            payload["solar_phase"] = self._solar_context["phase"]
+            payload["simulated_dose_rate_usvh"] = self._base_rate()
+            payload["solar_event"] = self._solar_context
+        else:
+            payload["solar_phase"] = None
+        return payload
 
     def update(self, change: ControlUpdate) -> dict:
         if change.environment is not None:
             get_profile(change.environment)
             self.environment = change.environment
-        if change.scenario is not None and (
-            change.scenario != self.scenario or change.scenario == "bidmc"
-        ):
+        if change.scenario is not None:
             self.scenario = change.scenario
-            self.started_at = time.monotonic()
-            self._scenario_steps = 0
             self.shelter = False
-            self._manual_solar_phase = None
             self.error = None
             self.paused = False
-            self._epoch += 1
+            self._pending = None
             self._index = 0
-            if self.scenario == "co2_ramp":
-                rest_targets = get_profile(self.environment)["rest_targets"]
-                self._values = [
-                    float(rest_targets["hr"]),
-                    float(rest_targets["rr"]),
-                    float(rest_targets["co2"]),
-                    float(rest_targets["dose_rate"]),
-                ]
-            elif self.scenario == "bidmc":
-                try:
-                    self._rows = load_bidmc(self.bidmc_path)
-                except (OSError, ValueError) as exc:
-                    self._rows = []
+            self._epoch += 1
+            self.hr, self.rr, self.co2, self.dose_rate = TARGETS[self.scenario]
+            self._scenario_started_at = time.monotonic()
+            self._solar_context = None
+            if self.scenario == "bidmc":
+                self._load_rows()
+                if not self._rows:
+                    self.error = f"Missing or empty BIDMC file: {self.bidmc_path}"
                     self.paused = True
-                    self.error = f"No se pudo abrir BIDMC: {exc}"
-        if change.paused is not None:
-            self.paused = change.paused
-        if change.shelter is not None:
-            self.shelter = change.shelter if self.scenario in {"solar", "solar_event"} else False
-        if change.solar_phase is not None:
-            self._manual_solar_phase = (
-                change.solar_phase if self.scenario == "solar_event" else None
-            )
-        if self.scenario == "bidmc" and self._index >= len(self._rows):
-            self.paused = True
-            if self._rows:
-                self.error = "Registro BIDMC finalizado. Vuelve a seleccionar BIDMC para reiniciar."
-        return self.control()
-
-    def make_packet(self) -> dict | None:
-        if self.scenario == "bidmc":
-            if self._index >= len(self._rows):
-                self.paused = True
-                self.error = "Registro BIDMC finalizado. Vuelve a seleccionar BIDMC para reiniciar."
-                return None
-            values = self._rows[self._index]
-            payload = {
-                **values,
-                "co2": None,
-                "dose_rate": None,
-                "spo2": None,
-                "bp_sys": None,
-                "bp_dia": None,
-                "temp_c": None,
-                "hydration_pct": None,
-                "activity": "unknown",
-                "source": "bidmc",
-            }
-        else:
-            profile = get_profile(self.environment)
-            rest_targets = profile["rest_targets"]
-            rad_mult = float(profile["radiation_multiplier"])
-
-            if self.scenario == "co2_ramp":
-                self._scenario_steps += 1
-                elapsed_s = max(time.monotonic() - self.started_at, float(self._scenario_steps))
-                ramp_rate_per_s = float(profile["co2_ramp_rate_mmhg_min"]) / 60.0
-                co2_target = min(6.5, float(rest_targets["co2"]) + ramp_rate_per_s * elapsed_s)
-                co2_excess = max(0.0, co2_target - float(rest_targets["co2"]))
-                targets = (
-                    min(115.0, float(rest_targets["hr"]) + co2_excess * 10.0),
-                    min(32.0, float(rest_targets["rr"]) + co2_excess * 5.5),
-                    co2_target,
-                    float(rest_targets["dose_rate"]),
-                )
-                for index, target in enumerate(targets):
-                    self._values[index] += (target - self._values[index]) * 0.4
-            elif self.scenario == "solar_event":
-                phase = self._current_solar_phase() or "watch"
-                ctx = donki.get_solar_context(
-                    phase=phase,
+            elif self.scenario == "co2_ramp":
+                profile = get_profile(self.environment)
+                self.co2 = float(profile.get("rest_targets", {}).get("co2", self.co2))
+            elif self.scenario in {"solar", "solar_event"}:
+                self._solar_context = donki.get_solar_context(
+                    "watch",
                     shelter=self.shelter,
                     shelter_factor=get_param("shelter_factor"),
                 )
-                dose_target = float(ctx["simulated_dose_rate_usvh"]) * rad_mult
-                targets = (
-                    float(rest_targets["hr"]) + 2.0,
-                    float(rest_targets["rr"]) + 1.0,
-                    float(rest_targets["co2"]),
-                    dose_target,
+                self.dose_rate = self._solar_context["base_dose_rate_usvh"]
+        if change.solar_phase is not None and self.scenario in {"solar", "solar_event"}:
+            self._solar_context = donki.get_solar_context(
+                change.solar_phase,
+                shelter=self.shelter,
+                shelter_factor=get_param("shelter_factor"),
+            )
+            self.dose_rate = self._solar_context["base_dose_rate_usvh"]
+        if change.paused is not None:
+            self.paused = change.paused
+        if change.shelter is not None:
+            self.shelter = change.shelter and self.scenario in {"solar", "solar_event"}
+            if self._solar_context is not None:
+                self._solar_context = donki.get_solar_context(
+                    self._solar_context["phase"],
+                    shelter=self.shelter,
+                    shelter_factor=get_param("shelter_factor"),
                 )
-                for index in range(3):
-                    self._values[index] += (targets[index] - self._values[index]) * 0.4
-                self._values[3] = dose_target
+                self.dose_rate = self._solar_context["base_dose_rate_usvh"]
+        return self.control()
+
+    @staticmethod
+    def _float_or_none(raw: str | None) -> float | None:
+        if raw is None:
+            return None
+        text = raw.strip()
+        if not text:
+            return None
+        try:
+            value = float(text)
+        except ValueError:
+            return None
+        return value if math.isfinite(value) else None
+
+    @staticmethod
+    def _resp(row: dict[str, str]) -> float | None:
+        for key in ("RESP", "RESP,"):
+            value = Gateway._float_or_none(row.get(key))
+            if value is not None:
+                return value
+        return None
+
+    def make_packet(self) -> dict | None:
+        if self.scenario == "bidmc":
+            self._load_rows()
+            if self._index >= len(self._rows):
+                self.paused = True
+                return None
+            row = self._rows[self._index]
+            original = self._float_or_none(row.get("Time [s]"))
+            payload = {
+                "hr": self._float_or_none(row.get("HR")),
+                "rr": self._resp(row),
+                "co2": None,
+                "dose_rate": None,
+                "activity": "unknown",
+                "source": "bidmc",
+                "original_time_s": original,
+            }
+        else:
+            if self.scenario == "co2_ramp":
+                elapsed_s = max(0.0, time.monotonic() - self._scenario_started_at)
+                profile = get_profile(self.environment)
+                base_co2 = float(profile.get("rest_targets", {}).get("co2", 2.0))
+                rate = float(profile.get("co2_ramp_rate_mmhg_min", 0.6))
+                self.hr = _clamp(self.hr + self.rng.gauss(0.0, 0.6), 60.0, 90.0)
+                self.rr = _clamp(self.rr + self.rng.gauss(0.0, 0.3), 10.0, 24.0)
+                self.co2 = _clamp(base_co2 + rate * (elapsed_s / 60.0) + self.rng.gauss(0.0, 0.03), 0.0, 30.0)
+                self.dose_rate = _clamp(self.dose_rate + self.rng.gauss(0.0, 0.03), 0.0, 2.0)
+            elif self.scenario in {"solar", "solar_event"}:
+                elapsed_s = max(0.0, time.monotonic() - self._scenario_started_at)
+                phase = donki.phase_at_elapsed(elapsed_s)
+                self._solar_context = donki.get_solar_context(
+                    phase,
+                    shelter=self.shelter,
+                    shelter_factor=get_param("shelter_factor"),
+                )
+                self.hr = _clamp(self.hr + (74.0 - self.hr) * 0.35 + self.rng.gauss(0.0, 0.8), 60.0, 100.0)
+                self.rr = _clamp(self.rr + (15.0 - self.rr) * 0.35 + self.rng.gauss(0.0, 0.4), 10.0, 30.0)
+                self.co2 = _clamp(self.co2 + (2.0 - self.co2) * 0.3 + self.rng.gauss(0.0, 0.04), 0.0, 30.0)
+                self.dose_rate = self._solar_context["base_dose_rate_usvh"]
             else:
-                if self.scenario in {"rest", "signal_loss"}:
-                    targets = (
-                        float(rest_targets["hr"]),
-                        float(rest_targets["rr"]),
-                        float(rest_targets["co2"]),
-                        float(rest_targets["dose_rate"]),
-                    )
-                elif self.scenario == "solar":
-                    base_hr, base_rr, base_co2, base_dose = TARGETS["solar"]
-                    targets = (base_hr, base_rr, base_co2, base_dose * rad_mult)
-                else:
-                    base_hr, base_rr, base_co2, base_dose = TARGETS[self.scenario]
-                    targets = (base_hr, base_rr, base_co2, base_dose * rad_mult)
-                for index, target in enumerate(targets):
-                    if index == 3 and self.scenario == "solar" and self.shelter:
-                        target = 3.0
-                    self._values[index] += (target - self._values[index]) * 0.4
+                target_hr, target_rr, target_co2, target_dose = TARGETS[self.scenario]
+                self.hr = _clamp(self.hr + (target_hr - self.hr) * 0.25 + self.rng.gauss(0.0, 0.8), 40.0, 180.0)
+                self.rr = _clamp(self.rr + (target_rr - self.rr) * 0.25 + self.rng.gauss(0.0, 0.4), 8.0, 40.0)
+                self.co2 = _clamp(self.co2 + (target_co2 - self.co2) * 0.25 + self.rng.gauss(0.0, 0.05), 0.0, 30.0)
+                self.dose_rate = _clamp(self.dose_rate + (target_dose - self.dose_rate) * 0.25 + self.rng.gauss(0.0, 0.03), 0.0, 200.0)
 
-            hr, rr, co2, dose_rate = self._values
-            # No consumir self._random antes de hr/rr para preservar compatibilidad determinista.
-            hr_val = round(hr + self._random.uniform(-0.8, 0.8), 1)
-            rr_val = round(rr + self._random.uniform(-0.25, 0.25), 1)
-            co2_val = round(co2, 2)
-            dose_val = round(dose_rate, 3)
-
-            if self.scenario == "exercise":
-                spo2_base, sys_base, dia_base, temp_base, hyd_base = 96.8, 134.0, 82.0, 37.3, 78.0
-            elif co2_val >= 3.5:
-                spo2_base, sys_base, dia_base, temp_base, hyd_base = 95.8, 124.0, 79.0, 36.8, 80.0
-            else:
-                spo2_base, sys_base, dia_base, temp_base, hyd_base = 98.2, 116.0, 74.0, 36.6, 84.0
-
-            spo2_val = round(min(100.0, max(85.0, spo2_base + self._aux_random.uniform(-0.4, 0.4))), 1)
-            bp_sys_val = round(sys_base + self._aux_random.uniform(-2.0, 2.0), 1)
-            bp_dia_val = round(dia_base + self._aux_random.uniform(-1.5, 1.5), 1)
-            temp_val = round(temp_base + self._aux_random.uniform(-0.1, 0.1), 1)
-            hyd_val = round(min(100.0, max(20.0, hyd_base + self._aux_random.uniform(-0.5, 0.5))), 1)
+            hr_val = round(self.hr, 2)
+            rr_val = round(self.rr, 2)
+            co2_val = round(self.co2, 3)
+            dose_val = round(self._base_rate(), 4)
+            spo2_val = round(_clamp(98.0 - self.co2 * 0.8 + self.rng.gauss(0.0, 0.1), 90.0, 100.0), 2)
+            bp_sys_val = round(_clamp(120.0 + self.hr * 0.1 + self.rng.gauss(0.0, 0.5), 90.0, 160.0), 2)
+            bp_dia_val = round(_clamp(80.0 + self.rr * 0.05 + self.rng.gauss(0.0, 0.3), 50.0, 100.0), 2)
+            temp_val = round(_clamp(36.8 + self.hr * 0.001 + self.rng.gauss(0.0, 0.05), 36.0, 38.0), 2)
+            hyd_val = round(_clamp(85.0 - self.hr * 0.05 + self.rng.gauss(0.0, 0.5), 60.0, 100.0), 2)
 
             payload = {
                 "hr": hr_val,
@@ -295,7 +285,7 @@ class Gateway:
             self._index += 1
             if self._index >= len(self._rows):
                 self.paused = True
-                self.error = "Registro BIDMC finalizado. Vuelve a seleccionar BIDMC para reiniciar."
+                self.error = "BIDMC record finished. Select BIDMC again to restart."
 
     async def tick(self, client: httpx.AsyncClient) -> None:
         if self.paused:
@@ -309,7 +299,7 @@ class Gateway:
         try:
             response = await client.post(f"{self.onboard_url}/api/v1/telemetry", json=packet)
         except httpx.RequestError:
-            self.error = "API a bordo sin respuesta; paquete pendiente de reintento."
+            self.error = "Onboard API not responding; packet pending retry."
             return
         if 200 <= response.status_code < 300:
             self.sent_count += 1
@@ -317,9 +307,9 @@ class Gateway:
             self._pending = None
             self._consume(packet, epoch)
         elif response.status_code >= 500:
-            self.error = f"API a bordo: HTTP {response.status_code}; reintentando el mismo paquete."
+            self.error = f"Onboard API: HTTP {response.status_code}; retrying the same packet."
         else:
-            self.error = f"Paquete rechazado: HTTP {response.status_code}; muestra descartada."
+            self.error = f"Packet rejected: HTTP {response.status_code}; sample discarded."
             self._pending = None
             self._consume(packet, epoch)
 
@@ -348,7 +338,7 @@ def create_app(gateway: Gateway | None = None, start_worker: bool = True) -> Fas
             if task is not None:
                 await task
 
-    application = FastAPI(title="ASTRO-VITALS · Gateway de demostración", lifespan=lifespan)
+    application = FastAPI(title="ASTRO-VITALS · Demo gateway", lifespan=lifespan)
     application.state.gateway = node
 
     @application.get("/health")

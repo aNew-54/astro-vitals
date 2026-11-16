@@ -1,4 +1,4 @@
-"""Contexto solar histórico NASA CCMC DONKI y línea de tiempo comprimida de demo."""
+"""NASA CCMC DONKI historical solar context and compressed demo timeline."""
 
 from __future__ import annotations
 
@@ -17,24 +17,24 @@ _BASE_RATES_USVH: dict[str, float] = {
     "decay": 18.0,
 }
 
-_SOURCE_LABEL = "NASA CCMC DONKI (respaldo local)"
+_SOURCE_LABEL = "NASA CCMC DONKI (local backup)"
 _HISTORICAL_NOTE = (
-    "Evento histórico SEP del 11 de mayo de 2024; contexto externo, no dosimetría personal."
+    "Historical SEP event from May 11, 2024; external context, not personal dosimetry."
 )
-_TIMELINE_LABEL = "Línea de tiempo comprimida de demostración"
+_TIMELINE_LABEL = "Compressed demo timeline"
 
 
 def load_donki_event(path: str | Path | None = None) -> dict[str, Any]:
-    """Carga y normaliza el evento SEP de NASA DONKI desde respaldo JSON local."""
+    """Load and normalize the NASA DONKI SEP event from a local JSON backup."""
     event_path = Path(path) if path is not None else DEFAULT_DONKI_PATH
     raw = json.loads(event_path.read_text(encoding="utf-8"))
 
     if isinstance(raw, list):
         if not raw:
-            raise ValueError(f"El archivo DONKI '{event_path}' está vacío.")
+            raise ValueError(f"DONKI file '{event_path}' is empty.")
         raw = raw[0]
     if not isinstance(raw, dict):
-        raise ValueError(f"Formato inválido en el archivo DONKI '{event_path}'.")
+        raise ValueError(f"Invalid format in DONKI file '{event_path}'.")
 
     raw_instruments = raw.get("instruments") or []
     instruments = [
@@ -74,7 +74,7 @@ def load_donki_event(path: str | Path | None = None) -> dict[str, Any]:
 
 
 def phase_at_elapsed(elapsed_s: float) -> str:
-    """Devuelve la fase de la tormenta solar en la línea de tiempo comprimida de demo."""
+    """Return the solar storm phase in the compressed demo timeline."""
     if elapsed_s < 15.0:
         return "watch"
     if elapsed_s < 30.0:
@@ -91,14 +91,14 @@ def get_solar_context(
     shelter_factor: float = 0.15,
     path: str | Path | None = None,
 ) -> dict[str, Any]:
-    """Construye el contexto solar por fase separando evento histórico de tasa simulada."""
+    """Build phase-based solar context separating historical event from simulated rate."""
     normalized_phase = phase.strip().lower()
     if normalized_phase not in SOLAR_PHASES:
         raise ValueError(
-            f"Fase solar desconocida: {phase!r}. Fases válidas: {', '.join(SOLAR_PHASES)}."
+            f"Unknown solar phase: {phase!r}. Valid phases: {', '.join(SOLAR_PHASES)}."
         )
     if shelter_factor < 0 or shelter_factor > 1:
-        raise ValueError("shelter_factor debe estar entre 0 y 1.")
+        raise ValueError("shelter_factor must be between 0 and 1.")
 
     event = load_donki_event(path)
     base_rate = _BASE_RATES_USVH[normalized_phase]
@@ -106,32 +106,32 @@ def get_solar_context(
 
     if normalized_phase == "watch":
         level = "watch"
-        title = "Evento solar en observación (contexto NASA DONKI)"
+        title = "Solar event under observation (NASA DONKI context)"
         activates_checklist = True
-        next_step = "Revisar lista de refugio antes de la llegada estimada (escenario simulado)."
+        next_step = "Review shelter checklist before estimated arrival (simulated scenario)."
     elif normalized_phase == "arrival":
         level = "watch" if shelter else "alert"
-        title = "Llegada estimada de partículas solares (escenario simulado)"
+        title = "Estimated solar particle arrival (simulated scenario)"
         activates_checklist = True
         next_step = (
-            "Mantener refugio y vigilar tasa del dosímetro simulado."
+            "Remain in shelter and monitor the simulated dosimeter rate."
             if shelter
-            else "Activar protocolo de refugio y vigilar el dosímetro simulado."
+            else "Activate shelter protocol and monitor the simulated dosimeter."
         )
     elif normalized_phase == "peak":
         level = "watch" if shelter else "alert"
-        title = "Pico de evento solar simulado (contexto NASA DONKI)"
+        title = "Simulated solar event peak (NASA DONKI context)"
         activates_checklist = True
         next_step = (
-            "Permanecer en refugio hasta observar descenso sostenido de tasa."
+            "Remain in shelter until a sustained rate decrease is observed."
             if shelter
-            else "Trasladarse a zona protegida y vigilar dosis acumulada simulada."
+            else "Move to a protected area and monitor simulated accumulated dose."
         )
     else:
         level = "watch"
-        title = "Descenso gradual de evento solar (escenario simulado)"
+        title = "Gradual solar event decay (simulated scenario)"
         activates_checklist = False
-        next_step = "Confirmar estabilidad de tasa antes de concluir el resguardo."
+        next_step = "Confirm rate stability before concluding sheltering."
 
     return {
         "phase": normalized_phase,
@@ -144,7 +144,7 @@ def get_solar_context(
         "shelter": shelter,
         "shelter_factor": shelter_factor,
         "timeline_label": _TIMELINE_LABEL,
-        "dosimetry_source": "Dosímetro simulado local (escenario independiente de DONKI)",
+        "dosimetry_source": "Local simulated dosimeter (scenario independent from DONKI)",
         **event,
         "event": event,
     }

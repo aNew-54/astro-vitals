@@ -1,4 +1,4 @@
-"""Generación de informes de episodio SBAR con filtro de privacidad conductual."""
+"""SBAR episode report generation with behavioral privacy filtering."""
 
 from __future__ import annotations
 
@@ -6,9 +6,9 @@ import math
 import re
 from typing import Any
 
-NON_CLINICAL_PREFIX = "Hipótesis orientativa (escenario simulado)"
+NON_CLINICAL_PREFIX = "Guidance hypothesis (simulated scenario)"
 PRIVACY_NOTICE = (
-    "Datos conductuales: retenidos a bordo por privacidad del tripulante "
+    "Behavioral data: retained onboard for crew privacy "
     "(share_behavioral=False)"
 )
 
@@ -35,17 +35,17 @@ def _sanitize_text(text: str) -> str:
 def _format_hypothesis(raw_text: str | None) -> str:
     cleaned = _sanitize_text(raw_text or "")
     if not cleaned:
-        return f"{NON_CLINICAL_PREFIX}: sin hipótesis activa con los datos disponibles."
+        return f"{NON_CLINICAL_PREFIX}: no active hypothesis with the available data."
     if cleaned.lower().startswith(NON_CLINICAL_PREFIX.lower()):
         return cleaned
-    # Elimina prefijos cortos redundantes como "Hipótesis:" si existen.
-    stripped = re.sub(r"^hip[óo]tesis\s*:\s*", "", cleaned, flags=re.IGNORECASE).strip()
+    # Remove short redundant prefixes such as "Hypothesis:" if present.
+    stripped = re.sub(r"^(guidance\s+hypothesis|hypothesis)\s*:\s*", "", cleaned, flags=re.IGNORECASE).strip()
     return f"{NON_CLINICAL_PREFIX}: {stripped or cleaned}"
 
 
 def _format_value(value: Any, unit: str = "") -> str:
     if value is None:
-        return "sin lectura (null)"
+        return "no reading (null)"
     suffix = f" {unit}" if unit else ""
     return f"{value}{suffix}"
 
@@ -57,11 +57,11 @@ def _format_environment_label(environment: Any) -> str:
             or environment.get("label")
             or environment.get("title")
             or environment.get("id")
-            or "no especificado"
+            or "not specified"
         )
     if isinstance(environment, str) and environment.strip():
         return environment.strip()
-    return "no especificado"
+    return "not specified"
 
 
 def _build_behavioral_summary(coach: dict[str, Any]) -> dict[str, Any]:
@@ -70,8 +70,8 @@ def _build_behavioral_summary(coach: dict[str, Any]) -> dict[str, Any]:
         return {
             "checkins_count": coach.get("checkins_count", 0),
             "reaction_baseline_ms": coach.get("reaction_baseline_ms"),
-            "status": "Sin check-ins conductuales registrados en este episodio.",
-            "note": "Resumen compartido por autorización del tripulante; uso orientativo no clínico.",
+            "status": "No behavioral check-ins recorded in this episode.",
+            "note": "Summary shared by crew authorization; orientative non-clinical use.",
         }
     return {
         "checkins_count": coach.get("checkins_count", 1),
@@ -87,7 +87,7 @@ def _build_behavioral_summary(coach: dict[str, Any]) -> dict[str, Any]:
         "mood": latest_checkin.get("mood"),
         "drift_detected": latest_checkin.get("drift_detected"),
         "interpretation": _sanitize_text(str(latest_checkin.get("interpretation") or "")),
-        "note": "Resumen compartido por autorización del tripulante; uso orientativo no clínico.",
+        "note": "Summary shared by crew authorization; orientative non-clinical use.",
     }
 
 
@@ -105,35 +105,35 @@ def _collect_unknowns(
             unknowns.append(text)
 
     if not latest:
-        unknowns.append("Sin telemetría reciente disponible.")
+        unknowns.append("No recent telemetry available.")
     else:
         signal_labels = (
-            ("hr", "pulso (HR)"),
-            ("rr", "respiración (RR)"),
-            ("co2", "CO₂ de cabina"),
-            ("dose_rate", "tasa de dosis"),
+            ("hr", "pulse (HR)"),
+            ("rr", "respiration (RR)"),
+            ("co2", "cabin CO₂"),
+            ("dose_rate", "dose rate"),
         )
         for key, label in signal_labels:
             if latest.get(key) is None:
                 unknowns.append(
-                    f"Sin lectura de {label} (valor null; no se sustituye por cero)."
+                    f"No reading for {label} (null value; not replaced with zero)."
                 )
         if latest.get("activity") in (None, "unknown"):
-            unknowns.append("Actividad del tripulante desconocida o no declarada.")
+            unknowns.append("Crew activity unknown or not declared.")
 
     if dose_complete is False:
-        unknowns.append("Cobertura incompleta de dosimetría acumulada en el episodio.")
+        unknowns.append("Incomplete coverage for accumulated dosimetry in this episode.")
     if not baseline:
-        unknowns.append("Línea base personal pendiente o en calibración.")
+        unknowns.append("Personal baseline pending or calibrating.")
 
     ml_status = ml.get("status")
     ml_reason = ml.get("reason")
-    if ml_status in {"calibrando", "no_evaluable", "abstained"} or ml_reason:
+    if ml_status in {"calibrating", "not_evaluable", "abstained"} or ml_reason:
         reason_text = ml_reason or ml_status
-        unknowns.append(f"Módulo ML en abstención/espera: {reason_text}.")
+        unknowns.append(f"ML module abstaining/waiting: {reason_text}.")
 
     if not unknowns:
-        unknowns.append("Sin brechas críticas de señal reportadas en la última muestra.")
+        unknowns.append("No critical signal gaps reported in the latest sample.")
     return unknowns
 
 
@@ -141,7 +141,7 @@ def build_episode_report(
     state: dict[str, Any] | None,
     share_behavioral: bool | None = None,
 ) -> dict[str, Any]:
-    """Construye el informe estructurado SBAR (dict + Markdown) con control de privacidad."""
+    """Build the structured SBAR report (dict + Markdown) with privacy control."""
     safe_state = _as_dict(state)
     privacy = _as_dict(safe_state.get("privacy"))
     effective_share = (
@@ -183,12 +183,12 @@ def build_episode_report(
     environment_value = (
         dict(environment_raw)
         if isinstance(environment_raw, dict)
-        else (environment_raw if isinstance(environment_raw, str) and environment_raw else "no especificado")
+        else (environment_raw if isinstance(environment_raw, str) and environment_raw else "not specified")
     )
 
     situacion: dict[str, Any] = {
         "level": assessment.get("level") or "unknown",
-        "title": _sanitize_text(str(assessment.get("title") or "Sin evaluación disponible")),
+        "title": _sanitize_text(str(assessment.get("title") or "No assessment available")),
         "timestamp": timestamp,
         "environment": environment_value,
     }
@@ -209,7 +209,7 @@ def build_episode_report(
         if item is not None
     ]
     if not evidence:
-        evidence = ["Sin evidencia adicional registrada."]
+        evidence = ["No additional evidence recorded."]
 
     raw_alternatives = assessment.get("alternatives")
     if isinstance(raw_alternatives, str) and raw_alternatives.strip():
@@ -218,9 +218,9 @@ def build_episode_report(
         alternatives = [_sanitize_text(str(item)) for item in raw_alternatives]
     else:
         alternatives = [
-            "Variación fisiológica individual o cambio de actividad no declarado.",
-            "Ruido, latencia o pérdida parcial de señal del sensor.",
-            "Factores ambientales concurrentes (las coincidencias no demuestran causalidad).",
+            "Individual physiological variation or undeclared activity change.",
+            "Sensor noise, latency, or partial signal loss.",
+            "Concurrent environmental factors (coincidences do not demonstrate causality).",
         ]
 
     co2_sensitivity = (
@@ -254,7 +254,7 @@ def build_episode_report(
     next_step = _sanitize_text(
         str(
             assessment.get("next_step")
-            or "Continuar observando señales, confirmar contexto de actividad y verificar sensores."
+            or "Continue observing signals, confirm activity context, and verify sensors."
         )
     )
     steps: list[str] = [next_step]
@@ -263,8 +263,8 @@ def build_episode_report(
         if cleaned and cleaned not in steps:
             steps.append(cleaned)
     default_steps = [
-        "Verificar calidad y conexión de sensores antes de interpretar variaciones.",
-        "Registrar observaciones y contexto operativo; los pasos son únicamente ilustrativos.",
+        "Verify sensor quality and connection before interpreting variations.",
+        "Record observations and operational context; steps are illustrative only.",
     ]
     for step in default_steps:
         if step not in steps:
@@ -281,12 +281,12 @@ def build_episode_report(
             state_provenance.get("source")
             or latest.get("source")
             or safe_state.get("source")
-            or "sin_datos"
+            or "no_data"
         ),
         "rules_version": (
             state_provenance.get("rules_version")
             or assessment.get("method")
-            or "Reglas de demostración v0.1"
+            or "Demo rules v0.1"
         ),
         "config_version": (
             state_provenance.get("config_version")
@@ -296,7 +296,7 @@ def build_episode_report(
         "ml_models": (
             state_provenance.get("ml_models")
             or ml.get("models")
-            or (ml if ml else {"status": "no_disponible"})
+            or (ml if ml else {"status": "not_available"})
         ),
     }
 
@@ -335,102 +335,102 @@ def _render_markdown(
     effective_share: bool,
 ) -> str:
     env_label = _format_environment_label(situacion["environment"])
-    ts_label = situacion["timestamp"] or "sin marca de tiempo"
+    ts_label = situacion["timestamp"] or "no timestamp"
 
     lines: list[str] = [
-        "# Informe de Episodio (SBAR)",
+        "# Episode Report (SBAR)",
         "",
-        "## 1. Situación",
-        f"- **Nivel:** {situacion['level']}",
-        f"- **Título:** {situacion['title']}",
-        f"- **Marca de tiempo:** {ts_label}",
-        f"- **Entorno:** {env_label}",
+        "## 1. Situation",
+        f"- **Level:** {situacion['level']}",
+        f"- **Title:** {situacion['title']}",
+        f"- **Timestamp:** {ts_label}",
+        f"- **Environment:** {env_label}",
     ]
     if latest:
         lines.append(
-            "- **Última lectura:** "
-            f"FC={_format_value(latest.get('hr'), 'bpm')} · "
-            f"FR={_format_value(latest.get('rr'), 'resp/min')} · "
+            "- **Latest reading:** "
+            f"HR={_format_value(latest.get('hr'), 'bpm')} · "
+            f"RR={_format_value(latest.get('rr'), 'resp/min')} · "
             f"CO₂={_format_value(latest.get('co2'), 'mmHg')} · "
-            f"Tasa dosis={_format_value(latest.get('dose_rate'), 'μSv/h')}"
+            f"Dose rate={_format_value(latest.get('dose_rate'), 'μSv/h')}"
         )
 
     lines.extend([
         "",
-        "## 2. Antecedentes",
-        f"- **Actividad declarada:** {antecedentes['activity']}",
-        f"- **Dosis acumulada (μSv):** {_format_value(antecedentes['dose_total_usv'], 'μSv')}",
-        f"- **Cobertura de dosis completa:** {_format_value(antecedentes['dose_complete'])}",
-        f"- **Línea base personal:** {antecedentes['baseline'] if antecedentes['baseline'] is not None else 'calibrando / no disponible'}",
-        f"- **Evento externo:** {antecedentes['external_event'] if antecedentes['external_event'] is not None else 'ninguno'}",
+        "## 2. Background",
+        f"- **Declared activity:** {antecedentes['activity']}",
+        f"- **Accumulated dose (μSv):** {_format_value(antecedentes['dose_total_usv'], 'μSv')}",
+        f"- **Dose coverage complete:** {_format_value(antecedentes['dose_complete'])}",
+        f"- **Personal baseline:** {antecedentes['baseline'] if antecedentes['baseline'] is not None else 'calibrating / not available'}",
+        f"- **External event:** {antecedentes['external_event'] if antecedentes['external_event'] is not None else 'none'}",
     ])
 
     if effective_share:
         summary = antecedentes["behavioral_summary"] or {}
         if "median_ms" in summary:
             mood_val = summary.get("mood")
-            mood_label = f"{mood_val}/5" if mood_val is not None else "sin lectura (null)"
+            mood_label = f"{mood_val}/5" if mood_val is not None else "no reading (null)"
             lines.extend([
-                "- **Datos conductuales (compartidos por el tripulante):**",
-                f"  - Tiempo de reacción mediano: {_format_value(summary.get('median_ms'), 'ms')} "
-                f"(referencia: {_format_value(summary.get('reaction_baseline_ms'), 'ms')}, "
+                "- **Behavioral data (shared by crew):**",
+                f"  - Median reaction time: {_format_value(summary.get('median_ms'), 'ms')} "
+                f"(reference: {_format_value(summary.get('reaction_baseline_ms'), 'ms')}, "
                 f"delta: {_format_value(summary.get('delta_ms'), 'ms')}, "
-                f"lapsos > 500 ms: {_format_value(summary.get('lapses'))})",
-                f"  - Sueño declarado: {_format_value(summary.get('sleep_hours'), 'h')} · "
-                f"Ánimo declarado: {mood_label}",
-                f"  - Lectura orientativa: {summary.get('interpretation') or 'sin interpretación'}",
+                f"lapses > 500 ms: {_format_value(summary.get('lapses'))})",
+                f"  - Declared sleep: {_format_value(summary.get('sleep_hours'), 'h')} · "
+                f"Declared mood: {mood_label}",
+                f"  - Orientative reading: {summary.get('interpretation') or 'no interpretation'}",
             ])
         else:
             lines.append(
-                f"- **Datos conductuales:** {summary.get('status', 'compartidos sin registros.')}"
+                f"- **Behavioral data:** {summary.get('status', 'shared with no records.')}"
             )
     else:
         lines.append(f"- {PRIVACY_NOTICE}")
 
     lines.extend([
         "",
-        "## 3. Evaluación",
-        f"- **Hipótesis:** {evaluacion['hypothesis']}",
-        "- **Evidencia:**",
+        "## 3. Assessment",
+        f"- **Hypothesis:** {evaluacion['hypothesis']}",
+        "- **Evidence:**",
     ])
     for item in evaluacion["evidence"]:
         lines.append(f"  - {item}")
-    lines.append("- **Qué no se sabe / calidad:**")
+    lines.append("- **Unknowns / data quality:**")
     for item in evaluacion["unknowns"]:
         lines.append(f"  - {item}")
-    lines.append("- **Alternativas consideradas (sin asumir causalidad):**")
+    lines.append("- **Alternatives considered (without assuming causality):**")
     for item in evaluacion["alternatives"]:
         lines.append(f"  - {item}")
     if evaluacion["co2_sensitivity"] is not None:
-        lines.append(f"- **Sensibilidad CO₂:** {evaluacion['co2_sensitivity']}")
+        lines.append(f"- **CO₂ sensitivity:** {evaluacion['co2_sensitivity']}")
     if evaluacion["projections"] is not None:
-        lines.append(f"- **Proyecciones (bajo supuestos explícitos):** {evaluacion['projections']}")
+        lines.append(f"- **Projections (under explicit assumptions):** {evaluacion['projections']}")
 
     lines.extend([
         "",
-        "## 4. Recomendación",
-        f"- **Siguiente paso sugerido (solo ilustrativo):** {recomendacion['next_step']}",
-        f"- **Pasos de revisión (`illustratives_only={recomendacion['illustratives_only']}`):**",
+        "## 4. Recommendation",
+        f"- **Suggested next step (illustrative only):** {recomendacion['next_step']}",
+        f"- **Review steps (`illustratives_only={recomendacion['illustratives_only']}`):**",
     ])
     for step in recomendacion["steps"]:
         lines.append(f"  - {step}")
 
     lines.extend([
         "",
-        "## Procedencia y Trazabilidad",
-        f"- **Fuente:** {provenance['source']}",
-        f"- **Versión de reglas:** {provenance['rules_version']}",
-        f"- **Versión de configuración:** {provenance['config_version']}",
-        f"- **Modelos ML:** {provenance['ml_models']}",
-        f"- **Privacidad conductual compartida (`share_behavioral`):** {effective_share}",
-        "- **Línea de tiempo del episodio:**",
+        "## Provenance and Traceability",
+        f"- **Source:** {provenance['source']}",
+        f"- **Rules version:** {provenance['rules_version']}",
+        f"- **Config version:** {provenance['config_version']}",
+        f"- **ML models:** {provenance['ml_models']}",
+        f"- **Behavioral privacy shared (`share_behavioral`):** {effective_share}",
+        "- **Episode timeline:**",
     ])
     if timeline:
         for ev in timeline:
-            at = ev.get("at", "sin hora")
+            at = ev.get("at", "no time")
             text = _sanitize_text(str(ev.get("text", ev)))
             lines.append(f"  - [{at}] {text}")
     else:
-        lines.append("  - Sin eventos registrados en la línea de tiempo.")
+        lines.append("  - No events recorded in the timeline.")
 
     return "\n".join(lines) + "\n"

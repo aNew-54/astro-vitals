@@ -1,4 +1,4 @@
-"""Catálogo unificado de señales fisiológicas y ambientales de ASTRO-VITALS."""
+"""Unified catalog of physiological and environmental signals for ASTRO-VITALS."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Any
 SIGNALS: dict[str, dict[str, Any]] = {
     "hr": {
         "key": "hr",
-        "label": "Frecuencia cardíaca",
+        "label": "Heart rate",
         "unit": "bpm",
         "min": 0.0,
         "max": 300.0,
@@ -18,7 +18,7 @@ SIGNALS: dict[str, dict[str, Any]] = {
     },
     "rr": {
         "key": "rr",
-        "label": "Frecuencia respiratoria",
+        "label": "Respiratory rate",
         "unit": "resp/min",
         "min": 0.0,
         "max": 100.0,
@@ -29,7 +29,7 @@ SIGNALS: dict[str, dict[str, Any]] = {
     },
     "co2": {
         "key": "co2",
-        "label": "CO₂ de cabina",
+        "label": "Cabin CO₂",
         "unit": "mmHg",
         "min": 0.0,
         "max": 100.0,
@@ -40,7 +40,7 @@ SIGNALS: dict[str, dict[str, Any]] = {
     },
     "dose_rate": {
         "key": "dose_rate",
-        "label": "Tasa de dosis",
+        "label": "Dose rate",
         "unit": "μSv/h",
         "min": 0.0,
         "max": 1000.0,
@@ -51,7 +51,7 @@ SIGNALS: dict[str, dict[str, Any]] = {
     },
     "spo2": {
         "key": "spo2",
-        "label": "Saturación de oxígeno (SpO₂)",
+        "label": "Oxygen saturation (SpO₂)",
         "unit": "%",
         "min": 0.0,
         "max": 100.0,
@@ -62,7 +62,7 @@ SIGNALS: dict[str, dict[str, Any]] = {
     },
     "bp_sys": {
         "key": "bp_sys",
-        "label": "Presión arterial sistólica",
+        "label": "Systolic blood pressure",
         "unit": "mmHg",
         "min": 0.0,
         "max": 300.0,
@@ -73,7 +73,7 @@ SIGNALS: dict[str, dict[str, Any]] = {
     },
     "bp_dia": {
         "key": "bp_dia",
-        "label": "Presión arterial diastólica",
+        "label": "Diastolic blood pressure",
         "unit": "mmHg",
         "min": 0.0,
         "max": 200.0,
@@ -84,7 +84,7 @@ SIGNALS: dict[str, dict[str, Any]] = {
     },
     "temp_c": {
         "key": "temp_c",
-        "label": "Temperatura corporal",
+        "label": "Body temperature",
         "unit": "°C",
         "min": 25.0,
         "max": 45.0,
@@ -95,7 +95,7 @@ SIGNALS: dict[str, dict[str, Any]] = {
     },
     "hydration_pct": {
         "key": "hydration_pct",
-        "label": "Hidratación",
+        "label": "Hydration",
         "unit": "%",
         "min": 0.0,
         "max": 100.0,
@@ -108,11 +108,11 @@ SIGNALS: dict[str, dict[str, Any]] = {
 
 
 def get_signal(key: str) -> dict[str, Any] | None:
-    """Retorna una copia de la especificación de la señal o None si no existe."""
+    """Return a copy of the signal specification, or None if it does not exist."""
     spec = SIGNALS.get(key)
     return dict(spec) if spec is not None else None
 
 
 def list_signals() -> list[dict[str, Any]]:
-    """Retorna la lista de especificaciones de todas las señales registradas."""
+    """Return the list of specifications for all registered signals."""
     return [dict(spec) for spec in SIGNALS.values()]
