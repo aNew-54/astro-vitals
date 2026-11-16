@@ -16,10 +16,10 @@
 
     const lastNotified = {};
     let lastSoundAt = 0;
-    //let stack = null;
+    let stack = null;
 
     /* ---------- SONIDO DESDE ARCHIVO ---------- */
-    const ALERT_SOUND_SRC = "web/sounds/sound_alert.mp3";  // cambia el nombre si el tuyo es otro
+    const ALERT_SOUND_SRC = "/sounds/sound_alert.mp3";  // cambia el nombre si el tuyo es otro
     const ALERT_VOLUME = 0.8;                     // de 0 a 1
     const ALERT_REPEATS = 2;                      // cuántas veces suena
 

@@ -64,9 +64,9 @@
                 logEvent(cur, `${info.label} ${info.fmt()} → ${SEV_LABEL[cur]}`);
                 if (typeof notifyAlert === "function") notifyAlert(k, cur);
             } else if (cur === 0 && prevNum > 0) {
-                logEvent(0, `${info.label} vuelve a NOMINAL`);
+                logEvent(0, `${info.label} back to NOMINAL`);
             } else if (cur < prevNum) {
-                logEvent(cur, `${info.label} baja a ${SEV_LABEL[cur]}`);
+                logEvent(cur, `${info.label} drops to ${SEV_LABEL[cur]}`);
             }
             logged[k] = cur;
         });
@@ -131,9 +131,9 @@
         if (hrAvgEl) {
             if (hrHist.length) {
                 const avg = hrHist.reduce((a, b) => a + b, 0) / hrHist.length;
-                hrAvgEl.textContent = `PROMEDIO SESIÓN: ${r0(avg)} BPM`;
+                hrAvgEl.textContent = `SESSION AVG: ${r0(avg)} BPM`;
             } else {
-                hrAvgEl.textContent = "PROMEDIO SESIÓN: -- BPM";
+                hrAvgEl.textContent = "SESSION AVG: -- BPM";
             }
         }
 
@@ -166,13 +166,13 @@
         const ecgState = $("#ecg-state");
         if (ecgState) {
             if (!hrOk || !isNum(D.hr)) {
-                ecgState.textContent = "● SIN SEÑAL";
+                ecgState.textContent = "● NO SIGNAL";
                 ecgState.className = "amber-text";
             } else if (D.hr === 0) {
-                ecgState.textContent = "● SEÑAL ESTABLE";
+                ecgState.textContent = "● STABLE SIGNAL";
                 ecgState.className = "green-text";
             } else {
-                ecgState.textContent = state.hr > 100 ? "● FREC. ELEVADA" : "● FREC. BAJA";
+                ecgState.textContent = state.hr > 100 ? "● HIGH RATE" : "● LOW RATE";
                 ecgState.className = D.hr === 2 ? "red-text" : "amber-text";
             }
         }
@@ -205,15 +205,15 @@
             line.setAttribute("points", "");
             area.setAttribute("points", "");
             dot.setAttribute("visibility", "hidden");
-            $("#hr-trend-min").textContent = "MÍN —";
-            $("#hr-trend-max").textContent = "MÁX —";
+            $("#hr-trend-min").textContent = "MIN —";
+            $("#hr-trend-max").textContent = "MAX —";
             return;
         }
 
         const min = Math.min(...values);
         const max = Math.max(...values);
-        $("#hr-trend-min").textContent = `MÍN ${r0(min)}`;
-        $("#hr-trend-max").textContent = `MÁX ${r0(max)}`;
+        $("#hr-trend-min").textContent = `MIN ${r0(min)}`;
+        $("#hr-trend-max").textContent = `MAX ${r0(max)}`;
 
         if (values.length < 2) {
             line.setAttribute("points", "");
@@ -249,7 +249,7 @@
 
         if (!state.ready || !isNum(state.hr)) {
             box.dataset.status = "warn";
-            box.title = "Calidad de señal ECG: sin señal";
+            box.title = "ECG signal quality: no signal";
             text.textContent = SEV_MISSING;
             bars.forEach(bar => bar.classList.remove("is-on"));
             return;
@@ -261,8 +261,8 @@
         const hrPenalty = D.hr === 2 ? 1 : D.hr === 1 ? 0.4 : 0;
         const level = clamp(Math.round(5 - noise * 4 - hrPenalty), 1, 5);
         box.dataset.status = level >= 4 ? "ok" : level >= 3 ? "warn" : "alert";
-        box.title = `Calidad de señal ECG: ${["", "crítica", "débil", "regular", "buena", "óptima"][level]}`;
-        text.textContent = ["", "CRÍTICA", "DÉBIL", "REGULAR", "BUENA", "ÓPTIMA"][level];
+        box.title = `ECG signal quality: ${["", "critical", "weak", "regular", "good", "optimal"][level]}`;
+        text.textContent = ["", "CRITICAL", "WEAK", "REGULAR", "GOOD", "OPTIMAL"][level];
         bars.forEach((bar, i) => bar.classList.toggle("is-on", i < level));
     }
 
@@ -281,16 +281,16 @@
                 g.textContent = `● ${SEV_MISSING}`;
                 g.className = "amber-text";
             } else if (maxSev === 2) {
-                g.textContent = `■ ALERTA · ${active.length} PARÁM.`;
+                g.textContent = `■ ALERT · ${active.length} PARAMETERS`;
                 g.className = "red-text";
             } else if (maxSev === 1) {
-                g.textContent = `▲ PRECAUCIÓN · ${active.length} PARÁM.`;
+                g.textContent = `▲ WARNING · ${active.length} PARAMETERS`;
                 g.className = "amber-text";
             } else if (missingKeys.length) {
-                g.textContent = `● PARCIAL · ${missingKeys.length} SIN SEÑAL`;
+                g.textContent = `● PARTIAL · ${missingKeys.length} NO SIGNAL`;
                 g.className = "amber-text";
             } else {
-                g.textContent = "● VITALES NOMINALES";
+                g.textContent = "● VITALS NOMINAL";
                 g.className = "green-text";
             }
         }
@@ -306,9 +306,9 @@
         if (key !== tickerKey) {
             tickerKey = key;
             const headParts = active.map(k => `${METRIC_INFO[k].label} ${METRIC_INFO[k].fmt()} [${SEV_LABEL[D[k]]}]`);
-            if (missingKeys.length) headParts.push(`${missingKeys.length} PARÁM. ${SEV_MISSING}`);
-            const head = headParts.length ? headParts.join(" *** ") : "VITALES NOMINALES";
-            tickerTrack.textContent = `*** ${head} *** TELEMETRÍA A BORDO — MOTOR EDGE + SQLITE (REST + WS) *** NO USO CLÍNICO *** `;
+            if (missingKeys.length) headParts.push(`${missingKeys.length} PARAMETERS ${SEV_MISSING}`);
+            const head = headParts.length ? headParts.join(" *** ") : "NOMINAL VITALS";
+            tickerTrack.textContent = `*** ${head} *** ONBOARD TELEMETRY — EDGE ENGINE + SQLITE (REST + WS) *** NON-CLINICAL USE *** `;
             ticker.dataset.status = (!validKeys.length || (maxSev === 0 && missingKeys.length))
                 ? "warn"
                 : SEV_KEY[maxSev];
@@ -327,19 +327,19 @@
         const sev = connected && ready ? 0 : ready ? 1 : connected ? 1 : 2;
 
         stateEl.textContent = connected && ready
-            ? "● ENLACE ACTIVO"
+            ? "● LINK ACTIVE"
             : connected
-                ? "● ESPERANDO DATOS"
+                ? "● WAITING FOR DATA"
                 : ready
-                    ? "● MODO REST"
-                    : "● SIN ENLACE";
+                    ? "● REST MODE"
+                    : "● NO LINK";
         stateEl.className = ["green-text", "amber-text", "red-text"][sev];
 
         const band = $("#radio-band");
-        if (band) band.textContent = connected ? "CANAL: WEBSOCKET" : ready ? "CANAL: REST" : "CANAL: SIN CONEXIÓN";
+        if (band) band.textContent = connected ? "CHANNEL: WEBSOCKET" : ready ? "CHANNEL: REST" : "CHANNEL: NO CONNECTION";
 
         const traffic = $("#radio-traffic");
-        if (traffic) traffic.textContent = connected ? "TELEMETRÍA EN VIVO" : ready ? "ÚLTIMA LECTURA REST" : "SIN TRÁFICO";
+        if (traffic) traffic.textContent = connected ? "LIVE TELEMETRY" : ready ? "LAST REST READ" : "NO TRAFFIC";
 
         const carrier = $("#radio-carrier");
         if (carrier) carrier.textContent = "REST + WEBSOCKET";
@@ -347,12 +347,12 @@
         const ts = parseTs(state.timestamp);
         const age = ts ? Math.max(0, Math.floor((Date.now() - ts.getTime()) / 1000)) : null;
         const ageText = age === null
-            ? "SIN LECTURA"
+            ? "NO READING"
             : age < 60
-                ? `EDAD LECTURA ${age}s`
+                ? `READING AGE ${age}s`
                 : age < 3600
-                    ? `EDAD LECTURA ${Math.floor(age / 60)} min`
-                    : `EDAD LECTURA ${Math.floor(age / 3600)} h`;
+                    ? `READING AGE ${Math.floor(age / 60)} min`
+                    : `READING AGE ${Math.floor(age / 3600)} h`;
 
         const latency = $("#radio-latency");
         if (latency) latency.textContent = ageText;
@@ -360,10 +360,10 @@
         const link = $("#link-latency");
         if (link) {
             link.textContent = connected
-                ? (age === null ? "ACTIVO · WS" : `ACTIVO · ${age}s`)
+                ? (age === null ? "ACTIVE · WS" : `ACTIVE · ${age}s`)
                 : ready
-                    ? "ÚLTIMA LECTURA REST"
-                    : "SIN ENLACE";
+                    ? "LAST REST READ"
+                    : "NO LINK";
         }
     }
 
@@ -376,14 +376,14 @@
         const source = $("#data-source");
 
         if (a) {
-            if (crew) crew.textContent = (a.code || "SIN DATOS").toUpperCase();
-            if (role) role.textContent = (a.role || "SIN DATOS").toUpperCase();
-            if (mission) mission.textContent = (a.mission || "SIN DATOS").toUpperCase();
+            if (crew) crew.textContent = (a.code || "NO DATA").toUpperCase();
+            if (role) role.textContent = (a.role || "NO DATA").toUpperCase();
+            if (mission) mission.textContent = (a.mission || "NO DATA").toUpperCase();
             if (day) day.textContent = `D${String(a.mission_day ?? 0).padStart(3, "0")}`;
         }
 
         if (source) {
-            source.textContent = (state.source || "SIN DATOS").toUpperCase();
+            source.textContent = (state.source || "NO DATA").toUpperCase();
         }
     }
 
@@ -435,7 +435,7 @@
         if (btnShelter) {
             btnShelter.classList.toggle("is-on", sheltered);
             btnShelter.setAttribute("aria-pressed", String(sheltered));
-            btnShelter.textContent = sheltered ? "REFUGIO: ACTIVO" : "REFUGIO (SHELTER)";
+            btnShelter.textContent = sheltered ? "SHELTER: ACTIVE" : "SHELTER";
             btnShelter.disabled = false;
         }
 
@@ -449,8 +449,8 @@
         const srcBadge = $("#control-source-badge");
         if (srcBadge) {
             srcBadge.textContent = activeScn === "bidmc"
-                ? "PASARELA · BIDMC REAL"
-                : "PASARELA · /api/control";
+                ? "GATEWAY · REAL BIDMC"
+                : "GATEWAY · /api/control";
         }
 
         const slider = $("#eva-slider");
@@ -463,18 +463,18 @@
         if (out) out.textContent = load === null ? "--" : String(r0(load));
 
         if (ctrl.error) {
-            setControlFeedback(`AVISO PASARELA: ${ctrl.error}`, true);
+            setControlFeedback(`GATEWAY WARNING: ${ctrl.error}`, true);
         } else if (activeScn || envId || backend.cache.control) {
             const parts = [
-                ctrl.paused ? "PAUSADA" : "EMITIENDO",
-                `ESCENARIO: ${(activeScn || "--").toUpperCase()}`,
-                `ENTORNO: ${(envId || "--").toUpperCase()}`
+                ctrl.paused ? "PAUSED" : "TRANSMITTING",
+                `SCENARIO: ${(activeScn || "--").toUpperCase()}`,
+                `ENVIRONMENT: ${(envId || "--").toUpperCase()}`
             ];
-            if (sheltered) parts.push("REFUGIO ACTIVO");
-            if (isNum(ctrl.remaining_samples)) parts.push(`MUESTRAS REST.: ${ctrl.remaining_samples}`);
+            if (sheltered) parts.push("SHELTER ACTIVE");
+            if (isNum(ctrl.remaining_samples)) parts.push(`SAMPLES LEFT: ${ctrl.remaining_samples}`);
             setControlFeedback(parts.join(" · "), false);
         } else {
-            setControlFeedback("Controles listos · Selecciona escenario o entorno.", false);
+            setControlFeedback("Controls ready · Select a scenario or environment.", false);
         }
 
         syncLcdGhosts();
@@ -486,7 +486,7 @@
 
         const modeBadge = $("#ai-mode-badge");
         if (modeBadge) {
-            modeBadge.textContent = I.privacy.shareBehavioral ? "COMPARTIR EN SBAR" : "SOLO A BORDO";
+            modeBadge.textContent = I.privacy.shareBehavioral ? "SHARE IN SBAR" : "ONBOARD ONLY";
         }
 
         const hypCard = $("#ai-hypothesis-card");
@@ -500,7 +500,7 @@
         const hypMeta = $("#ai-hypothesis-meta");
         if (hypMeta) {
             hypMeta.textContent = I.nextStep
-                || (I.assessmentMethod ? `Método: ${I.assessmentMethod}` : "Hipótesis orientativa (escenario simulado) · Sin validez clínica");
+                || (I.assessmentMethod ? `Method: ${I.assessmentMethod}` : "Indicative hypothesis (simulated scenario) · No clinical validity");
         }
 
         const fcEl = $("#ai-forecast");
@@ -514,7 +514,7 @@
         if (fcMethod) {
             fcMethod.textContent = I.forecast.persistenceBpm !== null
                 ? `${I.forecast.method} (pers.: ${r0(I.forecast.persistenceBpm)} BPM)`
-                : (I.forecast.reason || `Método: ${I.forecast.method}`);
+                : (I.forecast.reason || `Method: ${I.forecast.method}`);
         }
 
         const co2El = $("#ai-co2-eta");
@@ -535,21 +535,21 @@
                 const etaTxt = I.projections.co2EtaMin !== null ? ` · ETA ${I.projections.co2EtaMin.toFixed(1)} min` : "";
                 co2Detail.textContent = `Sens.: +${I.co2Sensitivity.slope.toFixed(2)} (r²=${r2Txt})${etaTxt}`;
             } else {
-                co2Detail.textContent = I.co2Sensitivity.reason || I.projections.co2EtaReason || "Sin pendiente calibrada";
+                co2Detail.textContent = I.co2Sensitivity.reason || I.projections.co2EtaReason || "No calibrated slope";
             }
         }
 
         const coachEl = $("#ai-coach-stats");
         if (coachEl) {
-            coachEl.textContent = `${I.coach.points} PTS · RACHA ${I.coach.streak}`;
+            coachEl.textContent = `${I.coach.points} PTS · STREAK ${I.coach.streak}`;
         }
 
         const coachDetail = $("#ai-coach-detail");
         if (coachDetail) {
             const dueCount = I.coach.routines.filter(r => r.due).length;
             coachDetail.textContent = dueCount > 0
-                ? `${dueCount} rutina(s) pendiente(s) · Solo participación`
-                : "Rutinas al día · Solo participación";
+                ? `${dueCount} routine(s) pending · Participation only`
+                : "Routines up to date · Participation only";
         }
     }
 
@@ -573,12 +573,12 @@
         const flagged = zoneKeys.filter(id => isNum(Z[id].sev) && Z[id].sev > 0).length;
         const missing = zoneKeys.filter(id => !isNum(Z[id].sev)).length;
         $("#body-summary").textContent = flagged
-            ? `${flagged} ZONA${flagged > 1 ? "S" : ""} EN OBSERVACIÓN`
+            ? `${flagged} ZONE${flagged > 1 ? "S" : ""} UNDER OBSERVATION`
             : missing === zoneKeys.length
                 ? SEV_MISSING
                 : missing > 0
-                    ? "LECTURA PARCIAL"
-                    : "SIN ANOMALÍAS";
+                    ? "PARTIAL READING"
+                    : "NO ANOMALIES";
 
         const worst = worstZone(Z);
         const id = autoMode ? (worst ? worst.id : null) : selectedZone;
@@ -596,7 +596,7 @@
         if (stageZone) {
             stageZone.dataset.status = id ? sevStatusKey(Z[id].sev) : "ok";
             stageZone.textContent = !id
-                ? "VISTA GENERAL"
+                ? "GENERAL VIEW"
                 : autoMode
                     ? `AUTO · ${ZONES[id].name}`
                     : `${ZONES[id].code} · ${ZONES[id].name}`;
@@ -612,14 +612,14 @@
         if (!z) {
             const allMissing = Z && Object.keys(Z).every(id => !isNum(Z[id].sev));
             box.dataset.status = allMissing ? "warn" : "ok";
-            $("#zr-title").textContent = allMissing ? "ESCANEO EN ESPERA" : "ESCANEO CONTINUO";
+            $("#zr-title").textContent = allMissing ? "SCAN ON STANDBY" : "CONTINUOUS SCAN";
             $("#zr-badge").textContent = allMissing ? SEV_MISSING : "NOMINAL";
             list.innerHTML = "";
-            $("#zr-nasa").textContent = "Las 7 zonas agrupan los riesgos espaciales de referencia. Con comunicaciones retrasadas, la tripulación monitorea cambios tempranos a bordo.";
-            $("#zr-cause").textContent = allMissing ? "Sin lectura disponible en la fuente actual." : "Sin hallazgos.";
+            $("#zr-nasa").textContent = "The 7 zones group the reference spaceflight risks. With delayed communications, the crew monitors early changes onboard.";
+            $("#zr-cause").textContent = allMissing ? "No reading available from the current source." : "No findings.";
             $("#zr-action").textContent = allMissing
-                ? "Verificar la fuente de telemetría o seleccionar un escenario activo."
-                : "Mantener la rutina de monitoreo y las contramedidas de ejercicio. Pulsa una zona para ver su detalle.";
+                ? "Check the telemetry source or select an active scenario."
+                : "Keep up the monitoring routine and exercise countermeasures. Tap a zone to see its detail.";
             return;
         }
         const info = ZONES[z.id];
@@ -634,12 +634,12 @@
 
         if (!isNum(z.sev)) {
             $("#zr-nasa").textContent = info.nasa;
-            $("#zr-cause").textContent = "Sin lectura disponible en la fuente actual.";
-            $("#zr-action").textContent = "Verificar sensores y enlace de telemetría para esta zona.";
+            $("#zr-cause").textContent = "No reading available from the current source.";
+            $("#zr-action").textContent = "Check the sensors and telemetry link for this zone.";
         } else if (z.sev === 0) {
             $("#zr-nasa").textContent = info.nasa;
-            $("#zr-cause").textContent = "Sin hallazgos: los parámetros de esta zona están en rango.";
-            $("#zr-action").textContent = "Mantener rutina de monitoreo y contramedidas de ejercicio.";
+            $("#zr-cause").textContent = "No findings: this zone's parameters are within range.";
+            $("#zr-action").textContent = "Keep up the monitoring routine and exercise countermeasures.";
         } else {
             const m = METRIC_INFO[z.primary];
             $("#zr-nasa").textContent = z.viaRadiation ? RADIATION_NASA : info.nasa;
@@ -679,35 +679,35 @@
         if (btn.disabled) return;
 
         if (!state.ready) {
-            btn.textContent = "SIN TELEMETRÍA";
+            btn.textContent = "NO TELEMETRY";
             clearTimeout(logTimer);
-            logTimer = setTimeout(() => { btn.textContent = "REGISTRAR EN BITÁCORA"; }, 2500);
+            logTimer = setTimeout(() => { btn.textContent = "LOG ENTRY"; }, 2500);
             return;
         }
 
         const Z = computeZones(D);
         const id = autoMode ? (worstZone(Z) || {}).id : selectedZone;
-        const zoneName = id ? ZONES[id].name : "Sistema General";
+        const zoneName = id ? ZONES[id].name : "General System";
 
         btn.disabled = true;
-        btn.textContent = "TRANSMITIENDO...";
+        btn.textContent = "TRANSMITTING...";
 
-        let label = "REGISTRADO ✓";
+        let label = "LOGGED ✓";
 
         try {
             const result = await backend.saveZoneLog({
                 zone: zoneName,
                 action: $("#zr-action").textContent
             });
-            label = result ? "REGISTRADO ✓" : "FALLO DE RED";
+            label = result ? "LOGGED ✓" : "NETWORK FAILURE";
             if (result) refreshDrawer(true);
         } catch (err) {
-            label = "FALLO DE RED";
+            label = "NETWORK FAILURE";
         }
 
         btn.textContent = label;
         logTimer = setTimeout(() => {
-            btn.textContent = "REGISTRAR EN BITÁCORA";
+            btn.textContent = "LOG ENTRY";
             btn.disabled = false;
         }, 3000);
     });
@@ -715,7 +715,7 @@
     /* ---------- 5. ESTADO SIN DATOS ---------- */
     function renderIdle() {
         const g = $("#global-status");
-        if (g) { g.textContent = "● ESPERANDO TELEMETRÍA"; g.className = "amber-text"; }
+        if (g) { g.textContent = "● WAITING FOR TELEMETRY"; g.className = "amber-text"; }
 
         const badge = $("#alert-count");
         if (badge) badge.hidden = true;
@@ -725,7 +725,7 @@
         const hrGaugeEl = $("#hr-gauge-circle");
         if (hrGaugeEl) hrGaugeEl.style.strokeDashoffset = "100";
         const hrAvgEl = $("#hr-avg");
-        if (hrAvgEl) hrAvgEl.textContent = "PROMEDIO SESIÓN: -- BPM";
+        if (hrAvgEl) hrAvgEl.textContent = "SESSION AVG: -- BPM";
 
         const bpSysEl = $("#bp-sys");
         const bpDiaEl = $("#bp-dia");
@@ -751,10 +751,10 @@
         const ecg = $("#ecg-state");
         if (ecg) { ecg.textContent = `● ${SEV_MISSING}`; ecg.className = "amber-text"; }
 
-        $("#zr-title").textContent = "SIN TELEMETRÍA";
+        $("#zr-title").textContent = "NO TELEMETRY";
         $("#zr-badge").textContent = SEV_MISSING;
         $("#zr-list").innerHTML = "";
-        $("#zr-nasa").textContent = "A la espera de la primera medición en la base de datos a bordo.";
+        $("#zr-nasa").textContent = "Waiting for the first measurement in the onboard database.";
         $("#zr-cause").textContent = "—";
         $("#zr-action").textContent = "—";
 
@@ -837,12 +837,12 @@
                 done: "is-done"
             };
             const textMap = {
-                idle: "PULSA «INICIAR TEST» PARA COMENZAR (6 INTENTOS)",
-                waiting: "ESPERA LA SEÑAL VERDE...",
-                go: "¡AHORA! PULSA AQUÍ",
-                false_start: "SALIDA EN FALSO — ESPERANDO...",
-                between: "REGISTRADO — SIGUIENTE INTENTO...",
-                done: `COMPLETADO · MEDIANA ${med ?? "--"} ms`
+                idle: "PRESS «START TEST» TO BEGIN (6 TRIALS)",
+                waiting: "WAIT FOR THE GREEN SIGNAL...",
+                go: "NOW! TAP HERE",
+                false_start: "FALSE START — WAITING...",
+                between: "RECORDED — NEXT TRIAL...",
+                done: `COMPLETED · MEDIAN ${med ?? "--"} ms`
             };
             pad.className = `rxn-pad ${clsMap[rx.phase] || ""}`.trim();
             pad.disabled = rx.phase === "idle" || rx.phase === "done" || rx.phase === "between";
@@ -850,7 +850,7 @@
         }
 
         const running = ["waiting", "go", "false_start", "between"].includes(rx.phase);
-        if (startBtn) startBtn.textContent = running ? "REINICIAR TEST" : "INICIAR TEST (6 INTENTOS)";
+        if (startBtn) startBtn.textContent = running ? "RESTART TEST" : "START TEST (6 TRIALS)";
         if (submitBtn) submitBtn.disabled = rx.times.length === 0 || rx.phase !== "done" || rx.submitting;
     }
 
@@ -904,7 +904,7 @@
             } else {
                 ui.rxn.phase = "between";
                 ui.rxn.trial = ui.rxn.times.length + 1;
-                syncRxnDom(`${elapsed} ms — SIGUIENTE...`);
+                syncRxnDom(`${elapsed} ms — NEXT...`);
                 ui.rxn.timerId = setTimeout(() => {
                     ui.rxn.timerId = null;
                     startRxnWait();
@@ -974,15 +974,15 @@
             const scnBtn = e.target.closest(".scn-btn");
             if (scnBtn) {
                 const scenario = scnBtn.dataset.scenario;
-                setControlFeedback(`Aplicando escenario ${scenario.toUpperCase()}...`, false);
+                setControlFeedback(`Applying scenario ${scenario.toUpperCase()}...`, false);
                 backend.setControl({ scenario })
                     .then(() => backend.refresh())
                     .then(() => {
-                        logEvent(0, `ESCENARIO: ${scenario.toUpperCase()}`);
+                        logEvent(0, `SCENARIO: ${scenario.toUpperCase()}`);
                         render();
                         refreshDrawer(true);
                     })
-                    .catch(err => setControlFeedback(`Error de pasarela: ${err.message}`, true));
+                    .catch(err => setControlFeedback(`Gateway error: ${err.message}`, true));
                 return;
             }
 
@@ -990,15 +990,15 @@
                 const ctrl = backend.cache.control || {};
                 const cur = Boolean(ctrl.shelter ?? ctrl.shelter_active ?? backend.cache.onboard?.shelter_active);
                 const nextShelter = !cur;
-                setControlFeedback(nextShelter ? "Activando refugio..." : "Desactivando refugio...", false);
+                setControlFeedback(nextShelter ? "Activating shelter..." : "Deactivating shelter...", false);
                 backend.setControl({ shelter: nextShelter })
                     .then(() => backend.refresh())
                     .then(() => {
-                        logEvent(0, nextShelter ? "REFUGIO SIMULADO ACTIVADO" : "REFUGIO SIMULADO DESACTIVADO");
+                        logEvent(0, nextShelter ? "SIMULATED SHELTER ACTIVATED" : "SIMULATED SHELTER DEACTIVATED");
                         render();
                         refreshDrawer(true);
                     })
-                    .catch(err => setControlFeedback(`Error refugio: ${err.message}`, true));
+                    .catch(err => setControlFeedback(`Shelter error: ${err.message}`, true));
                 return;
             }
 
@@ -1008,11 +1008,11 @@
                 backend.acknowledgeOnboard()
                     .then(() => backend.getOnboardState())
                     .then(() => {
-                        logEvent(0, "ALERTA A BORDO RECONOCIDA (ACK)");
+                        logEvent(0, "ONBOARD ALERT ACKNOWLEDGED (ACK)");
                         render();
                         refreshDrawer(true);
                     })
-                    .catch(err => setControlFeedback(`Error ACK: ${err.message}`, true))
+                    .catch(err => setControlFeedback(`ACK error: ${err.message}`, true))
                     .finally(() => { if (ackBtn) ackBtn.disabled = false; });
             }
         });
@@ -1022,15 +1022,15 @@
     if (envSelectEl) {
         envSelectEl.addEventListener("change", () => {
             const env = envSelectEl.value;
-            setControlFeedback(`Cambiando entorno a ${env.toUpperCase()}...`, false);
+            setControlFeedback(`Switching environment to ${env.toUpperCase()}...`, false);
             backend.setEnvironment(env)
                 .then(() => backend.refresh())
                 .then(() => {
-                    logEvent(0, `ENTORNO: ${env.toUpperCase()}`);
+                    logEvent(0, `ENVIRONMENT: ${env.toUpperCase()}`);
                     render();
                     refreshDrawer(true);
                 })
-                .catch(err => setControlFeedback(`Error entorno: ${err.message}`, true));
+                .catch(err => setControlFeedback(`Environment error: ${err.message}`, true));
         });
     }
 
@@ -1074,16 +1074,16 @@
                 .then(res => {
                     ui.rxn.submitting = false;
                     if (!res) {
-                        ui.rxn.error = "No se obtuvo respuesta de /api/v1/checkin.";
+                        ui.rxn.error = "No response from /api/v1/checkin.";
                     } else {
                         ui.rxn.lastResult = res;
-                        logEvent(0, "CHECK-IN CONDUCTUAL REGISTRADO");
+                        logEvent(0, "BEHAVIORAL CHECK-IN RECORDED");
                     }
                     return Promise.allSettled([backend.getOnboardState(), backend.getRoutines()]);
                 })
                 .catch(err => {
                     ui.rxn.submitting = false;
-                    ui.rxn.error = err?.message || "Error al enviar check-in.";
+                    ui.rxn.error = err?.message || "Error submitting check-in.";
                 })
                 .finally(() => { render(); refreshDrawer(true); });
             return;
@@ -1095,7 +1095,7 @@
             backend.completeRoutine(rid)
                 .then(() => Promise.allSettled([backend.getRoutines(), backend.getOnboardState()]))
                 .then(() => {
-                    logEvent(0, `RUTINA COMPLETADA: ${rid}`);
+                    logEvent(0, `ROUTINE COMPLETED: ${rid}`);
                     render();
                     refreshDrawer(true);
                 })
@@ -1108,7 +1108,7 @@
             backend.acknowledgeOnboard()
                 .then(() => backend.getOnboardState())
                 .then(() => {
-                    logEvent(0, "ALERTA A BORDO RECONOCIDA (ACK)");
+                    logEvent(0, "ONBOARD ALERT ACKNOWLEDGED (ACK)");
                     render();
                     refreshDrawer(true);
                 })
@@ -1124,12 +1124,12 @@
             backend.getReport()
                 .then(rep => {
                     ui.reportLoading = false;
-                    if (!rep) ui.reportError = "No se pudo cargar /api/v1/report.";
+                    if (!rep) ui.reportError = "Could not load /api/v1/report.";
                     refreshDrawer(true);
                 })
                 .catch(err => {
                     ui.reportLoading = false;
-                    ui.reportError = err?.message || "Error cargando informe SBAR.";
+                    ui.reportError = err?.message || "Error loading SBAR report.";
                     refreshDrawer(true);
                 });
             return;
@@ -1139,7 +1139,7 @@
             b.disabled = true;
             (backend.cache.report ? Promise.resolve(backend.cache.report) : backend.getReport())
                 .then(rep => {
-                    if (!rep) throw new Error("Informe SBAR no disponible.");
+                    if (!rep) throw new Error("SBAR report unavailable.");
                     const md = formatSbarMarkdown(rep);
                     const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
                     const url = URL.createObjectURL(blob);
@@ -1150,11 +1150,11 @@
                     a.click();
                     a.remove();
                     URL.revokeObjectURL(url);
-                    logEvent(0, "INFORME SBAR DESCARGADO (.MD)");
+                    logEvent(0, "SBAR REPORT DOWNLOADED (.MD)");
                 })
                 .catch(err => {
                     ui.reportOpen = true;
-                    ui.reportError = err?.message || "Error descargando informe SBAR.";
+                    ui.reportError = err?.message || "Error downloading SBAR report.";
                     refreshDrawer(true);
                 })
                 .finally(() => { b.disabled = false; });
@@ -1174,12 +1174,12 @@
         else if (b.dataset.histMetric) { ui.histMetric = b.dataset.histMetric; rerenderKeepFocus(`[data-hist-metric="${ui.histMetric}"]`); }
         else if (b.dataset.mood) {
             ui.mood = b.dataset.mood;
-            logEvent(ui.mood === "bad" ? 1 : 0, `AUTOINFORME: ánimo ${{ good: "BIEN", ok: "REGULAR", bad: "MAL" }[ui.mood]}`);
+            logEvent(ui.mood === "bad" ? 1 : 0, `SELF-REPORT: mood ${{ good: "GOOD", ok: "FAIR", bad: "POOR" }[ui.mood]}`);
             rerenderKeepFocus(`[data-mood="${ui.mood}"]`);
         }
         else if (b.dataset.alertPriority) {
             ui.alerts.priority = b.dataset.alertPriority;
-            logEvent(ui.alerts.priority === "critica" ? 1 : 0, `CONFIG ALERTAS: prioridad ${ALERT_PRIORITIES[ui.alerts.priority].label}`);
+            logEvent(ui.alerts.priority === "critica" ? 1 : 0, `ALERT CONFIG: priority ${ALERT_PRIORITIES[ui.alerts.priority].label}`);
             rerenderKeepFocus(`[data-alert-priority="${ui.alerts.priority}"]`);
         }
         else if (b.dataset.alertMethod) {
@@ -1190,7 +1190,7 @@
         else if (b.dataset.missionLink) {
             ui.mission.link = b.dataset.missionLink;
             const link = LINK_MODES[ui.mission.link];
-            logEvent(link.sev, `ENLACE TIERRA: modo ${link.label}`);
+            logEvent(link.sev, `EARTH LINK: mode ${link.label}`);
             rerenderKeepFocus(`[data-mission-link="${ui.mission.link}"]`);
         }
     });
@@ -1208,7 +1208,7 @@
             backend.setPrivacy(share)
                 .then(() => backend.getOnboardState())
                 .then(() => {
-                    logEvent(0, share ? "PRIVACIDAD: RESUMEN EN SBAR" : "PRIVACIDAD: SOLO A BORDO");
+                    logEvent(0, share ? "PRIVACY: SUMMARY IN SBAR" : "PRIVACY: ONBOARD ONLY");
                     render();
                     rerenderKeepFocus("[data-privacy-toggle]");
                 })
@@ -1229,7 +1229,7 @@
         if (t.dataset && t.dataset.alert) {
             ui.alerts[t.dataset.alert] = t.checked;
             if (t.dataset.alert === "enabled") {
-                logEvent(t.checked ? 0 : 1, `CONFIG ALERTAS: notificaciones ${t.checked ? "ACTIVADAS" : "SUSPENDIDAS"}`);
+                logEvent(t.checked ? 0 : 1, `ALERT CONFIG: notifications ${t.checked ? "ENABLED" : "SUSPENDED"}`);
                 rerenderKeepFocus(`[data-alert="enabled"]`);
             }
             return;
@@ -1284,7 +1284,7 @@
         const label = $("#pwr-label");
         label.textContent = on ? "PWR ONLINE" : "STANDBY";
         label.className = on ? "green-text" : "amber-text";
-        logEvent(0, on ? "PANTALLAS ENCENDIDAS" : "PANTALLAS EN STANDBY");
+        logEvent(0, on ? "DISPLAYS ON" : "DISPLAYS IN STANDBY");
     }
     function setShade(on) {
         shaded = on;
@@ -1308,20 +1308,20 @@
         const ts = parseTs(state.timestamp);
 
         if (!ts) {
-            el.textContent = "SIN DATOS";
+            el.textContent = "NO DATA";
             return;
         }
 
         const age = Math.max(0, Math.floor((Date.now() - ts.getTime()) / 1000));
         el.textContent = age < 60
-            ? `HACE ${age}s`
+            ? `${age}s AGO`
             : age < 3600
-                ? `HACE ${Math.floor(age / 60)} min`
-                : `HACE ${Math.floor(age / 3600)} h`;
+                ? `${Math.floor(age / 60)} min AGO`
+                : `${Math.floor(age / 3600)} h AGO`;
     }
 
     /* ---------- 10. ARRANQUE ---------- */
-    logEvent(0, "SISTEMA INICIADO — CONECTANDO CON LA API");
+    logEvent(0, "SYSTEM STARTED — CONNECTING TO API");
 
     let lastOnboardSync = 0;
     backend.onTelemetry = () => {

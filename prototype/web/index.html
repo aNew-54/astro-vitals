@@ -26,7 +26,7 @@
             </div>
             <div>
                 <h1>ASTRA <span>HEALTH</span></h1>
-                <small>[ SYSTEM MODEL: HW-WINAMP-98 ]</small>
+                <small>Autonomous Astronaut Health Monitoring System</small>
             </div>
         </div>
 
@@ -107,8 +107,7 @@
 
             <div class="simulation-banner">
                 <span class="warning-icon" aria-hidden="true">⚠</span>
-                <span>PERSISTED TELEMETRY — VALUES ARE READ FROM SQLITE THROUGH THE REST API AND THE WEBSOCKET. EDUCATIONAL TOOL, NOT SUITABLE FOR REAL CLINICAL USE OR DIAGNOSIS.</span>
-                <span class="badge-source">SOURCE: astra_health.db</span>
+                <span>EDUCATIONAL TOOL, NOT SUITABLE FOR REAL CLINICAL USE OR DIAGNOSIS.</span>
             </div>
 
             <section class="mission-bar" aria-label="Mission status">
@@ -132,7 +131,7 @@
                     <section class="section-block">
                         <div class="section-heading">
                             <span>PHYSIOLOGICAL MONITORING</span>
-                            <span class="section-decoration">REAL TIME · REST + WEBSOCKET</span>
+                            <span class="section-decoration">REAL TIME</span>
                         </div>
 
                         <div class="monitoring-grid">
@@ -283,7 +282,6 @@
                     <section class="section-block">
                         <div class="section-heading">
                             <span>TELEMETRY INPUT</span>
-                            <span class="section-decoration" id="control-source-badge">GATEWAY · /api/control</span>
                         </div>
 
                         <div class="control-panel" id="control-panel">
@@ -311,14 +309,10 @@
                                 <button class="hw-btn ack-btn" type="button" id="btn-ack">ACKNOWLEDGE (ACK)</button>
                             </div>
 
-                            <div class="eq-row">
-                                <label for="eva-slider">EVA LOAD</label>
-                                <input type="range" id="eva-slider" class="eq-slider" min="0" max="100" value="0" step="1" disabled>
-                                <span class="lcd lcd-sm"><span class="lcd-ghost" aria-hidden="true">--</span><span class="lcd-val" id="eva-value">--</span></span><span class="lcd-unit">%</span>
-                            </div>
+                           
                             <p class="control-feedback" id="control-status-text">Waiting for gateway status...</p>
                         </div>
-                        <p class="module-note">* Select a scenario, environment or simulated shelter on the gateway. During BIDMC replay or signal loss, missing channels show NO SIGNAL (--).</p>
+                        <p class="module-note">Select a scenario, environment or simulated shelter on the gateway. During BIDMC replay or signal loss, missing channels show NO SIGNAL (--).</p>
                     </section>
 
                     <section class="section-block" id="onboard-ai-summary">
@@ -564,8 +558,6 @@
                                         <path class="hud-corner" d="M2 440 V446 H14"/>
                                         <path class="hud-corner" d="M266 446 H278 V440"/>
                                         <text class="hud-tag" x="8" y="16">BIO-SCAN</text>
-                                        <text class="hud-tag" x="272" y="16" text-anchor="end">HOLO-7 · LIVE</text>
-                                        <text class="hud-caption" x="140" y="445" text-anchor="middle">HOLOGRAPHIC BODY SCAN · 7 ZONES</text>
                                         <path class="hud-tick" d="M2 60 H6 M2 70 H4 M2 200 H6 M2 210 H4"/>
                                         <path class="hud-tick" d="M278 60 H274 M278 70 H276 M278 200 H274 M278 210 H276"/>
                                     </g>
