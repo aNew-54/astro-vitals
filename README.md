@@ -141,6 +141,11 @@ PYTHONPATH=prototype prototype/.venv/bin/pytest prototype/tests/ -v
 | Terminal Console (TUI) | Textual + HTTPX | [`prototype/astro/tui.py`](prototype/astro/tui.py) |
 | Automated tests | `pytest` (50 tests: unit, contracts, ML, E2E) | [`prototype/tests/`](prototype/tests/) |
 
+
+## AI / Super Intelligence Use Disclosure
+Our team used ChatGPT, Google Gemini, Claude, OpenCode, and GitHub Copilot to assist with code drafting, debugging, code review, and documentation. 
+Generative AI was not used to create or alter project images, video, or audio. No NASA logos, flags, or mission identifiers were generated or modified using AI. Based on our project workflow, the datasets come from the sources identified in this project or from programmatic simulations; generative AI was not used to create the datasets. ASTRO-VITALS is a software prototype and does not include AI-generated visual or audio assets.AI-generated visual or audio assets.
+
 ## Prepared data and trained models
 
 | Model / Dataset | Detail |
